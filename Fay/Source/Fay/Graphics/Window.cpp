@@ -29,6 +29,9 @@ namespace Fay {
 
 	Window::~Window()
 	{
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
 		glfwTerminate();
 	}
 
@@ -60,6 +63,16 @@ namespace Fay {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
+
+			// Intialize imgui
+			IMGUI_CHECKVERSION();
+			ImGui::CreateContext();
+			ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+			ImGui::StyleColorsDark();
+
+			ImGui_ImplGlfw_InitForOpenGL(m_window, true);
+			ImGui_ImplOpenGL3_Init("#version 330");
 			return true;
 	}
 	void Window::clear() const
@@ -72,11 +85,20 @@ namespace Fay {
 		{
 			m_keyState[i] = m_keys[i];
 		}
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
+		ImGui::Begin("Hello, World!");
+		ImGui::Text("This is some text");
+		ImGui::End();
+
+		ImGui::Render();
 		GLenum error = glGetError();
 		if (error != GL_NO_ERROR)
 			std::cout << "OpenGL Error: " << error << std::endl;
 		glfwPollEvents();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(m_window);
 	}
 

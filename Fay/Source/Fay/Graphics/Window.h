@@ -1,8 +1,10 @@
 	#pragma once
 #include <iostream>
 #include <glew.h>
+#include "../ImGui/imgui.h"
+#include "../ImGui/backends/imgui_impl_glfw.h"
+#include "../ImGui/backends/imgui_impl_opengl3.h"
 #include <glfw3.h>
-
 namespace Fay {
 #define MAX_KEYS 1024
 #define MAX_BUTTONS 32
