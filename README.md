@@ -23,6 +23,7 @@
     then you can run the program and it should work all just fine
 # Making a game
     Now it's time to put the engine to use
+    
     - Open your solution explorer and navigate to the folder view go to the Source folder and add a new folder name it Game add a Game.h and .cpp file
 
     - Once thats done go back to the solution view and go to the source fiter add a new filter called Game and add existing item go to your game folder you created and add all 4 files
@@ -33,13 +34,12 @@
     - Here we'll make a Game class that will handle everything main.cpp already does
 
     - Go to the Game.h and insert the following
-    ```
-    #pragma once
-    #include <Core/Core.h>
-    ```
+
     - You can choose if you want to use a namespace or not for the game it's optional
 
-    ```
+```cpp
+    #pragma once
+    #include <Core/Core.h>
     namespace Game
     {
         class Game
@@ -90,11 +90,11 @@
 	        Fay::Sprite* groupBackground;
         };
     }
-    ```
+```
     
     - Now the Game.cpp file
 
-    ```
+```cpp
 #include <Game.h>
 #define USING_FPS 0
 namespace Game
@@ -181,12 +181,11 @@ namespace Game
 - Now go back to the main.cpp file and add the changes
 
 - We will start by including
-```
-#include <Game.h>
-```
 
 - We will now make our main instance and create our game variable replace <-title>, <-width>, <-height> with the actaul setting you want 
-```
+
+```cpp
+#include <Game.h>
 int main()
 {
     Game::Game* game = new Game(<-title>, <-width>, <-height>)
@@ -209,5 +208,6 @@ int main()
     return 0;
 }
 ```
-- Now run the program and you should see a blank window with your title, width, and height
-- That's all for now if you would like to see more on how to create a game visit my youtube channle where I'll have a game making series called In the Dark (it's currently in devolpment)
+    - Now run the program and you should see a blank window with your title, width, and height
+    
+    - That's all for now if you would like to see more on how to create a game visit my youtube channle where I'll have a game making series called In the Dark (it's currently in devolpment)
