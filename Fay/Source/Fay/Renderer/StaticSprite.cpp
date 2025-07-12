@@ -29,7 +29,6 @@ namespace Fay
 		GLushort indicies[] = { 0, 1, 2, 2, 3, 0 };
 		m_indexBuffer = new IndexBuffer(indicies, 6);
 	}
-
 	StaticSprite::~StaticSprite()
 	{
 		delete m_vertexArray;

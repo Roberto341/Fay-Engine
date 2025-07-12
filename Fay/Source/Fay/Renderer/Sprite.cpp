@@ -16,6 +16,10 @@ namespace Fay
 		m_size = Vec2(width, height);
 		m_texture = texture;
 	}
+	void Sprite::setPosition(Vec3& pos)
+	{
+		m_position = Vec3(pos.x, pos.y, pos.z);
+	}
 	bool Sprite::checkCollision(float object1_x, float object1_y, float object1_width, float object1_height,
 		float object2_x, float object2_y, float object2_width, float object2_height) {
 		return object1_x < object2_x + object2_width &&

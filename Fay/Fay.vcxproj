@@ -73,25 +73,25 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -210,6 +210,7 @@
     <ClCompile Include="Source\Fay\Graphics\Buffers\Buffer.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Buffers\IndexBuffer.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Buffers\VertexArray.cpp" />
+    <ClCompile Include="Source\Fay\Graphics\Camera.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Font\Font.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Font\FontManager.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Label.cpp" />
@@ -219,14 +220,29 @@
     <ClCompile Include="Source\Fay\Graphics\Shader.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Texture.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Window.cpp" />
+    <ClCompile Include="Source\Fay\ImGui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="Source\Fay\ImGui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="Source\Fay\ImGui\imgui.cpp" />
+    <ClCompile Include="Source\Fay\ImGui\ImGuiFileDialog.cpp" />
+    <ClCompile Include="Source\Fay\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Source\Fay\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Source\Fay\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Source\Fay\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Source\Fay\Math\Mat4.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec2.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec3.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec4.cpp" />
     <ClCompile Include="Source\Fay\Renderer\BatchRenderer.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\new_renderer\Draw2D.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\new_renderer\QuadRenderable.cpp" />
     <ClCompile Include="Source\Fay\Renderer\SimpleRenderer.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Sprite.cpp" />
     <ClCompile Include="Source\Fay\Renderer\StaticSprite.cpp" />
+    <ClCompile Include="Source\Fay\Utils\MapEditor.cpp" />
+    <ClCompile Include="Source\Game\Game.cpp" />
+    <ClCompile Include="Source\Game\Npc.cpp" />
+    <ClCompile Include="Source\Game\Player.cpp" />
+    <ClCompile Include="Source\Game\WorldLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ext\Freetype-gl\common.h" />
@@ -246,6 +262,7 @@
     <ClInclude Include="Source\Fay\Graphics\Buffers\Buffer.h" />
     <ClInclude Include="Source\Fay\Graphics\Buffers\IndexBuffer.h" />
     <ClInclude Include="Source\Fay\Graphics\Buffers\VertexArray.h" />
+    <ClInclude Include="Source\Fay\Graphics\Camera.h" />
     <ClInclude Include="Source\Fay\Graphics\Font\Font.h" />
     <ClInclude Include="Source\Fay\Graphics\Font\FontManager.h" />
     <ClInclude Include="Source\Fay\Graphics\Label.h" />
@@ -255,6 +272,18 @@
     <ClInclude Include="Source\Fay\Graphics\Shader.h" />
     <ClInclude Include="Source\Fay\Graphics\Texture.h" />
     <ClInclude Include="Source\Fay\Graphics\Window.h" />
+    <ClInclude Include="Source\Fay\ImGui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="Source\Fay\ImGui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="Source\Fay\ImGui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Source\Fay\ImGui\dirent\dirent.h" />
+    <ClInclude Include="Source\Fay\ImGui\imconfig.h" />
+    <ClInclude Include="Source\Fay\ImGui\imgui.h" />
+    <ClInclude Include="Source\Fay\ImGui\ImGuiFileDialog.h" />
+    <ClInclude Include="Source\Fay\ImGui\ImGuiFileDialogConfig.h" />
+    <ClInclude Include="Source\Fay\ImGui\imgui_internal.h" />
+    <ClInclude Include="Source\Fay\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Source\Fay\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Source\Fay\ImGui\imstb_truetype.h" />
     <ClInclude Include="Source\Fay\Math\Mat4.h" />
     <ClInclude Include="Source\Fay\Math\Math.h" />
     <ClInclude Include="Source\Fay\Math\MathFunc.h" />
@@ -262,6 +291,8 @@
     <ClInclude Include="Source\Fay\Math\Vec3.h" />
     <ClInclude Include="Source\Fay\Math\Vec4.h" />
     <ClInclude Include="Source\Fay\Renderer\BatchRenderer.h" />
+    <ClInclude Include="Source\Fay\Renderer\new_renderer\Draw2D.h" />
+    <ClInclude Include="Source\Fay\Renderer\new_renderer\QuadRenderable.h" />
     <ClInclude Include="Source\Fay\Renderer\Renderable2d.h" />
     <ClInclude Include="Source\Fay\Renderer\Renderer2d.h" />
     <ClInclude Include="Source\Fay\Renderer\SimpleRenderer.h" />
@@ -269,7 +300,12 @@
     <ClInclude Include="Source\Fay\Renderer\StaticSprite.h" />
     <ClInclude Include="Source\Fay\Utils\FileUtils.h" />
     <ClInclude Include="Source\Fay\Utils\ImageLoad.h" />
+    <ClInclude Include="Source\Fay\Utils\MapEditor.h" />
     <ClInclude Include="Source\Fay\Utils\Timer.h" />
+    <ClInclude Include="Source\Game\Game.h" />
+    <ClInclude Include="Source\Game\Npc.h" />
+    <ClInclude Include="Source\Game\Player.h" />
+    <ClInclude Include="Source\Game\WorldLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Changelog.md" />
@@ -278,6 +314,9 @@
     <None Include="Res\Shaders\basic.vert" />
     <None Include="Res\Shaders\light.frag" />
     <None Include="Res\Shaders\light.vert" />
+    <None Include="Res\Worlds\custom.world" />
+    <None Include="Res\Worlds\level0.world" />
+    <None Include="Res\Worlds\level1.world" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Res\Textures\b.png" />

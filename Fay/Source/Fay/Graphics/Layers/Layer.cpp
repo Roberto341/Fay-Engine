@@ -37,4 +37,13 @@ namespace Fay
 		m_renderer->end();
 		m_renderer->flush();
 	}
+
+	void Layer::clear()
+	{
+		for (auto* renderables : m_renderAbles)
+		{
+			delete renderables;
+		}
+		m_renderAbles.clear();
+	}
 }

@@ -18,3 +18,5 @@
 #include <Graphics/Font/FontManager.h>
 #include <Graphics/Texture.h>
 #include <Utils/Timer.h>
+#include <Graphics/Camera.h>
+#include <Utils/MapEditor.h>

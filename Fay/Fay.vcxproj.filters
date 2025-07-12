@@ -10,6 +10,9 @@
     <Filter Include="Source\Engine\graphics">
       <UniqueIdentifier>{bc0aeb5c-e4b7-4330-b4af-1157b320465f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Game">
+      <UniqueIdentifier>{888453b6-3a61-4a98-986d-fa3f1bfa677a}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source\Engine\utils">
       <UniqueIdentifier>{faca4fbd-2a73-4580-bba5-261899d8a3f0}</UniqueIdentifier>
     </Filter>
@@ -68,7 +71,19 @@
       <UniqueIdentifier>{e3458bd2-0437-4299-9005-6602fa44d5ab}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Engine\ImGui">
-      <UniqueIdentifier>{7594a095-9d40-437f-b38c-ccd2b524b116}</UniqueIdentifier>
+      <UniqueIdentifier>{f5eed69c-5ab0-4e89-9f94-3cb27f069943}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ImGui\backends">
+      <UniqueIdentifier>{04f139e0-9593-4510-9f46-b49a7fb35fc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Res\Worlds">
+      <UniqueIdentifier>{8dfb6359-b2bd-4181-9713-fc215396ee42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\renderer\new_renderer">
+      <UniqueIdentifier>{6e474adc-50e1-4da1-80f5-1816dbdee65e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ImGui\dirent">
+      <UniqueIdentifier>{1a66d776-1551-4f0c-96c5-8dfb746ae898}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -261,8 +276,54 @@
     <ClCompile Include="Source\Fay\Graphics\Label.cpp">
       <Filter>Source\Engine\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="Source\Game\Player.cpp">
+      <Filter>Source\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\Game.cpp">
+      <Filter>Source\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\Npc.cpp">
+      <Filter>Source\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGui\imgui.cpp">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGui\imgui_demo.cpp">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGui\imgui_draw.cpp">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGui\imgui_tables.cpp">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGui\imgui_widgets.cpp">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGui\backends\imgui_impl_glfw.cpp">
+      <Filter>Source\Engine\ImGui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGui\backends\imgui_impl_opengl3.cpp">
+      <Filter>Source\Engine\ImGui\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source\Fay\Graphics\Camera.cpp">
+      <Filter>Source\Engine\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\WorldLoader.cpp">
+      <Filter>Source\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Utils\MapEditor.cpp">
+      <Filter>Source\Engine\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\new_renderer\Draw2D.cpp">
+      <Filter>Source\Engine\renderer\new_renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\new_renderer\QuadRenderable.cpp">
+      <Filter>Source\Engine\renderer\new_renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGui\ImGuiFileDialog.cpp">
+      <Filter>Source\Engine\ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -389,6 +450,66 @@
     <ClInclude Include="Source\Fay\Utils\Timer.h">
       <Filter>Source\Engine\utils</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Game\Player.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Game.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Npc.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\imconfig.h">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\imgui.h">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\imgui_internal.h">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\imstb_rectpack.h">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\imstb_textedit.h">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\backends\imgui_impl_glfw.h">
+      <Filter>Source\Engine\ImGui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\backends\imgui_impl_opengl3.h">
+      <Filter>Source\Engine\ImGui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\backends\imgui_impl_opengl3_loader.h">
+      <Filter>Source\Engine\ImGui\backends</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\imstb_truetype.h">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Graphics\Camera.h">
+      <Filter>Source\Engine\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\WorldLoader.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Utils\MapEditor.h">
+      <Filter>Source\Engine\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\new_renderer\Draw2D.h">
+      <Filter>Source\Engine\renderer\new_renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\new_renderer\QuadRenderable.h">
+      <Filter>Source\Engine\renderer\new_renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\ImGuiFileDialog.h">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\ImGuiFileDialogConfig.h">
+      <Filter>Source\Engine\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGui\dirent\dirent.h">
+      <Filter>Source\Engine\ImGui\dirent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Res\Shaders\basic.frag">
@@ -407,6 +528,15 @@
       <Filter>Res\Shaders</Filter>
     </None>
     <None Include="Changelog.md" />
+    <None Include="Res\Worlds\level0.world">
+      <Filter>Res\Worlds</Filter>
+    </None>
+    <None Include="Res\Worlds\custom.world">
+      <Filter>Res\Worlds</Filter>
+    </None>
+    <None Include="Res\Worlds\level1.world">
+      <Filter>Res\Worlds</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Res\Textures\b.png">

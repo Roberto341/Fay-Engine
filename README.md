@@ -2,7 +2,7 @@
 
 ### Current release
  - [Alpha 1.0](https://github.com/Roberto341/Fay-Engine/tree/a.1.0)
-
+- Alpha 1.0.1 will release soon just cleaning a bit up you can ignore the new_renderer it doesnt do anything was testing it out for the map editor that will be removed once it is ready for release
 # Setup
 - Download the Fay-Engine-<current_version>.zip folder ex: (Alpha 1.0)
 - Navigate to the Fay-Engine-<current_version>.zip and go into the Fay-Engine-<current_version> folder inside you'll see
