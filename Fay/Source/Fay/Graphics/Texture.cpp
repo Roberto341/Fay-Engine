@@ -2,8 +2,8 @@
 
 namespace Fay
 {
-	Texture::Texture(const std::string& filename)
-		: m_fileName(filename)
+	Texture::Texture(std::string name, std::string filename)
+		: m_fileName(filename), m_name(name)
 	{
 		m_tid = load();
 	}

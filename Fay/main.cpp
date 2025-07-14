@@ -1,5 +1,5 @@
-#define MAP_EDITOR 1
 #include <Core/Core.h>
+#define MAP_EDITOR 0
 int main()
 {
 #if !MAP_EDITOR
@@ -74,7 +74,7 @@ Fay::Shader& shader = *s;
 Fay::TileLayer* layer = new Fay::TileLayer(&shader);
 
 Fay::MapEditor editor(layer, 32, 18, 32.0f);
-
+Fay::Camera camera(920, 540);
 
 
 shader.enable();
@@ -87,10 +87,9 @@ GLint texIds[]
 shader.enable();
 shader.setUniform1iv("textures", texIds, 10);
 shader.setUniformMat4("pr_matrix", Fay::Mat4::orthographic(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f)); // change to use camera->getProjection();
-shader.setUniformMat4("vw_matrix", Fay::Mat4(1.0f));
-//ImGui_ImplOpenGL3_NewFrame();
-//ImGui_ImplGlfw_NewFrame();
-//ImGui::NewFrame();
+shader.setUniformMat4("vw_matrix", camera.getViewMatrix());
+Fay::Vec3 camPos;
+
 IMGUI_CHECKVERSION();
 ImGui::CreateContext();
 ImGuiIO& io = ImGui::GetIO();
@@ -133,8 +132,12 @@ while (!window.closed())
 		glfwMakeContextCurrent(backup_current_context);
 	}
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	window.update();}
 
+	camera.setPosition(Fay::Vec3(16.0f, 9.0f, 0.0f));
+	shader.setUniformMat4("vw_matrix", camera.getViewMatrix());
+
+	window.update();
+}
 #endif
 	return 0;
 }
