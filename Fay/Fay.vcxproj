@@ -219,6 +219,7 @@
     <ClCompile Include="Source\Fay\Graphics\Layers\TileLayer.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Shader.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Texture.cpp" />
+    <ClCompile Include="Source\Fay\Graphics\TextureManager.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Window.cpp" />
     <ClCompile Include="Source\Fay\ImGui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="Source\Fay\ImGui\backends\imgui_impl_opengl3.cpp" />
@@ -271,6 +272,7 @@
     <ClInclude Include="Source\Fay\Graphics\Layers\TileLayer.h" />
     <ClInclude Include="Source\Fay\Graphics\Shader.h" />
     <ClInclude Include="Source\Fay\Graphics\Texture.h" />
+    <ClInclude Include="Source\Fay\Graphics\TextureManager.h" />
     <ClInclude Include="Source\Fay\Graphics\Window.h" />
     <ClInclude Include="Source\Fay\ImGui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="Source\Fay\ImGui\backends\imgui_impl_opengl3.h" />

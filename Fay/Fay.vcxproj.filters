@@ -325,6 +325,9 @@
     <ClCompile Include="Source\Fay\ImGui\ImGuiFileDialog.cpp">
       <Filter>Source\Engine\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Fay\Graphics\TextureManager.cpp">
+      <Filter>Source\Engine\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Fay\Graphics\Window.h">
@@ -509,6 +512,9 @@
     </ClInclude>
     <ClInclude Include="Source\Fay\ImGui\dirent\dirent.h">
       <Filter>Source\Engine\ImGui\dirent</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Graphics\TextureManager.h">
+      <Filter>Source\Engine\graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
