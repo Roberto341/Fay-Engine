@@ -120,7 +120,6 @@ while (!window.closed())
 	layer->render();
 	editor.update();
 
-	//game.getTileLayer()->render();
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
