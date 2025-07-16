@@ -17,3 +17,15 @@
   - 2 you wont be able to render any npcs 
   - multiple sprites wont render either 
   - Just so you know I'm working on a fix for it but it might take awhile I'm a one man band right now so please be patient 
+- Update July 16th 2025
+    - MapEditor class now has the ability to add textures and color tiles you can also make new ones directly in the editor (textures must follow below guidelines)
+        - Textures must be 24 bit to read otherwise it wont work
+        - Textures can be any file type .png, .jpg, .bmp, .dds
+        - As long as it's saved as 24 bit it will work
+        - I recomend using [Paint.net](https://www.getpaint.net/download.html) 
+    - Also MapEditor now has the ability to add spawn points for players, npcs, and enemey
+    - I've started working on adding Objects as well
+    - At a latter date I will add collision directly in the map editor 
+    - Other features will be added as well as time goes by
+    - Current projection for the MapEditor release will be later in the begining of 2026 or mid 2026 
+    - Other news I will be rebuilding FayEngine as a library it will have 2D and 3D support as well as the 3D Map Editor which will come at a latter date 
