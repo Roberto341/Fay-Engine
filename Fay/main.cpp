@@ -1,62 +1,7 @@
-#define MAKING_GAME 0
 #define MAP_EDITOR 1
-#if MAKING_GAME
-#include <Game.h>
-#include <Player.h>
-#include <ctime>
-#else
 #include <Core/Core.h>
-#endif
 int main()
 {
-#if MAKING_GAME
-	srand(static_cast<unsigned>(time(0)));
-	Game::Game game("In the dark", 920, 540);
-	// game
-	enum GameStates
-	{
-		STATE_MENU,
-		STATE_PLAYING,
-		STATE_PAUSED
-	};
-	//game.getGroup()->add(player.getDetailsLabel());
-	//group.add(game.getFpsLabel());
-
-	//game.getGroup()->add(game.getGroupBack());
-	game.getTileLayer()->add(game.getGroup()); //fps
-	game.getTileLayer()->add(game.getGroup2()); //player hud
-	//game.getTileLayer2()->add(player.getSprite()); // player sprite
-
-	// update window
-	auto win = game.getWindow();
-	while (!win->closed())
-	{
-		//win->bindRenderTarget(); // uncomment when using viewport
-		win->clear();
-		game.getTileLayer()->render();
-		game.getTileLayer2()->render();
-
-		if (win->isKeyPressed(GLFW_KEY_ESCAPE))
-			if (game.gameState.state == 1)
-				game.setGameState(2);
-			else if(game.gameState.state == 2)
-				game.setGameState(1);
-		switch (game.gameState.state) {
-		case STATE_MENU:
-			break;
-		case STATE_PLAYING:
-			game.update();
-		case STATE_PAUSED:
-			break;
-		}
-		//win->unbindRenderTarget(); // uncomment when using viewport
-		win->update();
-	}
-
-	// clean method
-	//player.clean();
-	game.clean();
-#else
 #if !MAP_EDITOR
 	Fay::Window window("RobCo", 920, 540);
 	Fay::Camera camera(920, 540);
@@ -132,8 +77,6 @@ Fay::Shader* s2 = new Fay::Shader("Res/Shaders/basic.vert", "Res/Shaders/basic.f
 Fay::Shader& shader2 = *s2;
 Fay::TileLayer* layer2 = new Fay::TileLayer(&shader2);
 
-//Fay::TileLayer& layer = *lay;
-
 Fay::MapEditor editor(layer, layer2, 32, 18, 32.0f);
 Fay::Camera camera(920, 540);
 Fay::Camera camera2(920, 540);
@@ -160,9 +103,7 @@ shader2.setUniform1iv("textures", texIds, 10);
 shader2.setUniformMat4("pr_matrix", Fay::Mat4::orthographic(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f)); // change to use camera->getProjection();
 shader2.setUniformMat4("vw_matrix", camera2.getViewMatrix());
 Fay::Vec3 camPos;
-//ImGui_ImplOpenGL3_NewFrame();
-//ImGui_ImplGlfw_NewFrame();
-//ImGui::NewFrame();
+
 IMGUI_CHECKVERSION();
 ImGui::CreateContext();
 ImGuiIO& io = ImGui::GetIO();
@@ -203,7 +144,6 @@ while (!window.closed())
 	layer2->render();
 	editor.update();
 
-	//game.getTileLayer()->render();
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -214,27 +154,10 @@ while (!window.closed())
 		ImGui::RenderPlatformWindowsDefault();
 		glfwMakeContextCurrent(backup_current_context);
 	}
+	
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-
-	/*
-	if (window.isKeyPressed(GLFW_KEY_A))
-		camPos.x -= 0.1f;
-	else if (window.isKeyPressed(GLFW_KEY_D))
-		camPos.x += 0.1f;
-	if (window.isKeyPressed(GLFW_KEY_W))
-		camPos.y += 0.1f;
-	else if (window.isKeyPressed(GLFW_KEY_S))
-		camPos.y -= 0.1f;
-	*/
-
-	//camera.setPosition(Fay::Vec3(camPos.x, camPos.y, 0));
-	//std::cout << camPos << std::endl;
 	window.update();
 }
-
-#endif
-
 
 #endif
 	return 0;
