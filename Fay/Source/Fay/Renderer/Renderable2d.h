@@ -24,6 +24,7 @@ namespace Fay
 		Vec3 m_position;
 		Vec2 m_size;
 		Vec4 m_color;
+		bool m_collision;
 		std::vector<Vec2> m_uv;
 		Texture* m_texture;
 	protected:
@@ -45,6 +46,7 @@ namespace Fay
 		inline const Vec3& getPosition() const { return m_position; } // position of the shape
 		inline const Vec2& getSize() const { return m_size; } // size of the shape
 		inline const Vec4& getColor() const { return m_color; } // color of the shape 
+		inline const bool& getCollsion() const { return m_collision; }
 		inline const std::vector<Vec2>& getUV() const { return m_uv; } // uv of the shape
 		inline const GLuint getTID() const { return m_texture ? m_texture->getId() : 0; }
 	private:

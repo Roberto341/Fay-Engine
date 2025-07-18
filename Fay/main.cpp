@@ -1,4 +1,4 @@
-#define MAP_EDITOR 1
+#define MAP_EDITOR 0
 #include <Core/Core.h>
 int main()
 {
@@ -77,7 +77,19 @@ Fay::Shader* s2 = new Fay::Shader("Res/Shaders/basic.vert", "Res/Shaders/basic.f
 Fay::Shader& shader2 = *s2;
 Fay::TileLayer* layer2 = new Fay::TileLayer(&shader2);
 
-Fay::MapEditor editor(layer, layer2, 32, 18, 32.0f);
+
+Fay::Shader* s3 = new Fay::Shader("Res/Shaders/basic.vert", "Res/Shaders/basic.frag");
+Fay::Shader& shader3 = *s3;
+Fay::TileLayer* layer3 = new Fay::TileLayer(&shader3);
+
+Fay::Shader* s4 = new Fay::Shader("Res/Shaders/basic.vert", "Res/Shaders/basic.frag");
+Fay::Shader& shader4 = *s4;
+Fay::TileLayer* layer4 = new Fay::TileLayer(&shader4);
+//Fay::TileLayer& layer = *lay;
+
+
+std::vector<Fay::TileLayer*> layers = { layer, layer2, layer3, layer4 };
+Fay::MapEditor editor(layers, 32, 18, 32.0f);
 Fay::Camera camera(920, 540);
 Fay::Camera camera2(920, 540);
 
@@ -88,6 +100,13 @@ shader.setUniform2f("light_pos", Fay::Vec2(4.0f, 1.5f)); // lighting
 
 shader2.enable();
 shader2.setUniform2f("light_pos", Fay::Vec2(4.0f, 1.5f)); // lighting
+
+shader3.enable();
+shader3.setUniform2f("light_pos", Fay::Vec2(4.0f, 1.5f)); // lighting
+
+shader4.enable();
+shader4.setUniform2f("light_pos", Fay::Vec2(4.0f, 1.5f)); // lighting
+
 
 GLint texIds[]
 {
@@ -102,8 +121,18 @@ shader2.enable();
 shader2.setUniform1iv("textures", texIds, 10);
 shader2.setUniformMat4("pr_matrix", Fay::Mat4::orthographic(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f)); // change to use camera->getProjection();
 shader2.setUniformMat4("vw_matrix", camera2.getViewMatrix());
-Fay::Vec3 camPos;
 
+shader3.enable();
+shader3.setUniform1iv("textures", texIds, 10);
+shader3.setUniformMat4("pr_matrix", Fay::Mat4::orthographic(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f)); // change to use camera->getProjection();
+shader3.setUniformMat4("vw_matrix", camera.getViewMatrix());
+
+shader4.enable();
+shader4.setUniform1iv("textures", texIds, 10);
+shader4.setUniformMat4("pr_matrix", Fay::Mat4::orthographic(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f)); // change to use camera->getProjection();
+shader4.setUniformMat4("vw_matrix", camera2.getViewMatrix());
+
+Fay::Vec3 camPos;
 IMGUI_CHECKVERSION();
 ImGui::CreateContext();
 ImGuiIO& io = ImGui::GetIO();
@@ -132,6 +161,11 @@ while (!window.closed())
 	shader2.enable();
 	shader2.setUniformMat4("vw_matrix", camera.getViewMatrix());
 
+	shader3.enable();
+	shader3.setUniformMat4("vw_matrix", camera.getViewMatrix());
+
+	shader4.enable();
+	shader4.setUniformMat4("vw_matrix", camera.getViewMatrix());
 	window.clear();
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
@@ -140,8 +174,10 @@ while (!window.closed())
 	editor.renderImGui();
 	editor.handleInput();
 	editor.render();
-	layer->render();
-	layer2->render();
+	for (auto* layer : layers)
+	{
+		layer->render();
+	}
 	editor.update();
 
 	ImGui::Render();
@@ -154,11 +190,11 @@ while (!window.closed())
 		ImGui::RenderPlatformWindowsDefault();
 		glfwMakeContextCurrent(backup_current_context);
 	}
-	
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 	window.update();
 }
-
 #endif
-	return 0;
+
+return 0;
 }

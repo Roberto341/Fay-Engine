@@ -2,21 +2,23 @@
 
 namespace Fay
 {
-	MapEditor::MapEditor(TileLayer* layer, TileLayer* layer2, int width, int height, float tileSize)
-		: width(width), height(height), tileSize(tileSize), m_tileLayer(layer), m_spawnLayer(layer2)
+	MapEditor::MapEditor(const std::vector<TileLayer*> layers, int width, int height, float tileSize)
+		: width(width), height(height), tileSize(tileSize), m_layers(layers)
 	{
 		m_tiles.resize(width * height, Tile(0, false));
 		m_spawnTiles.resize(width * height, SpawnTile(0, SpawnType::None, false));
+		m_collisionTiles.resize(width * height, CollisionTile(0, false, CollisionType::None));
+
 		// load default config file
 		loadConfigFile("Res/MapEditor/MapEditor.config"); // Change to default.config
 		m_selectedTile = Tile(0, false);
-
+		m_selectedSpawnTile = SpawnTile(0, SpawnType::None, false);
+		m_selectedColTile = CollisionTile(0, false, CollisionType::None);
 		// Get latest id in the list
 		getColorId(m_tileColorPalette.back().id);
 		// Get latest id for texture tile
 		getTextureId(m_tileTexturePalette.back().id);
 	}
-
 	void MapEditor::renderImGui()
 	{
 		ImGui::Begin("Map Editor");
@@ -161,7 +163,54 @@ namespace Fay
 				ImGui::SameLine(0, padding);  // Keep on same line with padding
 		}
 		ImGui::NewLine();
-		// Spawn palette
+
+		ImGui::Text("Tile Collsion Palette");
+		//m_tileCollisionPalette
+		for (size_t i = 0; i < m_tileCollisionPalette.size(); ++i)
+		{
+			const auto& tile = m_tileCollisionPalette[i];
+			ImGui::PushID(static_cast<int>(tile.id));
+
+			ImVec2 pos = ImGui::GetCursorScreenPos();
+			ImVec2 size = ImVec2(thumbnailSize, thumbnailSize);
+
+			ImGui::BeginGroup();
+			ImU32 col = IM_COL32(
+				(int)(tile.color.x * 255),
+				(int)(tile.color.y * 255),
+				(int)(tile.color.z * 255),
+				(int)(tile.color.w * 255)
+			);
+
+			ImGui::InvisibleButton("colPaletteBtn", size);
+
+			ImGui::GetWindowDrawList()->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y), col);
+
+			if (m_selectedColTile.id == tile.id)
+			{
+				ImGui::GetWindowDrawList()->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y),
+					IM_COL32(255, 255, 0, 255), 0.0f, 0, 3.0f);
+			}
+
+			if (ImGui::IsItemClicked())
+			{
+				m_currentCollision = tile.type;
+				std::cout << collisionTypeToString(m_currentCollision) << std::endl;
+				m_selectedColTile = CollisionTile(tile.id, true, m_currentCollision);
+				std::cout << "Collision ID: " << tile.id << std::endl;
+			}
+
+			// Draw tile name below the square
+			ImGui::SetCursorScreenPos(ImVec2(pos.x, pos.y + size.y + 2));
+			ImGui::TextUnformatted(collisionTypeToString(tile.type).c_str());
+
+			ImGui::EndGroup();
+			ImGui::PopID();
+
+			if (i < m_tileCollisionPalette.size() - 1)
+				ImGui::SameLine(0, padding);  // Keep on same line with padding
+		}
+		ImGui::NewLine();
 		// Add texture tiles or color tiles directly
 		ImGui::Separator();
 
@@ -176,7 +225,6 @@ namespace Fay
 			m_tileColorPalette.push_back({ newColorTileId, std::string(newColorTileName), newColor });
 			getColorId(m_tileColorPalette.back().id);
 		}
-
 		// Add texture tile
 	
 		ImGui::Text("Add New Texture Tile");
@@ -187,15 +235,15 @@ namespace Fay
 
 		if (ImGui::Button("Select Texture"))
 		{
-			openTexture();
+			openDialog(dialog, DialogType::Texture);
 		}
-		if (m_showTextureDialog)
+		if (dialog.showTextureDialog)
 		{
 			if (ImGuiFileDialog::Instance()->Display("ChooseTex"))
 			{
 				if (ImGuiFileDialog::Instance()->IsOk())
 				{
-					newTextureAdded = false;
+					dialog.resetAll();
 
 					newTextureTilePath = ImGuiFileDialog::Instance()->GetFilePathName();
 
@@ -216,7 +264,7 @@ namespace Fay
 		// Show preview if available
 		//auto newTexture = std::make_shared<Texture>(newTextureTileName, relPath
 		Texture* newTex = TextureManager::getTexture(newTextureTileName);
-		if (!newTextureAdded && newTex && newTex->getId() != 0)
+		if (!dialog.newTextureAdded && newTex && newTex->getId() != 0)
 		{
 			ImGui::Text("Texture Preview:");
 			ImGui::Image((void*)(intptr_t)newTex->getId(), ImVec2(64, 64), ImVec2(0, 1), ImVec2(1, 0));
@@ -233,7 +281,7 @@ namespace Fay
 				{
 					m_tileTexturePalette.push_back({ newTextureTileId, std::string(newTextureTileName), relPath, newTex });
 					getTextureId(m_tileTexturePalette.back().id);
-					newTextureAdded = true;
+					dialog.newTextureAdded = true;
 					//saveConfigFile(configFile);
 				}
 				else {
@@ -362,6 +410,34 @@ namespace Fay
 				}
 			}
 		}
+		else if (m_activeLayer == MapEditorLayer::Collision)
+		{
+			for (int y = 0; y < height; ++y)
+			{
+				for (int x = 0; x < width; ++x)
+				{
+					const CollisionTile& collisionTile = getColTile(x, y);
+					if (!collisionTile.isCollision || collisionTile.id == 0)
+						continue;
+					ImVec2 min = ImVec2(canvas_p0.x + x * tileSize, canvas_p0.y + (height - 1 - y) * tileSize);
+					ImVec2 max = ImVec2(min.x + tileSize, min.y + tileSize);
+
+					auto colIt = std::find_if(m_tileCollisionPalette.begin(), m_tileCollisionPalette.end(),
+						[&](const auto& tile) { return tile.id == collisionTile.id; });
+
+					if (colIt != m_tileCollisionPalette.end())
+					{
+						ImU32 color = IM_COL32(
+							(int)(colIt->color.x * 255),
+							(int)(colIt->color.y * 255),
+							(int)(colIt->color.z * 255),
+							(int)(colIt->color.w * 255));
+						draw_list->AddRectFilled(min, max, color);
+						draw_list->AddRect(min, max, IM_COL32(255, 255, 255, 255), 0.0f, 0, 2.0f);
+					}
+				}
+			}
+		}
 		// MapEditorLayer
 
 		// Handle painting tiles on click
@@ -379,10 +455,13 @@ namespace Fay
 					{
 					case MapEditorLayer::Tile:
 							setTile(tileX, tileY, m_selectedTile);
-						break;
+							break;
 					case MapEditorLayer::SpawnPoints:
 						setSpawnTile(tileX, tileY, m_selectedSpawnTile);
-					break;
+						break;
+					case MapEditorLayer::Collision:
+						setColTile(tileX, tileY, m_selectedColTile);
+						break;
 					// so on and so fifth
 					// case MapEditorLayer::Objects
 					// case MapEditorLayer::Collision;
@@ -398,10 +477,11 @@ namespace Fay
 						setTile(tileX, tileY, EMPTY_TILE);
 						break;
 					case MapEditorLayer::SpawnPoints:
-					{
 						setSpawnTile(tileX, tileY, EMPTY_SPAWN_TILE);
 						break;
-					}
+					case MapEditorLayer::Collision:
+						setColTile(tileX, tileY, EMPTY_COLLISION_TILE);
+						break;
 						// so on and so fifth
 						// case MapEditorLayer::Objects
 						// case MapEditorLayer::Collision;
@@ -412,10 +492,10 @@ namespace Fay
 
 		if (ImGui::Button("Save Map"))
 		{
-			openSaveDialog();
+			openDialog(dialog, DialogType::Save);
 		}
 
-		if (m_showSaveDialog)
+		if (dialog.showSaveDialog)
 		{
 			if (ImGuiFileDialog::Instance()->Display("SaveFileDlgKey"))
 			{
@@ -425,15 +505,16 @@ namespace Fay
 					saveToFile(filePathName.c_str());
 				}
 				ImGuiFileDialog::Instance()->Close();
-				m_showSaveDialog = false;
+				//m_showSaveDialog = false;
+				dialog.resetAll();
 			}
 		}
 		if (ImGui::Button("Load Map"))
 		{
-			openLoadDialog();
+			openDialog(dialog, DialogType::Load);
 		}
 
-		if (m_showLoadDialog)
+		if (dialog.showLoadDialog)
 		{
 			if (ImGuiFileDialog::Instance()->Display("LoadFileDlgKey"))
 			{
@@ -443,16 +524,17 @@ namespace Fay
 					loadFromFile(filePath.c_str());
 				}
 				ImGuiFileDialog::Instance()->Close();
-				m_showLoadDialog = false;
+				dialog.resetAll();
 			}
 		}
 
 		if (ImGui::Button("Load Config"))
 		{
-			openConfigLoadDialog();
+			//openConfigLoadDialog();
+			openDialog(dialog, DialogType::LoadConfig);
 		}
 
-		if (m_showLoadConfig)
+		if (dialog.showLoadConfig)
 			if (ImGuiFileDialog::Instance()->Display("LoadConfigDlgKey"))
 			{
 				if (ImGuiFileDialog::Instance()->IsOk())
@@ -461,15 +543,15 @@ namespace Fay
 					loadConfigFile(filePath.c_str());
 				}
 				ImGuiFileDialog::Instance()->Close();
-				m_showLoadConfig = false;
+				dialog.resetAll();
 			}
 
 		if (ImGui::Button("Save Config"))
 		{
-			openConfigSaveDialog();
+			openDialog(dialog, DialogType::SaveConfig);
 		}
 
-		if (m_showSaveConfig)
+		if (dialog.showSaveConfig)
 		{
 			if (ImGuiFileDialog::Instance()->Display("SaveConfigDlgKey"))
 			{
@@ -479,12 +561,10 @@ namespace Fay
 					saveConfigFile(filePath.c_str());
 				}
 				ImGuiFileDialog::Instance()->Close();
-				m_showSaveConfig = false;
+				dialog.resetAll();
 			}
 		}
 		ImGui::End();
-
-		//std::cout << spawnTypeToString(m_currentSpawn) << std::endl;
 	}
 
 	void MapEditor::update()
@@ -499,74 +579,23 @@ namespace Fay
 			if (gridX >= 0 && gridX < width && gridY >= 0 && gridY < height)
 			{
 				m_tiles[gridY * width + gridX] = m_selectedTile;
+				m_spawnTiles[gridY * width + gridX] = m_selectedSpawnTile;
+				m_collisionTiles[gridY * width + gridX] = m_selectedColTile;
 			}
 		}
 	}
-
-	void MapEditor::clean()
-	{
-		for (auto s : m_spriteCache)
-			delete s;
-		m_spriteCache.clear();
-	}
-
 	void MapEditor::render()
 	{
-		/*
-		m_tileLayer->clear();
-		for (int y = 0; y < height; y++)
-		{
-			for (int x = 0; x < width; x++)
-			{
-				Tile tileId = getTile(x, y);
-
-				Vec4 color = Vec4(1, 0, 1, 1); // default magenta
-				Texture* tex = nullptr;
-				if (m_activeLayer == MapEditorLayer::Tile)
-				{
-					if (tileId.isTexture)
-					{
-						tex = getTexture(tileId.id);
-					}
-					else
-					{
-						// Look up color in color tile palette
-						auto it = std::find_if(m_tileColorPalette.begin(), m_tileColorPalette.end(),
-							[&](const TileColorInfo& t) { return t.id == tileId.id; });
-						if (it != m_tileColorPalette.end())
-							color = it->color;
-					}
-				}
-				else if (m_activeLayer == MapEditorLayer::SpawnPoints)
-				{
-					if (tileId.isSpawnPoint)
-					{
-						// Look up color in spawn tile palette
-						auto it = std::find_if(m_tileSpawnPalette.begin(), m_tileSpawnPalette.end(),
-							[&](const TileSpawnInfo& t) { return t.id == tileId.id; });
-						if (it != m_tileSpawnPalette.end())
-							color = it->color;
-					}
-					else continue;
-				}
-				// Render either texture or color
-				Sprite* sprite = nullptr;
-				if (tileId.isTexture && tex)
-				{
-					sprite = new Sprite((float)x, (float)y, 1.0f, 1.0f, tex);
-				}
-				else
-				{
-					sprite = new Sprite((float)x, (float)y, 1.0f, 1.0f, color);
-				}
-
-				m_tileLayer->add(sprite);
-				m_spriteCache.push_back(sprite);
-			}
-		}
-		*/
-		m_tileLayer->clear();
-		m_spawnLayer->clear();
+		// m_layer[0] is tileLayer
+		// m_layer[1] is spawnLayer
+		// m_layer[2] is objectLayer
+		// m_layer[3] is colLayer
+		//m_tileLayer->clear();
+		m_layers[0]->clear();
+		m_layers[1]->clear();
+		m_layers[2]->clear();
+		m_layers[3]->clear();
+		//m_spawnLayer->clear();
 		for (int y = 0; y < height; y++)
 		{
 			for (int x = 0; x < width; x++)
@@ -579,14 +608,14 @@ namespace Fay
 						if (tileId.isTexture)
 						{
 							auto sprite = new Sprite((float)x, (float)y, 1.0f, 1.0f, tex);
-							m_tileLayer->add(sprite);
-							m_spriteCache.push_back(sprite);
+							//m_tileLayer->add(sprite);
+							m_layers[0]->add(sprite);
 						}
 						else
 						{
 							auto sprite = new Sprite((float)x, (float)y, 1.0f, 1.0f, color);
-							m_tileLayer->add(sprite);
-							m_spriteCache.push_back(sprite);
+							//m_tileLayer->add(sprite);
+							m_layers[0]->add(sprite);
 						}
 				}
 				else if (m_activeLayer == MapEditorLayer::SpawnPoints)
@@ -594,8 +623,16 @@ namespace Fay
 					SpawnTile tileId = getSpawnTile(x, y);
 					Vec4 color = getSpawnColor(tileId.id);
 					auto sprite = new Sprite((float)x, (float)y, 1.0f, 1.0f, color);
-					m_spawnLayer->add(sprite);
-					m_spriteCache.push_back(sprite);
+					//m_spawnLayer->add(sprite);
+					m_layers[1]->add(sprite);
+				}
+				else if (m_activeLayer == MapEditorLayer::Collision)
+				{
+					CollisionTile tileId = getColTile(x, y);
+					Vec4 color = getColColor(tileId.id);
+					auto sprite = new Sprite((float)x, (float)y, 1.0f, 1.0f, color);
+					m_layers[3]->add(sprite);
+					//m_layers[3]->add(sprite);
 				}
 			}
 		}
@@ -612,32 +649,47 @@ namespace Fay
 			{
 				setTile(x, y, m_selectedTile);
 				setSpawnTile(x, y, m_selectedSpawnTile);
+				setColTile(x, y, m_selectedColTile);
 			}
 		}
 	}
-
+	// Normal tiles
 	void MapEditor::setTile(int x, int y, const Tile& tile)
 	{
 		if (x >= 0 && x < width && y >= 0 && y < height)
 			m_tiles[y * width + x] = tile;
 	}
+	Tile MapEditor::getTile(int x, int y) const
+	{
+		if (x < 0 || x >= width || y < 0 || y >= height)
+			return Tile(0, false);
+		return m_tiles[y * width + x];
+	}
+
+	// Spawn tiles
 	void MapEditor::setSpawnTile(int x, int y, const SpawnTile& spawnTile)
 	{
 		if (x >= 0 && x < width && y >= 0 && y < height)
 			m_spawnTiles[y * width + x] = spawnTile;
 	}
-	Tile MapEditor::getTile(int x, int y) const
-	{
-		if (x < 0 || x >= width || y < 0 || y >= height)
-			return Tile(-1, false);
-		return m_tiles[y * width + x];
-	}
-
 	SpawnTile MapEditor::getSpawnTile(int x, int y) const
 	{
 		if (x < 0 || x >= width || y < 0 || y >= height)
-			return SpawnTile(-1, SpawnType::None, true);
+			return SpawnTile(0, SpawnType::None, true);
 		return m_spawnTiles[y * width + x];
+	}
+	
+	// Collision tiles
+	void MapEditor::setColTile(int x, int y, const CollisionTile& colTile)
+	{
+		if (x >= 0 && x < width && y >= 0 && y < height)
+			m_collisionTiles[y * width + x] = colTile;
+	}
+	CollisionTile MapEditor::getColTile(int x, int y) const
+	{
+		if (x < 0 || x >= width || y < 0 || y >= height)
+			return CollisionTile(0, true, CollisionType::None);
+		return m_collisionTiles[y * width + x];
 	}
 
 	bool MapEditor::saveToFile(const std::string& filepath) const
@@ -690,6 +742,31 @@ namespace Fay
 			}
 			file << "\n"; // Correct: new line after each row
 		}
+		file << "collision_points=\n";
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				CollisionTile tile = getColTile(x, y);
+				if (tile.isCollision)
+				{
+					switch (tile.type)
+					{
+					case CollisionType::Person:
+						file << "p" << tile.id << " ";
+						break;
+					case CollisionType::Tile:
+						file << "t" << tile.id << " ";
+						break;
+					}
+				}
+				else
+				{
+					file << "0 "; // Or some default value indicating no spawn
+				}
+			}
+			file << "\n"; // Correct: new line after each row
+		}
 		return true;
 	}
 
@@ -701,11 +778,13 @@ namespace Fay
 		std::string line;
 		bool readingMap = false;
 		bool readingSpawns = false;
+		bool readingCollisions = false;
 		int rowIndex = 0;
 
 		m_tiles.clear();
-		m_spawnPoints.clear();
-		
+		m_spawnTiles.clear();
+		m_collisionTiles.clear();
+
 		auto trim = [](std::string& s) {
 			s.erase(0, s.find_first_not_of(" \t\r\n"));
 			s.erase(s.find_last_not_of(" \t\r\n") + 1);
@@ -727,13 +806,25 @@ namespace Fay
 			if (line == "map=") {
 				readingMap = true;
 				readingSpawns = false;
-				m_tiles.resize(width * height, Tile(-1, false));
+				readingCollisions = false;
+				m_tiles.resize(width * height, Tile(0, false));
 				rowIndex = 0;
 				continue;
 			}
-			if (line == "spawn_points=") {
+			else if (line == "spawn_points=") {
 				readingMap = false;
 				readingSpawns = true;
+				readingCollisions = false;
+				m_spawnTiles.resize(width * height, SpawnTile(0, SpawnType::None, false));
+				rowIndex = 0;
+				continue;
+			}
+			else if (line == "collision_points=")
+			{
+				readingMap = false;
+				readingSpawns = false;
+				readingCollisions = true;
+				m_collisionTiles.resize(width * height, CollisionTile(0, false, CollisionType::None));
 				rowIndex = 0;
 				continue;
 			}
@@ -744,8 +835,8 @@ namespace Fay
 					std::string token;
 					if (!(ss >> token)) break;
 
-					bool isSpawn = false;
-					SpawnType type = SpawnType::None;
+					//bool isSpawn = false;
+					//SpawnType type = SpawnType::None;
 
 					bool isTexture = false;
 					int id = parseTileId(token, isTexture);
@@ -777,7 +868,33 @@ namespace Fay
 						if (it != m_tileSpawnPalette.end()) {
 							color = it->color;
 						}
-						m_spawnPoints.push_back({ x, rowIndex, type, color });
+					}
+				}
+				rowIndex++;
+			}
+			else if (readingCollisions && rowIndex < height) {
+				std::istringstream ss(line);
+				for (int x = 0; x < width; ++x) {
+					std::string token;
+					if (!(ss >> token)) break;
+
+					if (token == "0") continue;
+
+					bool isCollsion = false;
+					CollisionType type = CollisionType::None;
+					int id = parseCollisionTileId(token, type, isCollsion);
+
+					if (isCollsion) {
+						setColTile(x, rowIndex, CollisionTile(id, true, type));
+
+						// Get color from palette
+						Vec4 color = Vec4(1, 0, 1, 1); // fallback magenta
+						auto it = std::find_if(m_tileCollisionPalette.begin(), m_tileCollisionPalette.end(),
+							[id](const auto& t) { return t.id == id; });
+						if (it != m_tileCollisionPalette.end()) {
+							color = it->color;
+
+						}
 					}
 				}
 				rowIndex++;
@@ -838,6 +955,35 @@ namespace Fay
 		return -1;
 	}
 
+	int MapEditor::parseCollisionTileId(const std::string& token, CollisionType& type, bool& isCollision)
+	{
+		isCollision = false;
+		type = CollisionType::None;
+
+		if (token.empty())
+			return -1;
+
+		std::string lowerToken = token;
+		std::transform(lowerToken.begin(), lowerToken.end(), lowerToken.begin(), ::tolower);
+
+		if (lowerToken.rfind("p", 0) == 0) // starts with sp
+		{
+			isCollision = true;
+			type = CollisionType::Person;
+			try { return std::stoi(lowerToken.substr(1)); }
+			catch (...) { return -1; }
+		}
+		else if (lowerToken.rfind("t", 0) == 0) // starts with sp
+		{
+			isCollision = true;
+			type = CollisionType::Tile;
+			try { return std::stoi(lowerToken.substr(1)); }
+			catch (...) { return -1; }
+		}
+		// not a spawn tile 
+		return -1;
+	}
+
 	int MapEditor::getColorId(int current)
 	{
 		// takes m_tileColorPalette.back().id for current
@@ -864,6 +1010,33 @@ namespace Fay
 		return newTextureTileId;
 	}
 
+	void MapEditor::openDialog(DialogState& dialog, DialogType type)
+	{
+		switch (type)
+		{
+		case DialogType::Save:
+			dialog.showSaveDialog = true;
+			ImGuiFileDialog::Instance()->OpenDialog("SaveFileDlgKey", "Save World File", ".world");
+			break;
+		case DialogType::Load:
+			dialog.showLoadDialog = true;
+			ImGuiFileDialog::Instance()->OpenDialog("LoadFileDlgKey", "Load World File", ".world");
+			break;
+		case DialogType::LoadConfig:
+			dialog.showLoadConfig = true;
+			ImGuiFileDialog::Instance()->OpenDialog("LoadConfigDlgKey", "Load Config File", ".config");
+			break;
+		case DialogType::SaveConfig:
+			dialog.showSaveConfig = true;
+			ImGuiFileDialog::Instance()->OpenDialog("SaveConfigDlgKey", "Save Config File", ".config");
+			break;
+		case DialogType::Texture:
+			dialog.showTextureDialog = true;
+			ImGuiFileDialog::Instance()->OpenDialog("ChooseTex", "Select Texture", ".bmp"); // change to .png, .jpg, .dds
+			break;
+		}
+	}
+
 	Vec4 MapEditor::getColor(int tileId) const
 	{
 		for (const auto& tile : m_tileColorPalette)
@@ -881,38 +1054,20 @@ namespace Fay
 		return Vec4(1.0f, 0.0f, 1.0f, 1.0f); // fallback
 	}
 
+	Vec4 MapEditor::getColColor(int tileId) const
+	{
+		for (const auto& cTile : m_tileCollisionPalette)
+			if (cTile.id == tileId)
+				return cTile.color;
+		return Vec4(1.0f, 0.0f, 1.0f, 1.0f); // fallback
+	}
+
 	Texture* MapEditor::getTexture(int tileId) const
 	{
 		for (const auto& tile : m_tileTexturePalette)
 			if (tile.id == tileId)
 				return tile.texture;
 		return nullptr;
-	}
-	void MapEditor::openSaveDialog()
-	{
-		m_showSaveDialog = true;
-		ImGuiFileDialog::Instance()->OpenDialog("SaveFileDlgKey", "Save World File", ".world");
-	}
-	void MapEditor::openLoadDialog()
-	{
-		m_showLoadDialog = true;
-		ImGuiFileDialog::Instance()->OpenDialog("LoadFileDlgKey", "Load World File", ".world");
-	}
-	void MapEditor::openConfigSaveDialog()
-	{
-		m_showSaveConfig = true;
-		ImGuiFileDialog::Instance()->OpenDialog("SaveConfigDlgKey", "Save Config File", ".config");
-	}
-	void MapEditor::openTexture()
-	{
-		m_showTextureDialog = true;
-		ImGuiFileDialog::Instance()->OpenDialog("ChooseTex", "Select Texture", ".bmp"); // change to .png, .jpg, .dds
-
-	}
-	void MapEditor::openConfigLoadDialog()
-	{
-		m_showLoadConfig = true;
-		ImGuiFileDialog::Instance()->OpenDialog("LoadConfigDlgKey", "Load Config File", ".config");
 	}
 
 	bool MapEditor::loadConfigFile(const std::string& filepath)
@@ -927,6 +1082,8 @@ namespace Fay
 		m_tileColorPalette.clear();
 		m_tileTexturePalette.clear();
 		//m_spawnPalette.clear();
+		m_tileSpawnPalette.clear();
+		m_tileCollisionPalette.clear();
 
 		auto trim = [](std::string& s) {
 			s.erase(0, s.find_first_not_of(" \t\r\n"));
@@ -954,7 +1111,7 @@ namespace Fay
 				continue;
 
 			// Handle ColorTile and TextureTile headers
-			if (line.find("[ColorTile]") == 0 || line.find("[TextureTile]") == 0 || line.find("[SpawnTile]") == 0)
+			if (line.find("[ColorTile]") == 0 || line.find("[TextureTile]") == 0 || line.find("[SpawnTile]") == 0 || line.find("[CollisionTile]") == 0)
 			{
 				std::string entryType = line;
 
@@ -1063,6 +1220,46 @@ namespace Fay
 					// OR if you refactor TileSpawnInfo to store SpawnType:
 					m_tileSpawnPalette.push_back({ id, type, Vec4(r, g, b, a) });
 				}
+				// Collision Tiles
+				else if (entryType == "[CollisionTile]")
+				{
+					// Format: id, name, vec4(...)
+					size_t vecStart = line.find("vec4(");
+					size_t vecEnd = line.find(")", vecStart);
+					if (vecStart == std::string::npos || vecEnd == std::string::npos)
+						continue;
+
+					std::string header = line.substr(0, vecStart);
+					std::string vecContent = line.substr(vecStart + 5, vecEnd - vecStart - 5); // inside vec4(...)
+					std::replace(vecContent.begin(), vecContent.end(), ',', ' ');
+
+					// Remove 'f' suffixes from floats
+					vecContent.erase(std::remove(vecContent.begin(), vecContent.end(), 'f'), vecContent.end());
+
+					int id = 0;
+					std::string name;
+					std::istringstream headerSS(header);
+					std::string idStr, nameStr;
+					std::getline(headerSS, idStr, ',');
+					std::getline(headerSS, nameStr, ',');
+
+					trim(idStr);
+					trim(nameStr);
+					try {
+						id = std::stoi(idStr);
+					}
+					catch (...) {
+						continue;
+					}
+
+					float r = 0, g = 0, b = 0, a = 0;
+					std::istringstream vecSS(vecContent);
+					vecSS >> r >> g >> b >> a;
+
+					CollisionType type = parseCollisionType(nameStr);
+					// OR if you refactor TileSpawnInfo to store SpawnType:
+					m_tileCollisionPalette.push_back({ id, type, Vec4(r, g, b, a) });
+					}
 			}
 		}
 		return true;
@@ -1102,6 +1299,16 @@ namespace Fay
 				<< spawnTile.color.w << "f)\n";
 		}
 
+		for (const auto& collisionTile : m_tileCollisionPalette)
+		{
+			file << "[CollisionTile]\n";
+			file << collisionTile.id << ", " << collisionTypeToString(collisionTile.type) << ", "
+				<< "vec4(" << collisionTile.color.x << "f, "
+				<< collisionTile.color.y << "f, "
+				<< collisionTile.color.z << "f, "
+				<< collisionTile.color.w << "f)\n";
+		}
+
 		file << "}\n";
 		return true;
 	}
@@ -1123,5 +1330,20 @@ namespace Fay
 		if (str == "Npc") return SpawnType::Npc;
 		if (str == "Enemey") return SpawnType::Enemey;
 		return SpawnType::None;
+	}
+	std::string MapEditor::collisionTypeToString(CollisionType type)
+	{
+		switch (type)
+		{
+		case CollisionType::Person: return "Person";
+		case CollisionType::Tile: return "Tile";
+		default: return "None";
+		}
+	}
+	CollisionType MapEditor::parseCollisionType(const std::string& str)
+	{
+		if (str == "Person") return CollisionType::Person;
+		if (str == "Tile") return CollisionType::Tile;
+		return CollisionType::None;
 	}
 }
