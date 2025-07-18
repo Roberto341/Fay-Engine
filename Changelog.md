@@ -29,3 +29,8 @@
     - Other features will be added as well as time goes by
     - Current projection for the MapEditor release will be later in the begining of 2026 or mid 2026 
     - Other news I will be rebuilding FayEngine as a library it will have 2D and 3D support as well as the 3D Map Editor which will come at a latter date 
+- Update July 18th 2025
+  - MapEditor class now has the collision tile all setup so you can define your world bounds and/or lakes, other things you dont wanna run into, other npcs, the main player still working on a few things but it's mostly there.
+  - The WorldLoader util class will be released with version Alpha 1.01 on Monday July 21st 2025
+  - Other news the main engine is under construction right now and will be ready at a later given date I don't exactly have one as I just sketched out the process for it the main engine will allow you to make new projects 2d or 3d if it's 2d it will load the simple MapEditor and go from there the 3D one will be a bit different both will be part of the main engine it self 
+  - Starting work now on the objects palette for the MapEditor 

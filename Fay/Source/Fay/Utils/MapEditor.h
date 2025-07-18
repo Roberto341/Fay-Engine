@@ -15,6 +15,7 @@ namespace Fay
 	class TileLayer;
 	class Sprite;
 	class Texture;
+	// Normal tile
 	struct TileTextureInfo
 	{
 		int id;
@@ -28,6 +29,35 @@ namespace Fay
 		std::string name;
 		Vec4 color;
 	};
+	struct Tile {
+		int id;
+		bool isTexture;
+		// Constructor for simplness 
+		Tile() : id(0), isTexture(false) {}
+		Tile(int id_, bool isTexture_) : id(id_), isTexture(isTexture_) {}
+	};
+	// Collision Tile
+	enum class CollisionType
+	{
+		None, // 0 == 0
+		Person, // 1 == c1
+		Tile // 2 == t2
+	};
+	struct TileCollisionInfo
+	{
+		int id;
+		CollisionType type;
+		Vec4 color;
+	};
+	struct CollisionTile
+	{
+		int id;
+		bool isCollision;
+		CollisionType type;
+		CollisionTile() : id(0), isCollision(false), type(CollisionType::None) {}
+		CollisionTile(int id_, bool isCollision_, CollisionType type_) : id(id_), isCollision(isCollision_), type(type_) {}
+	};
+	// Spawn tile
 	enum class SpawnType
 	{
 		None, // 0
@@ -40,13 +70,6 @@ namespace Fay
 		int id;
 		SpawnType type;
 		Vec4 color;
-	};
-	struct Tile {
-		int id;
-		bool isTexture;
-		// Constructor for simplness 
-		Tile() : id(0), isTexture(false){}
-		Tile(int id_, bool isTexture_) : id(id_), isTexture(isTexture_){}
 	};
 	struct SpawnTile
 	{
@@ -64,31 +87,61 @@ namespace Fay
 		SpawnPoints, // 1
 		Objects, // 2
 		Collision // 3
+		//WorldBounds or World //4
 	};
-	struct SpawnPoint
+	// Dialog 
+	enum class DialogType {
+		Save,
+		Load,
+		LoadConfig,
+		SaveConfig,
+		Texture
+	};
+	struct DialogState
 	{
-		int x, y;
-		SpawnType type; // e.g. "Player, Enemey, Or Npc
-		Vec4 color;
+		bool showSaveDialog = false;
+		bool showLoadDialog = false;
+		bool showLoadConfig = false;
+		bool showSaveConfig = false;
+		bool showTextureDialog = false;
+		bool newTextureAdded = false;
+
+		void resetAll()
+		{
+			showSaveDialog = false;
+			showLoadDialog = false;
+			showLoadConfig = false;
+			showSaveConfig = false;
+			showTextureDialog = false;
+			newTextureAdded = false;
+		}
 	};
 	/*
 	*
 	* tile layer 1 will be backgroun
 	* tile layer 2 will be spawns
+	* tile layer 3 will be objects
+	* tile layer 4 will be collision boxes
 	*/
 	class MapEditor
 	{
 	public:
-		MapEditor(TileLayer* layer,TileLayer* layer2, int width, int height, float tileSize);
+		//MapEditor(TileLayer* layer,TileLayer* layer2, int width, int height, float tileSize); // Just gonna comment this out in case
+		// if anything blows up :)
+		MapEditor(const std::vector<TileLayer*> layers, int width, int height, float tileSize);
 		void renderImGui();
 		void render();
 		void update();
 		void handleInput();
-		void clean();
+
 		void setTile(int x, int y, const Tile& tile);
 		Tile getTile(int x, int y) const;
+
 		void setSpawnTile(int x, int y, const SpawnTile& spawnTile);
 		SpawnTile getSpawnTile(int x, int y) const;
+
+		void setColTile(int x, int y, const CollisionTile& colTile);
+		CollisionTile getColTile(int x, int y) const;
 		// files
 		bool loadConfigFile(const std::string& filepath);
 		bool saveConfigFile(const std::string& filepath);
@@ -97,39 +150,39 @@ namespace Fay
 		
 		Vec4 getColor(int tileId) const;
 		Vec4 getSpawnColor(int tileId) const;
+		Vec4 getColColor(int tileId) const;
 
 		Texture* getTexture(int tileId) const;
 
 	private:
 		int parseTileId(const std::string& token, bool& isTexture);
 		int parseSpawnTileId(const std::string& token, SpawnType& type, bool& isSpawn);
+		int parseCollisionTileId(const std::string& token, CollisionType& type, bool& isCollision);
 		int getColorId(int current);
 		int getTextureId(int current);
-		void openSaveDialog();
-		void openLoadDialog();
-		void openConfigLoadDialog();
-		void openConfigSaveDialog();
-		void openTexture();
-		bool m_showSaveDialog = false;
-		bool m_showLoadDialog = false;
-		bool m_showLoadConfig = false;
-		bool m_showSaveConfig = false;
-		bool m_showTextureDialog = false;
-		bool newTextureAdded = false;
+		
+		// File dialog 
+		void openDialog(DialogState& dialog, DialogType type);
+
+		DialogState dialog;
+
 		int width, height;
 		float tileSize;
-		//std::vector<int> m_tiles;
-		TileLayer* m_tileLayer;
-		TileLayer* m_spawnLayer;
-		std::vector<Sprite*> m_spriteCache;
+
+		std::vector<TileLayer*> m_layers;
+
 		Tile m_selectedTile;
 		SpawnTile m_selectedSpawnTile;
+		CollisionTile m_selectedColTile;
+
 		std::vector<TileTextureInfo> m_tileTexturePalette;
 		std::vector<TileColorInfo> m_tileColorPalette;
 		std::vector<TileSpawnInfo> m_tileSpawnPalette;
+		std::vector<TileCollisionInfo> m_tileCollisionPalette;
 
 		std::vector<Tile> m_tiles;
 		std::vector<SpawnTile> m_spawnTiles;
+		std::vector<CollisionTile> m_collisionTiles;
 
 		// Add Tiles
 		int newColorTileId = 0;
@@ -144,11 +197,16 @@ namespace Fay
 		// Spawn stuff
 		MapEditorLayer m_activeLayer = MapEditorLayer::Tile;
 		SpawnType m_currentSpawn;
-		std::vector<SpawnPoint> m_spawnPoints;
+		CollisionType m_currentCollision;
+
 		const Tile EMPTY_TILE = Tile(0, false);
 		const SpawnTile EMPTY_SPAWN_TILE = SpawnTile(0, SpawnType::None, false);
-
+		const CollisionTile EMPTY_COLLISION_TILE = CollisionTile(0, false, CollisionType::None);
 		std::string spawnTypeToString(SpawnType type);
 		SpawnType parseSpawnType(const std::string& str);
+
+		// Collision stuff
+		std::string collisionTypeToString(CollisionType type);
+		CollisionType parseCollisionType(const std::string& str);
 	};
 }
