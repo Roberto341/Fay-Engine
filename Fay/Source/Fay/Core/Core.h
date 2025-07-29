@@ -21,3 +21,12 @@
 #include <Utils/Timer.h>
 #include <Graphics/Camera.h>
 #include <Utils/MapEditor.h>
+#include <Graphics/Buffers/FrameBuffer.h>
+#include <EngineEditor/Editor.h>
+#include <Renderer/Scene2D.h>
+#include <Renderer/Scene3D.h>
+#include <Renderer/3DRenderer/Renderer3D.h>
+#include <Renderer/3DRenderer/BatchRenderer3D.h>
+#include <Renderer/3DRenderer/Renderable3D.h>
+#include <Renderer/3DRenderer/Cube.h>
+#include <Graphics/Camera3D.h>

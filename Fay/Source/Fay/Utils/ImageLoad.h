@@ -5,29 +5,34 @@
 #include <glew.h>
 namespace Fay
 {
-	static BYTE* load_image(const char* filename, GLsizei* width, GLsizei* height)
-	{
-		FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
-		FIBITMAP* dib = nullptr;
+    static BYTE* load_image(const char* filename, GLsizei* width, GLsizei* height)
+    {
+        FREE_IMAGE_FORMAT fif = FreeImage_GetFileType(filename, 0);
+        if (fif == FIF_UNKNOWN)
+            fif = FreeImage_GetFIFFromFilename(filename);
+        if (fif == FIF_UNKNOWN)
+            return nullptr;
 
-		fif = FreeImage_GetFileType(filename, 0);
+        if (!FreeImage_FIFSupportsReading(fif))
+            return nullptr;
 
-		if (fif == FIF_UNKNOWN)
-			fif = FreeImage_GetFIFFromFilename(filename);
+        FIBITMAP* dib = FreeImage_Load(fif, filename);
+        if (!dib)
+            return nullptr;
 
-		if (fif == FIF_UNKNOWN)
-			return nullptr;
+        // Convert to 32-bit with alpha channel
+        FIBITMAP* dib32 = FreeImage_ConvertTo32Bits(dib);
+        FreeImage_Unload(dib);
 
-		if (FreeImage_FIFSupportsReading(fif))
-			dib = FreeImage_Load(fif, filename);
+        *width = FreeImage_GetWidth(dib32);
+        *height = FreeImage_GetHeight(dib32);
 
-		if (!dib)
-			return nullptr;
+        size_t size = (*width) * (*height) * 4;
+        BYTE* pixels = new BYTE[size];
+        memcpy(pixels, FreeImage_GetBits(dib32), size);
 
-		BYTE* result = FreeImage_GetBits(dib);
-		*width = FreeImage_GetWidth(dib);
-		*height = FreeImage_GetHeight(dib);
+        FreeImage_Unload(dib32);
 
-		return result;
-	}
+        return pixels;
+    }
 }

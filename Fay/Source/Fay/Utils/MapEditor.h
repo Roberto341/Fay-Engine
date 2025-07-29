@@ -57,6 +57,21 @@ namespace Fay
 		CollisionTile() : id(0), isCollision(false), type(CollisionType::None) {}
 		CollisionTile(int id_, bool isCollision_, CollisionType type_) : id(id_), isCollision(isCollision_), type(type_) {}
 	};
+	// Object tile
+	struct TileObjectInfo
+	{
+		int id;
+		std::string name;
+		std::string path;
+		Texture* texture = nullptr;
+	};
+	struct ObjectTile
+	{
+		int id;
+		bool isTexture;
+		ObjectTile() : id(0), isTexture(false) {}
+		ObjectTile(int id_, bool isTexture_) : id(id_), isTexture(isTexture_) {}
+	};
 	// Spawn tile
 	enum class SpawnType
 	{
@@ -134,12 +149,20 @@ namespace Fay
 		void update();
 		void handleInput();
 
+
+		// Normal
 		void setTile(int x, int y, const Tile& tile);
 		Tile getTile(int x, int y) const;
 
+		// Spawn
 		void setSpawnTile(int x, int y, const SpawnTile& spawnTile);
 		SpawnTile getSpawnTile(int x, int y) const;
 
+		// Object
+		void setObjectTile(int x, int y, const ObjectTile& objectTile);
+		ObjectTile getObjectTile(int x, int y) const;
+
+		// Collision
 		void setColTile(int x, int y, const CollisionTile& colTile);
 		CollisionTile getColTile(int x, int y) const;
 		// files
@@ -153,11 +176,13 @@ namespace Fay
 		Vec4 getColColor(int tileId) const;
 
 		Texture* getTexture(int tileId) const;
-
+		Texture* getObjectTexture(int tileId) const;
 	private:
 		int parseTileId(const std::string& token, bool& isTexture);
 		int parseSpawnTileId(const std::string& token, SpawnType& type, bool& isSpawn);
+		int parseObjectTileId(const std::string& token, bool& isTexture);
 		int parseCollisionTileId(const std::string& token, CollisionType& type, bool& isCollision);
+
 		int getColorId(int current);
 		int getTextureId(int current);
 		
@@ -174,16 +199,18 @@ namespace Fay
 		Tile m_selectedTile;
 		SpawnTile m_selectedSpawnTile;
 		CollisionTile m_selectedColTile;
+		ObjectTile m_selectedObjectTile;
 
 		std::vector<TileTextureInfo> m_tileTexturePalette;
 		std::vector<TileColorInfo> m_tileColorPalette;
 		std::vector<TileSpawnInfo> m_tileSpawnPalette;
 		std::vector<TileCollisionInfo> m_tileCollisionPalette;
+		std::vector<TileObjectInfo> m_tileObjectsPalette;
 
 		std::vector<Tile> m_tiles;
 		std::vector<SpawnTile> m_spawnTiles;
 		std::vector<CollisionTile> m_collisionTiles;
-
+		std::vector<ObjectTile> m_objectTiles;
 		// Add Tiles
 		int newColorTileId = 0;
 		char newColorTileName[64] = "";
@@ -202,10 +229,13 @@ namespace Fay
 		const Tile EMPTY_TILE = Tile(0, false);
 		const SpawnTile EMPTY_SPAWN_TILE = SpawnTile(0, SpawnType::None, false);
 		const CollisionTile EMPTY_COLLISION_TILE = CollisionTile(0, false, CollisionType::None);
+		const ObjectTile EMPTY_OBJECT_TILE = ObjectTile(0, false);
+
+		// Spawn parser
 		std::string spawnTypeToString(SpawnType type);
 		SpawnType parseSpawnType(const std::string& str);
 
-		// Collision stuff
+		// Collision parser
 		std::string collisionTypeToString(CollisionType type);
 		CollisionType parseCollisionType(const std::string& str);
 	};

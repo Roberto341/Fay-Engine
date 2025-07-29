@@ -1,5 +1,4 @@
 #pragma once
-
 #include <iostream>
 
 namespace Fay
@@ -10,7 +9,6 @@ namespace Fay
 
 		Vec4();
 		Vec4(const float& x, const float& y, const float& z, const float& w);
-
 
 		Vec4& add(const Vec4& other);
 		Vec4& sub(const Vec4& other);

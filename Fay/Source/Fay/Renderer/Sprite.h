@@ -8,6 +8,7 @@ namespace Fay {
 		public:
 			Vec3& pos;
 			Vec2& size;
+			Vec4& color;
 			bool hasCollision;
 		public:
 			Sprite(float x, float y, float width, float height, const Vec4& color);

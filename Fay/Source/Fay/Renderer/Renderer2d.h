@@ -4,16 +4,14 @@
 #include <glew.h>
 #include <Math/Math.h>
 #include <Graphics/Font/Font.h>
-
 namespace Fay
 {
 	class Renderable2D;
-	class Renderer2D
+	class Renderer2D 
 	{
 	protected:
 		std::vector<Mat4> m_transStack;
 		const Mat4* m_transBack;
-
 	protected:
 		Renderer2D()
 		{
@@ -21,6 +19,10 @@ namespace Fay
 			m_transBack = &m_transStack.back();
 		}
 	public:
+		const Mat4& getTopTransform() const
+		{
+			return m_transStack.back();
+		}
 		void push(const Mat4& matrix, bool overide = false)
 		{
 			if (overide)

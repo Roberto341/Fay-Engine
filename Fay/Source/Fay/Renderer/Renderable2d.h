@@ -7,7 +7,6 @@
 #include <Graphics/Texture.h>
 #include <Math/Math.h>
 #include <Graphics/Shader.h>
-
 namespace Fay
 {
 	struct VertexData
@@ -42,6 +41,9 @@ namespace Fay
 		{
 			renderer->submit(this);
 		}
+
+
+		Texture* getTexture() const { return m_texture; }
 
 		inline const Vec3& getPosition() const { return m_position; } // position of the shape
 		inline const Vec2& getSize() const { return m_size; } // size of the shape

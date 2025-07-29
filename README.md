@@ -211,3 +211,4 @@ int main()
     - Now run the program and you should see a blank window with your title, width, and height
     
     - That's all for now if you would like to see more on how to create a game visit my youtube channle where I'll have a game making series called In the Dark (it's currently in devolpment)
+# How to use the FayEditor
