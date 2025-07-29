@@ -3,7 +3,7 @@
 namespace Fay
 {
 	Sprite::Sprite(float x, float y, float width, float height, const Vec4& color)
-		: Renderable2D(Vec3(x, y, 0), Vec2(width, height), color), pos(m_position), size(m_size), hasCollision(false)
+		: Renderable2D(Vec3(x, y, 0), Vec2(width, height), color), pos(m_position), size(m_size), hasCollision(false), color(m_color)
 	{
 		m_position = Vec3(x, y, 0.0f);
 		m_size = Vec2(width, height);
@@ -11,7 +11,7 @@ namespace Fay
 	}
 
 	Sprite::Sprite(float x, float y, float width, float height, Texture* texture)
-		: Renderable2D(Vec3(x, y, 0), Vec2(width, height), Vec4(1, 1, 1, 1)), pos(m_position), size(m_size), hasCollision(false)
+		: Renderable2D(Vec3(x, y, 0), Vec2(width, height), Vec4(1, 1, 1, 1)), pos(m_position), size(m_size), hasCollision(false), color(m_color)
 	{
 		m_position = Vec3(x, y, 0.0f);
 		m_size = Vec2(width, height);

@@ -17,6 +17,7 @@ namespace Fay
 		this->z = z;
 		this->w = w;
 	}
+
 	Vec4& Vec4::add(const Vec4& other)
 	{
 		x += other.x;

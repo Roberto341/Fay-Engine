@@ -1,12 +1,7 @@
 	#pragma once
 #include <iostream>
 #include <glew.h>
-#include "../ImGui/imgui.h"
-#include "../ImGui/backends/imgui_impl_glfw.h"
-#include "../ImGui/backends/imgui_impl_opengl3.h"
 #include <glfw3.h>
-#include <Utils/MapEditor.h>
-#define USING_VIEWPORT 0
 namespace Fay {
 #define MAX_KEYS 1024
 #define MAX_BUTTONS 32
@@ -33,10 +28,6 @@ namespace Fay {
 		void clear() const;
 		void update();
 		bool closed() const;
-		// Framebuffer stuff
-		void createRenderTaget(int width, int height);
-		void bindRenderTarget();
-		void unbindRenderTarget();
 		inline int getWidth() const { return m_width; }
 		inline int getHeight() const { return m_height; }
 

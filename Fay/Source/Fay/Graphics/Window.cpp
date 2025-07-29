@@ -24,21 +24,10 @@ namespace Fay {
 		{
 			m_mouseButtons[i] = false;
 		}
-#if USING_VIEWPORT
-		//ImGuiIO& io = ImGui::GetIO(); (void)io;
-#endif
 	}
 
 	Window::~Window()
 	{
-#if USING_VIEWPORT
-		if (m_fbo) glDeleteFramebuffers(1, &m_fbo);
-		if (m_renderTexture) glDeleteTextures(1, &m_renderTexture);
-		//if (m_rbo) glDeleteRenderbuffers(1, &m_rbo);
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-#endif
 		glfwTerminate();
 	}
 
@@ -68,30 +57,10 @@ namespace Fay {
 				return false;
 			}
 			glEnable(GL_BLEND);
+			//glDisable(GL_CULL_FACE);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
 
-			// Intialize imgui
-#if USING_VIEWPORT
-			IMGUI_CHECKVERSION();
-			ImGui::CreateContext();
-			ImGuiIO& io = ImGui::GetIO();
-			io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-			ImGuiStyle& style = ImGui::GetStyle();
-
-			if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-			{
-				style.WindowRounding = 0.0f;
-				style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-			}
-
-			ImGui_ImplGlfw_InitForOpenGL(m_window, true);
-			ImGui_ImplOpenGL3_Init("#version 330");
-
-			createRenderTaget(m_width, m_height);
-#endif
 			return true;
 	}
 	void Window::clear() const
@@ -104,54 +73,6 @@ namespace Fay {
 		{
 			m_keyState[i] = m_keys[i];
 		}
-#if USING_VIEWPORT
-		// Start new ImGui frame
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		// Setup fullscreen dockspace
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
-		ImGuiWindowFlags dockspace_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-		dockspace_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-		dockspace_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-		ImGui::Begin("DockSpace", nullptr, dockspace_flags);
-		ImGui::PopStyleVar(2);
-
-		// DockSpace ID
-		ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
-		ImGui::End();
-
-		// Your UI panels here (now docked by default)
-		ImGui::Begin("Viewport");
-		ImVec2 size = ImGui::GetContentRegionAvail();
-		ImGui::Image((void*)(intptr_t)m_renderTexture, size, ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::End();
-
-		// Render
-		ImGui::Render();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		// Viewports
-		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-#endif
 		GLenum error = glGetError();
 		if (error != GL_NO_ERROR)
 			std::cout << "OpenGL Error: " << error << std::endl;
@@ -159,55 +80,6 @@ namespace Fay {
 
 		glfwSwapBuffers(m_window);
 	}
-
-	void Window::createRenderTaget(int width, int height)
-	{
-		if (m_fbo) glDeleteFramebuffers(1, &m_fbo);
-		if (m_renderTexture) glDeleteTextures(1, &m_renderTexture);
-		//if (m_rbo) glDeleteRenderbuffers(1, &m_rbo);
-
-		// Texture
-		glGenTextures(1, &m_renderTexture);
-		glBindTexture(GL_TEXTURE_2D, m_renderTexture);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		// Framebuffer
-		glGenFramebuffers(1, &m_fbo);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_renderTexture, 0);
-	
-		// Optional depth/stencil
-
-		/*
-		* glGenRenderbuffers(1, &m_rbo);
-		* glBindRenderbuffer(GL_RENDERBUFFER, m_rbo);
-        * glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-        * glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo);
-		*/
-
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cerr << "Framebuffer not complete!" << std::endl;
-		else
-			std::cout << "Framebuffer complete" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	}
-
-	void Window::bindRenderTarget()
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-		glViewport(0, 0, m_width, m_height);
-	}
-
-	void Window::unbindRenderTarget()
-	{
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, m_width, m_height);
-
-	}
-
 	bool Window::closed() const
 	{
 		return glfwWindowShouldClose(m_window) == 1;
@@ -259,5 +131,4 @@ namespace Fay {
 		win->mx = xpos;
 		win->my = ypos;
 	}
-
 }

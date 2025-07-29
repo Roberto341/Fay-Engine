@@ -46,7 +46,7 @@ namespace Fay
 	}
 	void Shader::setUniformMat4(const GLchar* name, const Mat4& matrix)
 	{
-		glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, matrix.elements);
+		glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, matrix.data());
 	}
 	/*Load and create the shader*/
 	GLuint Shader::load()

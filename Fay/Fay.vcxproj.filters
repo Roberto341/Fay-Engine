@@ -79,11 +79,17 @@
     <Filter Include="Res\Worlds">
       <UniqueIdentifier>{8dfb6359-b2bd-4181-9713-fc215396ee42}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\renderer\new_renderer">
-      <UniqueIdentifier>{6e474adc-50e1-4da1-80f5-1816dbdee65e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\ImGui\dirent">
       <UniqueIdentifier>{1a66d776-1551-4f0c-96c5-8dfb746ae898}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\EngineEditor">
+      <UniqueIdentifier>{dfb141de-63df-428a-9c59-5b34c0889989}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\ImGuizmo">
+      <UniqueIdentifier>{63ff57b0-4b12-4d18-9d28-45f084353d5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\renderer\3drenderer">
+      <UniqueIdentifier>{74aca9dd-d74f-4f0d-8ba9-9e4845bd6ac1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -316,17 +322,50 @@
     <ClCompile Include="Source\Fay\Utils\MapEditor.cpp">
       <Filter>Source\Engine\utils</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\new_renderer\Draw2D.cpp">
-      <Filter>Source\Engine\renderer\new_renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\new_renderer\QuadRenderable.cpp">
-      <Filter>Source\Engine\renderer\new_renderer</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\ImGui\ImGuiFileDialog.cpp">
       <Filter>Source\Engine\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\TextureManager.cpp">
       <Filter>Source\Engine\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Game\Hud.cpp">
+      <Filter>Source\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\Editor.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Graphics\Buffers\FrameBuffer.cpp">
+      <Filter>Source\Engine\graphics\buffers</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\Scene2D.cpp">
+      <Filter>Source\Engine\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGuizmo\GraphEditor.cpp">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGuizmo\ImCurveEdit.cpp">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGuizmo\ImGradient.cpp">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGuizmo\ImGuizmo.cpp">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\ImGuizmo\ImSequencer.cpp">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\3DRenderer\BatchRenderer3D.cpp">
+      <Filter>Source\Engine\renderer\3drenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\3DRenderer\Cube.cpp">
+      <Filter>Source\Engine\renderer\3drenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Graphics\Camera3D.cpp">
+      <Filter>Source\Engine\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\Scene3D.cpp">
+      <Filter>Source\Engine\renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -498,12 +537,6 @@
     <ClInclude Include="Source\Fay\Utils\MapEditor.h">
       <Filter>Source\Engine\utils</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\new_renderer\Draw2D.h">
-      <Filter>Source\Engine\renderer\new_renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\new_renderer\QuadRenderable.h">
-      <Filter>Source\Engine\renderer\new_renderer</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\ImGui\ImGuiFileDialog.h">
       <Filter>Source\Engine\ImGui</Filter>
     </ClInclude>
@@ -515,6 +548,54 @@
     </ClInclude>
     <ClInclude Include="Source\Fay\Graphics\TextureManager.h">
       <Filter>Source\Engine\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Game\Hud.h">
+      <Filter>Source\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\Editor.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Graphics\Buffers\FrameBuffer.h">
+      <Filter>Source\Engine\graphics\buffers</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\Scene2D.h">
+      <Filter>Source\Engine\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGuizmo\GraphEditor.h">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGuizmo\ImCurveEdit.h">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGuizmo\ImGradient.h">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGuizmo\ImGuizmo.h">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGuizmo\ImSequencer.h">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\ImGuizmo\ImZoomSlider.h">
+      <Filter>Source\Engine\ImGuizmo</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Renderable3d.h">
+      <Filter>Source\Engine\renderer\3drenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Renderer3d.h">
+      <Filter>Source\Engine\renderer\3drenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\3DRenderer\BatchRenderer3D.h">
+      <Filter>Source\Engine\renderer\3drenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Cube.h">
+      <Filter>Source\Engine\renderer\3drenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Graphics\Camera3D.h">
+      <Filter>Source\Engine\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\Scene3D.h">
+      <Filter>Source\Engine\renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -542,6 +623,12 @@
     </None>
     <None Include="Res\Worlds\level1.world">
       <Filter>Res\Worlds</Filter>
+    </None>
+    <None Include="Res\Shaders\basic_3d.frag">
+      <Filter>Res\Shaders</Filter>
+    </None>
+    <None Include="Res\Shaders\basic_3d.vert">
+      <Filter>Res\Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

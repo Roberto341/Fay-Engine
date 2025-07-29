@@ -50,6 +50,7 @@ namespace Fay
 			offset += 4;
 		}
 		m_ibo = new IndexBuffer(indicies, RENDERER_INDICES_SIZE);
+		m_ibo->bind();
 		glBindVertexArray(0);
 	}
 
@@ -237,11 +238,11 @@ namespace Fay
 			glBindTexture(GL_TEXTURE_2D, m_textureSlots[i]);
 		}
 		glBindVertexArray(m_vao); // bind
-		m_ibo->bind();
+		//m_ibo->bind();
 
 		glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, NULL); // draw to the screen
 
-		m_ibo->unbind(); // unbind
+		//m_ibo->unbind(); // unbind
 		glBindVertexArray(0);
 
 		m_indexCount = 0; // reset the index count
