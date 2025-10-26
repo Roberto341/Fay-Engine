@@ -2,8 +2,8 @@
 - [Version Alpha 1.0](https://github.com/Roberto341/Fay-Engine/tree/release-a1)
 
 # Updates
-- ###July 11th 2025 - Added ImGui
-- ###July 12th 2025 - Implmented ImGui - Sorta- and added a Map Editor
+- ### July 11th 2025 - Added ImGui
+- ### July 12th 2025 - Implmented ImGui - Sorta- and added a Map Editor
 - Starting on July 12th I will be over hauling the map editor and relasing a full application for making maps and what not that will be available to the public
 - Update July 13th todays commit has been pushed back to tomorrow because the map editor experienced a major bug dont worry I fixed it and the new version will be released in the morning 
  I also went and overhauled the map editor significantly it now features 
@@ -17,7 +17,7 @@
   - 2 you wont be able to render any npcs 
   - multiple sprites wont render either 
   - Just so you know I'm working on a fix for it but it might take awhile I'm a one man band right now so please be patient 
-- ###Update July 16th 2025
+- ### Update July 16th 2025
     - MapEditor class now has the ability to add textures and color tiles you can also make new ones directly in the editor (textures must follow below guidelines)
         - Textures must be 24 bit to read otherwise it wont work
         - Textures can be any file type .png, .jpg, .bmp, .dds
@@ -29,23 +29,23 @@
     - Other features will be added as well as time goes by
     - Current projection for the MapEditor release will be later in the begining of 2026 or mid 2026 
     - Other news I will be rebuilding FayEngine as a library it will have 2D and 3D support as well as the 3D Map Editor which will come at a latter date 
-- ###Update July 18th 2025
+- ### Update July 18th 2025
   - MapEditor class now has the collision tile all setup so you can define your world bounds and/or lakes, other things you dont wanna run into, other npcs, the main player still working on a few things but it's mostly there.
   - The WorldLoader util class will be released with version Alpha 1.01 on Monday July 21st 2025
   - Other news the main engine is under construction right now and will be ready at a later given date I don't exactly have one as I just sketched out the process for it the main engine will allow you to make new projects 2d or 3d if it's 2d it will load the simple MapEditor and go from there the 3D one will be a bit different both will be part of the main engine it self 
   - Starting work now on the objects palette for the MapEditor 
-- ###Update July 28th 2025
+- ### Update July 28th 2025
   - Objects have been added in to the tile map editor
   - A new 3D renderer has been added working on loading objects and meshs so it wont be ready for awhile yet
   - FayEngine is being renamed to FayEditor I dont know why I named it that when I started putting it together but I did :')
   - ###ImageLoad.h recived a pretty good overhaul. The old load method use to only give a 24 bit format (RGB). 
     It now supports 32 bit's which means (RGBA) alpha is recognized instead of being ignored so if you have a tree texture for eample that has a tree and has a opaque background you will see the color of the tile under it instead of seeing just white
     Just make sure your using layer or layer1 for drawing your floor tiles and layer 2 for objects and layer 3 for characters, npcs, .etc
-  - ###Also as noted in an earlier update I recomend you get [Paint.net](https://www.getpaint.net/download.html) to edit textures you can load in any bmp, png, jpg that is 32 bits (RGBA) just make sure when you save you use 32 bits otherwise it wont work
-  - ###Mat4.h and .cpp recived a update for the new 3d renderer
+  - ### Also as noted in an earlier update I recomend you get [Paint.net](https://www.getpaint.net/download.html) to edit textures you can load in any bmp, png, jpg that is 32 bits (RGBA) just make sure when you save you use 32 bits otherwise it wont work
+  - ### Mat4.h and .cpp recived a update for the new 3d renderer
     - it now has a lookAt method for the 3d camera which is also new
   - Currently finishing work on the FayEditor the release of the new version should be availble pretty soon Sorry for the delay commit should be tommorow July 29th
-- ###Update July 29th 2025
+- ### Update July 29th 2025
   - #### New Features
     - Scene Class
     - Cube
