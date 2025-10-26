@@ -1,6 +1,4 @@
 #pragma once
-#include <Renderer/Scene2D.h>
-#include <Renderer/Scene3D.h>
 #include <Graphics/Window.h>
 #include <Graphics/Buffers/FrameBuffer.h>
 #include <Graphics/Layers/TileLayer.h>
@@ -11,6 +9,12 @@
 #include <ImGui/ImGuiFileDialog.h>
 #include <ImGuizmo/ImGuizmo.h>
 #include <Graphics/Camera3D.h>
+#include <Entity/ComponentManager.h>
+#include <Entity/Components.h>
+#include <Scripting/ScriptEngine.h>
+#include <Scripting/ScriptGlue.h>
+#include <Scripting/ScriptSystem.h>
+#include <Renderer/Scene.h>
 #define TEST 0
 namespace Fay
 {
@@ -28,6 +32,14 @@ namespace Fay
 		~Editor();
 
 		void run();
+		void SetSelectedEntity(EntityID id);
+		static EntityID GetSelEntity();
+		static EntityID s_SelectedEntity;
+		static SceneType s_ActiveScene;
+		static bool IsSceneActive();
+		static SceneType GetCurrentScene();
+		static void SetActiveScene(SceneType type);
+		static bool shouldRefreshScenes;
 	private:
 		// Camera stuff
 		void cameraUpdate();
@@ -36,8 +48,10 @@ namespace Fay
 		Shader* m_shader3d;
 		void setShader(Fay::Shader* shader);
 		void setShader3D(Fay::Shader* shader);
-		RenderMode m_renderMode = RenderMode::MODE_2D; // default to 2d rendering
+		RenderMode m_renderMode = RenderMode::MODE_2D;
 		// File
+		void saveCurrentScene();
+		void createNewScene(const std::string& path);
 		bool showSaveDialog = false;
 		bool showLoadDialog = false;
 		void setupDockspace();
@@ -45,14 +59,20 @@ namespace Fay
 		int selectedSpriteIndex;
 		int selectedCubeIndex;
 		float m_lastTime;
+		std::string m_currentScenePath;
 		// Misc
 		Camera3D* m_camera3D;
 		TileLayer* m_renderLayer;
-		TileLayer* m_renderLayer3D;
-		Scene2D m_scene2D;
-		Scene3D m_scene3D;
+		//TileLayer* m_renderLayer3D;
+		Scene m_Scene;
 		TextureManager m_textureManager;
 		Window& m_window;
 		FrameBuffer m_framebuffer;
+		BatchRenderer* m_batchRenderer;
+		// Scene Management
+		SceneType m_activeScene = SceneType::None;
+		// private methods
+		Vec3 getRayFromMouse(float mouseX, float mouseY, const Mat4& proj, const Mat4& view, const ImVec2& viewportSize);;
+		bool intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t);
 	};
 }

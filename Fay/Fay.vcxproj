@@ -73,26 +73,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,7 +108,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;FreeImage.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;FreeImage.lib;mono-2.0-sgen.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -127,7 +127,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;FreeImage.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;FreeImage.lib;mono-2.0-sgen.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -144,7 +144,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;FreeImage.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;FreeImage.lib;mono-2.0-sgen.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -163,7 +163,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;FreeImage.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32s.lib;FreeImage.lib;mono-2.0-sgen.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -245,20 +245,13 @@
     <ClCompile Include="Source\Fay\Math\Vec2.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec3.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec4.cpp" />
-    <ClCompile Include="Source\Fay\Renderer\3DRenderer\BatchRenderer3D.cpp" />
     <ClCompile Include="Source\Fay\Renderer\3DRenderer\Cube.cpp" />
     <ClCompile Include="Source\Fay\Renderer\BatchRenderer.cpp" />
-    <ClCompile Include="Source\Fay\Renderer\Scene2D.cpp" />
-    <ClCompile Include="Source\Fay\Renderer\Scene3D.cpp" />
-    <ClCompile Include="Source\Fay\Renderer\SimpleRenderer.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\Scene.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Sprite.cpp" />
-    <ClCompile Include="Source\Fay\Renderer\StaticSprite.cpp" />
-    <ClCompile Include="Source\Fay\Utils\MapEditor.cpp" />
-    <ClCompile Include="Source\Game\Game.cpp" />
-    <ClCompile Include="Source\Game\Hud.cpp" />
-    <ClCompile Include="Source\Game\Npc.cpp" />
-    <ClCompile Include="Source\Game\Player.cpp" />
-    <ClCompile Include="Source\Game\WorldLoader.cpp" />
+    <ClCompile Include="Source\Fay\Scripting\ScriptEngine.cpp" />
+    <ClCompile Include="Source\Fay\Scripting\ScriptGlue.cpp" />
+    <ClCompile Include="Source\Fay\Scripting\ScriptSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ext\Freetype-gl\common.h" />
@@ -275,7 +268,11 @@
     <ClInclude Include="Ext\Freetype\include\config\ftoption.h" />
     <ClInclude Include="Ext\Freetype\include\config\ftstdlib.h" />
     <ClInclude Include="Ext\Freetype\include\ft2build.h" />
+    <ClInclude Include="Source\Fay\Core\Logger.h" />
     <ClInclude Include="Source\Fay\EngineEditor\Editor.h" />
+    <ClInclude Include="Source\Fay\Entity\ComponentManager.h" />
+    <ClInclude Include="Source\Fay\Entity\Components.h" />
+    <ClInclude Include="Source\Fay\Entity\Entity.h" />
     <ClInclude Include="Source\Fay\Graphics\Buffers\Buffer.h" />
     <ClInclude Include="Source\Fay\Graphics\Buffers\FrameBuffer.h" />
     <ClInclude Include="Source\Fay\Graphics\Buffers\IndexBuffer.h" />
@@ -316,27 +313,18 @@
     <ClInclude Include="Source\Fay\Math\Vec2.h" />
     <ClInclude Include="Source\Fay\Math\Vec3.h" />
     <ClInclude Include="Source\Fay\Math\Vec4.h" />
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\BatchRenderer3D.h" />
     <ClInclude Include="Source\Fay\Renderer\3DRenderer\Cube.h" />
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Renderable3d.h" />
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Renderer3d.h" />
     <ClInclude Include="Source\Fay\Renderer\BatchRenderer.h" />
-    <ClInclude Include="Source\Fay\Renderer\Renderable2d.h" />
-    <ClInclude Include="Source\Fay\Renderer\Renderer2d.h" />
-    <ClInclude Include="Source\Fay\Renderer\Scene2D.h" />
-    <ClInclude Include="Source\Fay\Renderer\Scene3D.h" />
-    <ClInclude Include="Source\Fay\Renderer\SimpleRenderer.h" />
+    <ClInclude Include="Source\Fay\Renderer\Renderable.h" />
+    <ClInclude Include="Source\Fay\Renderer\Renderer.h" />
+    <ClInclude Include="Source\Fay\Renderer\Scene.h" />
     <ClInclude Include="Source\Fay\Renderer\Sprite.h" />
-    <ClInclude Include="Source\Fay\Renderer\StaticSprite.h" />
+    <ClInclude Include="Source\Fay\Scripting\ScriptEngine.h" />
+    <ClInclude Include="Source\Fay\Scripting\ScriptGlue.h" />
+    <ClInclude Include="Source\Fay\Scripting\ScriptSystem.h" />
     <ClInclude Include="Source\Fay\Utils\FileUtils.h" />
     <ClInclude Include="Source\Fay\Utils\ImageLoad.h" />
-    <ClInclude Include="Source\Fay\Utils\MapEditor.h" />
     <ClInclude Include="Source\Fay\Utils\Timer.h" />
-    <ClInclude Include="Source\Game\Game.h" />
-    <ClInclude Include="Source\Game\Hud.h" />
-    <ClInclude Include="Source\Game\Npc.h" />
-    <ClInclude Include="Source\Game\Player.h" />
-    <ClInclude Include="Source\Game\WorldLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Changelog.md" />

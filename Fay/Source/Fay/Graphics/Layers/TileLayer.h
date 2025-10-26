@@ -2,15 +2,17 @@
 
 #include <Graphics/Layers/Layer.h>
 #include <Renderer/BatchRenderer.h>
-#include <Renderer/3DRenderer/BatchRenderer3D.h>
 namespace Fay
 {
+	enum class ProjectionType { Quad2D, Cube3D };
 	class TileLayer : public Layer
 	{
+	private:
+		ProjectionType m_ptype = ProjectionType::Quad2D; // defaults to 2d
 	public:
-		TileLayer(Shader* shader, BatchRenderer* renderer);
-		TileLayer(Shader* shader, BatchRenderer3D* renderer);
-		//TileLayer(Shader* shader);
+		TileLayer(BatchRenderer* renderer);
+		void setProjectionType(ProjectionType type);
+		void setShader(Shader* shader);
 		~TileLayer();
 	};
 }

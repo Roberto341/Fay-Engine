@@ -1,0 +1,6 @@
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayRuntime\bin\Debug\FayRuntime.dll
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayRuntime\bin\Debug\FayRuntime.pdb
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayRuntime\obj\Debug\FayRuntime.csproj.AssemblyReference.cache
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayRuntime\obj\Debug\FayRuntime.csproj.CoreCompileInputs.cache
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayRuntime\obj\Debug\FayRuntime.dll
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayRuntime\obj\Debug\FayRuntime.pdb

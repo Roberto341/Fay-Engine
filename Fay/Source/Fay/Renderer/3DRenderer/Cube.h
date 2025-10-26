@@ -1,14 +1,14 @@
 #pragma once
-#include <Renderer/3DRenderer/Renderable3d.h>
-
+#include <Renderer/Renderable.h>
 namespace Fay
 {
-		class Cube : public Renderable3D
+		class Cube : public Renderable
 		{
 		public: 
 			Vec3& pos;
 			Vec3& size;
 			Vec4& color;
+			//bool hasCollision;
 		public:
 			Cube(float x, float y, float z, float width, float height, float depth, const Vec4& color);
 			
@@ -16,6 +16,8 @@ namespace Fay
 			Mat4 getModelMatrix() const {
 				return Mat4::translation(pos);
 			}
+			//void setCollision(bool hasCollision);
+			//bool checkCollision(bool hasCollision, Cube* obj1, Cube* obj2);
 			Cube* getCube();
 		};
 	}

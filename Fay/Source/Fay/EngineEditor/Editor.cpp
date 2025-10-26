@@ -2,6 +2,9 @@
 #include <cmath>
 namespace Fay
 {
+	EntityID Editor::s_SelectedEntity = 0;
+	SceneType Editor::s_ActiveScene = SceneType::None;
+	bool Editor::shouldRefreshScenes = false;
 	Editor::Editor(Window& window) : m_window(window), m_framebuffer(window.getWidth(), window.getHeight())
 	{
 		// Init ImGui
@@ -20,13 +23,14 @@ namespace Fay
 		m_shader3d = new Shader("Res/Shaders/basic_3d.vert", "Res/Shaders/basic_3d.frag");
 		Shader& shader = *m_shader;
 		Shader& shader3d = *m_shader3d;
-		//m_shader->setUniformMat4("pr_matrix", Mat4::orthographic(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f));
-
+		
 		setShader(m_shader);
 		setShader3D(m_shader3d);
 
-		m_renderLayer = new TileLayer(&shader, new BatchRenderer());
-		m_renderLayer3D = new TileLayer(&shader3d, new BatchRenderer3D());
+		m_batchRenderer = new BatchRenderer();
+		m_renderLayer = new TileLayer(m_batchRenderer);
+		m_renderLayer->setShader(m_shader);
+		m_Scene.setSceneType(SceneType::Scene2D);
 		selectedSpriteIndex = -1;
 		m_lastTime = glfwGetTime();
 		selectedCubeIndex = -1;
@@ -72,7 +76,12 @@ namespace Fay
 	{
 		while (!m_window.closed())
 		{
+			//m_window.clear();
 			glfwPollEvents();
+
+			Fay::ScriptGlue::SetWindow(m_window); // for input
+			// Find a way to invoke this in runtime
+			ScriptEngine::InvokeStatic("EntityScript", "OnUpdate");
 
 			cameraUpdate();
 			// Start ImGui frame
@@ -84,21 +93,19 @@ namespace Fay
 			// Render scene into framebuffer
 			m_framebuffer.bind();
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			// render
-			if (m_renderMode == RenderMode::MODE_2D)
+			//auto& objects = m_scene2D.getObjects();
+
+			// new render mode
+			if (!m_Scene.getObjects().empty())
 			{
 				m_renderLayer->clear();
-				for (auto* sp : m_scene2D.getObjects())
+				for (auto* sp : m_Scene.getObjects())
+				{
 					m_renderLayer->add(sp);
+				}
 				m_renderLayer->render();
-			}
-			else if (m_renderMode == RenderMode::MODE_3D)
-			{
-				m_renderLayer3D->clear();
-				for (auto* c : m_scene3D.getObjects())
-					m_renderLayer3D->add(c);
-				m_renderLayer3D->render3d();
 			}
 			m_framebuffer.unbind(m_window.getWidth(), m_window.getHeight());
 
@@ -118,87 +125,155 @@ namespace Fay
 				}
 			}
 			ImGui::End();
+			ImGui::Begin("Entity Components");
+			if (m_renderMode == RenderMode::MODE_2D)
+			{
+				if (selectedSpriteIndex >= 0 && selectedSpriteIndex < (int)m_Scene.getObjects().size())
+				{
+					EntityID entity = static_cast<EntityID>(selectedSpriteIndex); 
+					auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
+
+					if (!comp)
+						return;
+					auto* sprite = comp->sprite;
+
+					if (ComponentManager<TransformComponent>::Get().hasComponent(entity))
+					{
+						if (ImGui::Button("Remove Transform"))
+						{
+							ComponentManager<TransformComponent>::Get().removeComponent(entity);
+						}
+					}
+					else
+					{
+						if (ImGui::Button("Add Transform"))
+						{
+							TransformComponent transform(sprite->getPosition(), Vec3(0, 0, 0), Vec3(0, 0, 0), Vec3(sprite->getSize().x, sprite->getSize().y, 0));
+							ComponentManager<TransformComponent>::Get().addComponent(entity, transform);
+						}
+					}
+
+					if (ComponentManager<CollisionSpriteComponent>::Get().hasComponent(entity))
+					{
+						if (ImGui::Button("Remove Collision"))
+						{
+							ComponentManager<CollisionSpriteComponent>::Get().removeComponent(entity);
+						}
+					}
+					else
+					{
+						if (ImGui::Button("Add Collision"))
+						{
+							CollisionSpriteComponent hitBox(sprite->getPosition(), sprite->getSize());
+							ComponentManager<CollisionSpriteComponent>::Get().addComponent(entity, hitBox);
+						}
+					}
+				}
+			}
+			ImGui::End();
 			ImGui::Begin("Entity Properites");
 			if (m_renderMode == RenderMode::MODE_2D)
 			{
-				if (selectedSpriteIndex >= 0 && selectedSpriteIndex < (int)m_scene2D.getObjects().size())
+				if (selectedSpriteIndex >= 0 && selectedSpriteIndex < (int)m_Scene.getObjects().size())
 				{
-					auto* sprite = m_scene2D.getObjects()[selectedSpriteIndex];
+					EntityID entity = static_cast<EntityID>(selectedSpriteIndex);
+					auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
 
+					if (!comp) return;
+
+					auto* sprite = comp->sprite;
+					
 					float color[4] = {
-						sprite->color.x,
-						sprite->color.y,
-						sprite->color.z,
-						sprite->color.w
+						sprite->getColor().x,
+						sprite->getColor().y,
+						sprite->getColor().z,
+						sprite->getColor().w,
 					};
 
+					char idBuf[32];
+					sprintf(idBuf, "%d", selectedSpriteIndex);
+
+					ImGui::InputText("Sprite ID", idBuf, IM_ARRAYSIZE(idBuf), ImGuiInputTextFlags_ReadOnly);
 					if (ImGui::ColorEdit4("Color", color))
 					{
-						sprite->color = Vec4(color[0], color[1], color[2], color[3]);
+						sprite->setColor(Vec4(color[0], color[1], color[2], color[3]));
 					}
+					if (comp)
+						comp->setColor(sprite->getColor());
 
-					float uniformScale = sprite->size.x;
+					float uniformScale = sprite->getSize().x;
 					if (ImGui::SliderFloat("Scale", &uniformScale, 0.1f, 500.0f))
 					{
-						sprite->size.x = uniformScale;
-						sprite->size.y = uniformScale;
+						sprite->setSize(Vec3(uniformScale, uniformScale, 0));
 					}
+					if (comp)
+						comp->setSize(sprite->getSize());
 
-					float spriteX = sprite->pos.x;
-					float spriteY = sprite->pos.y;
+					float spriteX = sprite->getPosition().x;
+					float spriteY = sprite->getPosition().y;
 
 					if (ImGui::SliderFloat("X Position", &spriteX, -1000.0f, 1000.0f))
 					{
-						sprite->pos.x = spriteX;
+						sprite->setPosition(Vec3(spriteX, sprite->getPosition().y, sprite->getPosition().z));
 					}
 					if (ImGui::SliderFloat("Y Position", &spriteY, -1000.0f, 1000.0f))
 					{
-						sprite->pos.y = spriteY;
+						sprite->setPosition(Vec3(sprite->getPosition().x, spriteY, sprite->getPosition().z));
+
 					}
+					if (comp)
+						comp->setPosition(sprite->getPosition());
 				}
 			}
 			else if (m_renderMode == RenderMode::MODE_3D)
 			{
-				if (selectedCubeIndex >= 0 && selectedCubeIndex < (int)m_scene3D.getObjects().size())
+				if (selectedCubeIndex >= 0 && selectedCubeIndex < (int)m_Scene.getObjects().size())
 				{
-					auto* cube = m_scene3D.getObjects()[selectedCubeIndex];
+					EntityID entity = static_cast<EntityID>(selectedCubeIndex);
+					auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity);
+					if (!comp) return;
+
+					auto* cube = comp->cube;
 
 					float color[4] = {
-						cube->color.x,
-						cube->color.y,
-						cube->color.z,
-						cube->color.w
+						cube->getColor().x,
+						cube->getColor().y,
+						cube->getColor().z,
+						cube->getColor().w,
 					};
 
 					if (ImGui::ColorEdit4("Color", color))
 					{
-						cube->color = Vec4(color[0], color[1], color[2], color[3]);
+						cube->setColor(Vec4(color[0], color[1], color[2], color[3]));
 					}
-
-					float uniformScale = cube->size.x;
+					if (comp)
+						comp->color = cube->getColor();
+					float uniformScale = cube->getSize().x;
 					if (ImGui::SliderFloat("Scale", &uniformScale, 0.1f, 500.0f))
 					{
-						cube->size.x = uniformScale;
-						cube->size.y = uniformScale;
-						cube->size.z = uniformScale;
+						cube->setSize(Vec3(uniformScale, uniformScale, uniformScale));
 					}
-
-					float cubeX = cube->pos.x;
-					float cubeY = cube->pos.y;
-					float cubeZ = cube->pos.z;
+					if (comp)
+						comp->size = cube->getSize();
+					float cubeX = cube->getPosition().x;
+					float cubeY = cube->getPosition().y;
+					float cubeZ = cube->getPosition().z;
 
 					if (ImGui::SliderFloat("X Position", &cubeX, -1000.0f, 1000.0f))
 					{
-						cube->pos.x = cubeX;
+						cube->setPosition(Vec3(cubeX, cube->getPosition().y, cube->getPosition().z));
 					}
 					if (ImGui::SliderFloat("Y Position", &cubeY, -1000.0f, 1000.0f))
 					{
-						cube->pos.y = cubeY;
+						cube->setPosition(Vec3(cube->getPosition().x, cubeY, cube->getPosition().z));
+
 					}
 					if (ImGui::SliderFloat("Z Position", &cubeZ, -1000.0f, 1000.0f))
 					{
-						cube->pos.z = cubeZ;
+						cube->setPosition(Vec3(cube->getPosition().x, cube->getPosition().y, cubeZ));
 					}
+					if (comp)
+						comp->position = cube->getPosition();
 				}
 			}
 			ImGui::End();
@@ -208,6 +283,34 @@ namespace Fay
 
 			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 			ImVec2 viewportPos = ImGui::GetWindowPos();
+			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+			ImVec2 mouse = ImGui::GetMousePos();
+			ImVec2 viewportPosImGui = ImGui::GetItemRectMin(); 
+			ImGui::Image((void*)(intptr_t)m_framebuffer.getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+			ImVec2 imgPos = ImGui::GetItemRectMin();
+			ImVec2 imgSize = ImGui::GetItemRectSize();
+
+			Vec2 viewPos(viewportPosImGui.x, viewportPosImGui.y);
+
+			// Final result
+			Vec2 relativeMousePos = {
+				mouse.x - cursorPos.x,
+				(imgPos.y + viewportSize.y) - mouse.y
+			};
+			//relativeMousePos.y = viewportPos.y - relativeMousePos.y;
+			Vec2 worldMousePos = {
+				relativeMousePos.x - (viewportSize.x / 2.0f),
+				relativeMousePos.y - (viewportSize.y / 2.0f)
+			};
+
+
+			bool hoveredViewport = ImGui::IsItemHovered();
+			bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
+			bool clickedLeft = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+			if (hoveredViewport && clickedLeft && !gizmoActive)
+			{
+				selectedSpriteIndex = -1;
+			}
 			Mat4 modelMatrix = Mat4::translation(Vec3(0, 0, 0));
 			Mat4 viewMatrix = Mat4::identity();
 			Mat4 proj = Mat4::identity();
@@ -226,13 +329,8 @@ namespace Fay
 					proj = Mat4::orthographic(left, right, bottom, top, near, far);
 					m_shader->enable();
 					m_shader->setUniformMat4("pr_matrix", proj);
-					//camera->resize((int)viewportSize.x, (int)viewportSize.y);
-				// This should upload proj + view matrices
 				}
-				ImGui::Image((void*)(intptr_t)m_framebuffer.getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
-				ImVec2 imgPos = ImGui::GetItemRectMin();
-				ImVec2 imgSize = ImGui::GetItemRectSize();
-				ImGui::InvisibleButton("viewport_btn", viewportSize, ImGuiButtonFlags_MouseButtonLeft);
+				ImGui::InvisibleButton("viewport_btn", viewportSize);
 
 				ImGuizmo::SetDrawlist();
 				ImGuizmo::SetOrthographic(true);
@@ -250,12 +348,15 @@ namespace Fay
 
 				m_shader->enable();
 				m_shader->setUniformMat4("pr_matrix", proj);
-				// Gizmo manipulation for selected sprite
-				if (selectedSpriteIndex >= 0 && selectedSpriteIndex < (int)m_scene2D.getObjects().size())
-				{
-					auto* sprite = m_scene2D.getObjects()[selectedSpriteIndex];
 
-					//Vec3 centerPos = sprite->pos + Vec3(sprite->size.x, sprite->size.y, 0.0f);
+				// Gizmo manipulation for selected sprite
+				if (selectedSpriteIndex >= 0 && selectedSpriteIndex < (int)m_Scene.getObjects().size())
+				{
+					EntityID entity = static_cast<EntityID>(selectedSpriteIndex);
+					auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
+					if (!comp) return;
+
+					auto* sprite = comp->sprite;
 
 					float left = -m_framebuffer.getWidth() / 2.0f;
 					float right = m_framebuffer.getWidth() / 2.0f;
@@ -264,19 +365,14 @@ namespace Fay
 					float near = -1.0f;
 					float far = 1.0f;
 
-					//Mat4 proj = Mat4::orthographic(left, right, bottom, top, near, far);
-					// 1. Build model matrix from sprite center
+					Mat4 model = Mat4::translation(sprite->getPosition()) *
+						Mat4::scale(Vec3(sprite->getSize().x, sprite->getSize().y, 1.0f));
 
-					Mat4 model = Mat4::translation(sprite->pos) *
-						Mat4::scale(Vec3(sprite->size.x, sprite->size.y, 1.0f));
-
-					// 2. Setup view and proj (as you're already doing)
-					viewMatrix = Mat4::identity(); // if you're using no camera
+					viewMatrix = Mat4::identity(); //  not using camera
 					proj = Mat4::orthographic(-imgSize.x / 2, imgSize.x / 2,
 						-imgSize.y / 2, imgSize.y / 2,
-						-1, 1); // your orthographic call
+						-1, 1);
 
-					// 3. Manipulate with ImGuizmo
 					bool manipulated = ImGuizmo::Manipulate(
 						viewMatrix.data(),
 						proj.data(),
@@ -285,18 +381,19 @@ namespace Fay
 						model.data()
 					);
 
-					// 4. Apply new center position directly
-					if (manipulated)
-					{
+					if (manipulated) {
+						// Update your sprite position
 						Vec3 newPos(model.elements[12], model.elements[13], model.elements[14]);
-						sprite->pos = newPos;
+						sprite->setPosition(newPos);
 					}
 
-					Vec3 cornersWorld[4] = {
-						sprite->pos, // bottom-left
-						sprite->pos + Vec3(sprite->size.x, 0, 0), // bottom-right
-						sprite->pos + Vec3(sprite->size.x, sprite->size.y, 0), // top-right
-						sprite->pos + Vec3(0, sprite->size.y, 0), // top-left
+					Vec3 origin = sprite->getPosition();
+					Vec3 size = sprite->getSize();
+					Vec3 cornersWorld[4] = { 
+						origin,                                         // bottom-left
+						origin + Vec3(size.x, 0, 0),                    // bottom-right
+						origin + Vec3(size.x, size.y, 0),               // top-right
+						origin + Vec3(0, size.y, 0),                    // top-left
 					};
 
 					Mat4 view = viewMatrix;
@@ -307,9 +404,6 @@ namespace Fay
 
 					const float fbWidth = imgSize.x;
 					const float fbHeight = imgSize.y;
-					//const float fbWidth = (float)m_framebuffer.getWidth();
-					//const float fbHeight = (float)m_framebuffer.getHeight();
-
 					Vec3 localCorners[4] = {
 						Vec3(0, 0, 0),                          // bottom-left
 						Vec3(1, 0, 0),                          // bottom-right
@@ -334,21 +428,29 @@ namespace Fay
 						float ndcX = clip.x * 0.5f + 0.5f;
 						float ndcY = clip.y * 0.5f + 0.5f;
 
-						// Flip Y to match ImGui::Image(0,1)-(1,0) flip
+						// Flip Y to match ImGui::Image(0,1)-(1,0)
 						float screenX = imgPos.x + ndcX * fbWidth;
 						float screenY = imgPos.y + (1.0f - ndcY) * fbHeight;
 
 						screenCorners[i] = ImVec2(screenX, screenY);
 					}
 
+						auto* dl = ImGui::GetWindowDrawList();
 					if (valid)
 					{
-						auto* dl = ImGui::GetWindowDrawList();
 						for (auto& sc : screenCorners) {
-							dl->AddCircleFilled(sc, 3.0f, IM_COL32(255, 0, 0, 255));
+							if (ComponentManager<CollisionSpriteComponent>::Get().getComponent(entity))
+							{
+								dl->AddCircleFilled(sc, 3.0f, IM_COL32(0, 255, 0, 255));
+							}
 						}
-						dl->AddPolyline(screenCorners, 4, IM_COL32(255, 255, 0, 255), true, 2.0f);
+						dl->AddPolyline(screenCorners, 4, IM_COL32(255, 255, 0, 155), true, 2.0f);
 					}
+
+					/*if (ComponentManager<TransformComponent>::Get().hasComponent(entity))
+					{
+						dl->AddPolyline(screenCorners, 4, IM_COL32(0, 0, 255, 255), true, 2.0f);
+					}*/
 				}
 			}
 			else if (m_renderMode == RenderMode::MODE_3D)
@@ -364,42 +466,43 @@ namespace Fay
 				float fov = 45.0f;
 				float near = 0.1f;
 				float far = 100.0f;
-				proj = Mat4::perspective(fov, aspect, near, far);
+				Mat4 pj = Mat4::perspective(fov, aspect, near, far);
 
-				viewMatrix = m_camera3D->getViewMatrix();
-				
+				Mat4 vm = m_camera3D->getViewMatrix();
 				m_shader3d->enable();
-				m_shader3d->setUniformMat4("pr_matrix", proj);
-				m_shader3d->setUniformMat4("vw_matrix", viewMatrix);
+				m_shader3d->setUniformMat4("pr_matrix", pj);
+				m_shader3d->setUniformMat4("vw_matrix", vm);
 				m_shader3d->setUniformMat4("ml_matrix", modelMatrix);
 
-				// Draw framebuffer to ImGui
+				// Draw framebuffer
 				ImGui::Image((void*)(intptr_t)m_framebuffer.getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
 				ImVec2 imgPos = ImGui::GetItemRectMin();
 				ImVec2 imgSize = ImGui::GetItemRectSize();
+				ImGui::InvisibleButton("viewport_btn", viewportSize, ImGuiButtonFlags_MouseButtonLeft);
 
-				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetOrthographic(false);
-				ImGuizmo::SetRect(imgPos.x, imgPos.y, imgSize.x, imgSize.y);
-
-				if (selectedCubeIndex >= 0 && selectedCubeIndex < (int)m_scene3D.getObjects().size())
+				if (selectedCubeIndex >= 0 && selectedCubeIndex < (int)m_Scene.getObjects().size())
 				{
-					auto* cube = m_scene3D.getObjects()[selectedCubeIndex];
+					EntityID entity = static_cast<EntityID>(selectedCubeIndex);
+					auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity);
+					if (!comp) return;
 
-					Mat4 model = Mat4::translation(cube->pos) * Mat4::scale(cube->size);
-
-					bool manipulated = ImGuizmo::Manipulate(
-					viewMatrix.data(),
-						proj.data(),
+					auto* cube = comp->cube;
+					Mat4 model = Mat4::translation(cube->getPosition()) * Mat4::scale(cube->getSize());
+					ImGuizmo::SetDrawlist();
+					ImGuizmo::SetOrthographic(false);
+					
+					bool manip = ImGuizmo::Manipulate(
+						vm.data(),
+						pj.data(),
 						ImGuizmo::TRANSLATE,
-						ImGuizmo::LOCAL,
+						ImGuizmo::WORLD,
 						model.data()
 					);
 
-					if (manipulated)
+					if (manip)
 					{
 						Vec3 newPos(model.elements[12], model.elements[13], model.elements[14]);
-						cube->pos = newPos;
+						cube->setPosition(newPos);
 					}
 				}
 			}
@@ -412,47 +515,143 @@ namespace Fay
 
 			if (ImGui::Combo("Render Mode", &currentMode, modes, IM_ARRAYSIZE(modes)))
 			{
-				m_renderMode = (RenderMode)currentMode;
+				if (m_Scene.canSwitchScene())
+				{
+					m_renderMode = (RenderMode)currentMode;
+				}
+				if (m_renderMode == RenderMode::MODE_3D)
+				{
+					SetActiveScene(SceneType::Scene3D);
+					m_Scene.setSceneType(SceneType::Scene3D);
+					m_batchRenderer->setDimension(RenderDimension::D3);
+					m_renderLayer->setProjectionType(ProjectionType::Cube3D);
+					m_renderLayer->setShader(m_shader3d);
+				}
+				if (m_renderMode == RenderMode::MODE_2D)
+				{
+					SetActiveScene(SceneType::Scene2D);
+					m_Scene.setSceneType(SceneType::Scene2D);
+					m_batchRenderer->setDimension(RenderDimension::D2);
+					m_renderLayer->setProjectionType(ProjectionType::Quad2D);
+					m_renderLayer->setShader(m_shader);
+				}
 			}
 				setupFileMenu();
 			ImGui::End();
-
 			// Entities panel (Add + List)
 			ImGui::Begin("Entities");
 			if (m_renderMode == RenderMode::MODE_2D)
 			{
 				if (ImGui::Button("Add Sprite"))
 				{
-					auto* sp = new Sprite(0, 0, 100, 100, Vec4(1, 0, 0, 1));
-					m_scene2D.addObject(sp);
+					EntityID entity = static_cast<EntityID>(m_Scene.getObjects().size());
+					auto sprite = new Sprite(0, 0, 0, 100, 100, 0, Vec4(1, 0, 0, 1));
+
+					// Generate EntityID 
+					ComponentManager<SpriteComponent>::Get().addComponent(entity, SpriteComponent(sprite));
+					m_Scene.addObject(sprite);
 				}
-				bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
-				int idx = 0;
-				for (auto* sp : m_scene2D.getObjects())
+				if (ImGui::Button("Delete Sprite"))
 				{
-					char buf[32];
-					sprintf(buf, "Sprite %d", idx);
-					if (!gizmoActive && ImGui::Selectable(buf, selectedSpriteIndex == idx))
-						selectedSpriteIndex = idx;
+					EntityID entity = static_cast<EntityID>(selectedSpriteIndex);
+					
+					SpriteComponent* spriteComp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
+					if (spriteComp && spriteComp->sprite)
+					{
+						FAY_LOG_DEBUG("Deleting sprite entity: " << entity);
+
+						// remove from scene 
+						m_Scene.removeObject(spriteComp->sprite);
+						// remove component from ECS
+						ComponentManager<SpriteComponent>::Get().removeComponent(entity);
+					}
+				}
+				//bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
+				auto& spriteEntities = ComponentManager<SpriteComponent>::Get().getEntities();
+				int idx = 0;
+				for (auto* sp : m_Scene.getObjects())
+				{
+					// new code
+					Vec3 spritePos = sp->getPosition();
+					Vec3 spriteSize = sp->getSize();
+
+					if (worldMousePos.x >= spritePos.x && worldMousePos.x <= spritePos.x + spriteSize.x &&
+						worldMousePos.y >= spritePos.y && worldMousePos.y <= spritePos.y + spriteSize.y)
+					{
+						if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+						{
+							std::cout << "SelectedSpriteIndex: " << idx << std::endl;
+							selectedSpriteIndex = idx;
+							//break;
+						}
+					}
 					idx++;
 				}
 			}
 			else if (m_renderMode == RenderMode::MODE_3D)
 			{
+				selectedSpriteIndex = -1;
 				if (ImGui::Button("Add Cube"))
 				{
-					auto* cube = new Cube(0, 0, 0, 1, 1, 1, Vec4(1, 0, 0, 1));
-					m_scene3D.addObject(cube);
+					auto* cube = new Cube(0, 0, -10, 1, 1, 1, Vec4(1, 0, 0, 1));
+
+					EntityID entity = static_cast<EntityID>(m_Scene.getObjects().size());
+
+					ComponentManager<CubeComponent>::Get().addComponent(entity, CubeComponent(cube));
+					m_Scene.addObject(cube);
 				}
-				bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
-				int idx = 0;
-				for (auto* cube : m_scene3D.getObjects())
+				if (ImGui::Button("Delete Cube"))
 				{
-					char buf[32];
-					sprintf(buf, "Cube %d", idx);
-					if (!gizmoActive && ImGui::Selectable(buf, selectedCubeIndex == idx))
-						selectedCubeIndex = idx;
+					EntityID entity = static_cast<EntityID>(selectedCubeIndex);
+
+					CubeComponent* cubeComp = ComponentManager<CubeComponent>::Get().getComponent(entity);
+					if (cubeComp && cubeComp->cube)
+					{
+						FAY_LOG_DEBUG("Deleting cube entity: " << entity);
+
+						// remove from scene 
+						m_Scene.removeObject(cubeComp->cube);
+						// remove component from ECS
+						ComponentManager<CubeComponent>::Get().removeComponent(entity);
+					}
+				}
+				//bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
+				auto& cubeEntities = ComponentManager<CubeComponent>::Get().getEntities();
+
+				Vec3 rayOrigin = m_camera3D->getPosition();
+				double mousePosX, mousePosY;
+				m_window.getMousePos(mousePosX, mousePosY);
+				Vec3 rayDir = getRayFromMouse(mousePosY, mousePosY, proj, viewMatrix, viewportSize);
+
+				float closestT = FLT_MAX;
+				int selectedIdx = -1;
+
+				int idx = 0;
+				for (auto* cb : m_Scene.getObjects())
+				{
+					// new code
+					Vec3 cubePos = cb->getPosition();
+					Vec3 cubeSize = cb->getSize();
+
+					Vec3 aabbMin = cubePos - cubeSize * 0.5f;
+					Vec3 aabbMax = cubePos + cubeSize * 0.5f;
+
+					float t;
+
+					if (intersectRayAABB(rayOrigin, rayDir, aabbMin, aabbMax, t))
+					{
+						if (t < closestT)
+						{
+							closestT = t;
+							selectedIdx = idx;
+						}
+					}
 					idx++;
+				}
+				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && selectedIdx != -1)
+				{
+					selectedCubeIndex = selectedIdx;
+					FAY_LOG_DEBUG("Selected cube index: " << selectedCubeIndex);
 				}
 			}
 			ImGui::End();
@@ -473,7 +672,6 @@ namespace Fay
 
 			m_window.update();
 		}
-
 	}
 	void Editor::setShader(Shader* shader)
 	{
@@ -515,6 +713,31 @@ namespace Fay
 		shader->setUniformMat4("ml_matrix", model);
 	}
 
+	void Editor::SetSelectedEntity(EntityID id)
+	{
+		s_SelectedEntity = id;
+	}
+
+	void Editor::SetActiveScene(SceneType type)
+	{
+		s_ActiveScene = type;
+	}
+
+	EntityID Editor::GetSelEntity()
+	{
+		return s_SelectedEntity;
+	}
+
+	bool Editor::IsSceneActive()
+	{
+		return s_ActiveScene == SceneType::Scene2D || s_ActiveScene == SceneType::Scene3D;
+	}
+
+	SceneType Editor::GetCurrentScene()
+	{
+		return s_ActiveScene;
+	}
+
 	void Editor::setupDockspace()
 	{
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -538,155 +761,147 @@ namespace Fay
 
 	void Editor::loadScene(const std::string& path)
 	{
-		if (path.ends_with(".scene_2d"))
+		if (path.ends_with(".fayScene"))
 		{
-			if (m_scene2D.loadFromFile(path, m_textureManager))
+			if (m_Scene.loadScene(path, m_textureManager))
 			{
-				std::cout << "Scene loaded: " << path << std::endl;
-				m_renderLayer->clear();
-				for (auto sprite : m_scene2D.getObjects())
-				{
-					m_renderLayer->add(sprite);
-				}
-			}
-			else
-			{
-				std::cerr << "Failed to load 2D scene: " << path << std::endl;
-			}
-		}
-		else if (path.ends_with(".scene_3d"))
-		{
-			if (m_scene3D.loadFromFile(path))
-			{
-				std::cout << "Scene loaded: " << path << std::endl;
-				m_renderLayer3D->clear();
+				FAY_LOG_INFO("FayScene Loaded: " << path);
+				FAY_LOG_INFO("Object count: " << m_Scene.getObjects().size());
 
-				for (auto cube : m_scene3D.getObjects())
+				if (m_renderMode == RenderMode::MODE_2D)
 				{
-					m_renderLayer3D->add(cube);
+					SetActiveScene(SceneType::Scene2D);
+					m_Scene.setSceneType(SceneType::Scene2D);
 				}
+				else if (m_renderMode == RenderMode::MODE_3D)
+				{
+					SetActiveScene(SceneType::Scene3D);
+					m_Scene.setSceneType(SceneType::Scene3D);
+				}
+
+				m_renderLayer->clear();
+
+				// Just add the objects to the render layer, no ECS mutation
+				for (auto obj : m_Scene.getObjects())
+				{
+					m_renderLayer->add(obj);
+				}
+
+				m_currentScenePath = path;
 			}
-			else
-			{
-				std::cerr << "Failed to load 3D scene" << path << std::endl;
+			else {
+				FAY_LOG_ERROR("Failed to load FayScene: " << path);
 			}
 		}
-		else
-		{
-			std::cerr << "Unkown scene type: " << path << std::endl;
-		}
+
 	}
 	void Editor::saveScene(const std::string& path)
 	{
-		if (path.ends_with(".scene_2d"))
+		if (path.ends_with(".fayScene"))
 		{
-			if (m_scene2D.saveToFile(path))
-				std::cout << "Scene saved: " << path << std::endl;
+			if (m_Scene.saveScene(path))
+				FAY_LOG_INFO("FayScene Saved: " << path)
 			else
-				std::cerr << "Failed to save 2D scene" << path << std::endl;
-		}
-		else if (path.ends_with(".scene_3d"))
-		{
-			if (m_scene3D.saveToFile(path))
-				std::cout << "Scene saved: " << path << std::endl;
-			else
-				std::cerr << "Failed to save 2D scene" << path << std::endl;
+				FAY_LOG_ERROR("Failed to save FayScene" << path);
 		}
 		else
 		{
-			std::cerr << "Failed to save, unkown scene type: " << path << std::endl;
+			FAY_LOG_WARN("Failed to save, Unkown Scene type: " << path);
 		}
 	}
-	
+
+	void Editor::saveCurrentScene()
+	{
+		if (m_currentScenePath.empty())
+		{
+			FAY_LOG_WARN("No Scene currently loaded to save.");
+			return;
+		}
+
+		if (m_currentScenePath.ends_with(".fayScene"))
+		{
+			saveScene(m_currentScenePath);
+		}
+		else
+		{
+			FAY_LOG_WARN("Failed to save, Unkown Scene type: " << m_currentScenePath);
+		}
+	}
+
+	void Editor::createNewScene(const std::string& path)
+	{
+		m_Scene.clear();
+		m_renderLayer->clear();
+		m_Scene.saveScene(path);
+		m_Scene.setSceneType((m_renderMode == RenderMode::MODE_2D) ? SceneType::Scene2D : SceneType::Scene3D);
+		m_currentScenePath = path;
+		FAY_LOG_INFO("New Scene Created: " << path);
+		shouldRefreshScenes = true;
+
+	}
+
 	void Editor::setupFileMenu()
 	{
 		static std::string sceneDir = "Res\\Scenes\\";
 		// 2d
-		static std::vector<std::string> scenes2D;
-		static int selectedScene2DIndex = -1;
-		static bool shouldRefreshScenes = true;
-		// 3d
-		static std::vector<std::string> scenes3D;
-		static int selectedScene3DIndex = -1;
+		static std::vector<std::string> scenes;
+		shouldRefreshScenes = true;
+		static int selectedSceneIndex = -1;
 		if (shouldRefreshScenes) {
-			scenes2D = m_scene2D.listScenesInDirectory(sceneDir);
-			scenes3D = m_scene3D.listScenesInDirectory(sceneDir);
-			selectedScene2DIndex = -1;
-			selectedScene3DIndex = -1;
+			
+			scenes = m_Scene.listScenesDir(sceneDir);
+			selectedSceneIndex = -1;
 			shouldRefreshScenes = false;
 		}
 		ImGui::Text("Select scene");
 
 		if (ImGui::BeginListBox("Scenes"))
 		{
-			for (int i = 0; i < scenes2D.size(); i++)
-			{
-				bool isSelected2D = (selectedScene2DIndex == i);
-				if (ImGui::Selectable(scenes2D[i].c_str(), isSelected2D))
-					selectedScene2DIndex = i;
+				for (int i = 0; i < scenes.size(); i++)
+				{
+					bool isSelected = (selectedSceneIndex == i);
+					if (ImGui::Selectable(scenes[i].c_str(), isSelected))
+					{
+						selectedSceneIndex = i;
+					}
 
-				if(isSelected2D)
-					ImGui::SetItemDefaultFocus();
-			}
-			for (int j = 0; j < scenes3D.size(); j++)
-			{
-				bool isSelected3D = (selectedScene3DIndex == j);
-				if (ImGui::Selectable(scenes3D[j].c_str(), isSelected3D))
-					selectedScene3DIndex = j;
-
-				if (isSelected3D)
-					ImGui::SetItemDefaultFocus();
-
-			}
+					if (isSelected)
+						ImGui::SetItemDefaultFocus();
+				}
 			ImGui::EndListBox();
 		}
-		if (selectedScene2DIndex >= 0)
+		if (selectedSceneIndex >= 0)
 		{
-			std::string fullPath = sceneDir + scenes2D[selectedScene2DIndex];
+			std::string fullPath = sceneDir + scenes[selectedSceneIndex];
 			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
 				loadScene(fullPath);  // Double-click loads the scene
 			}
 			if (ImGui::Button("Delete Scene"))
 			{
-				if (m_scene2D.deleteSceneFile(fullPath))
+				if (m_Scene.deleteSceneFile(fullPath))
 				{
-					std::cout << "Deleted scene: " << scenes2D[selectedScene2DIndex] << std::endl;
-					scenes2D = m_scene2D.listScenesInDirectory(sceneDir);
-					selectedScene2DIndex = 0;
+					//std::cout << "Deleted scene: " << scenes2D[selectedScene2DIndex] << std::endl; // change to FAY_LOG_WARN
+					FAY_LOG_WARN("Deleted Scene: " << scenes[selectedSceneIndex]);
+					scenes = m_Scene.listScenesDir(sceneDir);
+					selectedSceneIndex = 0;
+					m_Scene.clear();
 				}
 				else {
-					std::cout << "Failed to delete scene: " << scenes2D[selectedScene2DIndex] << std::endl;
-				}
-				shouldRefreshScenes = true;
-			}
-		}
-		else if (selectedScene3DIndex >= 0)
-		{
-			std::string fullPath = sceneDir + scenes3D[selectedScene3DIndex];
-			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-			{
-				loadScene(fullPath);  // Double-click loads the scene
-			}
-			if (ImGui::Button("Delete Scene"))
-			{
-				if (m_scene3D.deleteSceneFile(fullPath))
-				{
-					std::cout << "Deleted scene: " << scenes3D[selectedScene3DIndex] << std::endl;
-					scenes3D = m_scene3D.listScenesInDirectory(sceneDir);
-					selectedScene3DIndex = 0;
-				}
-				else {
-					std::cout << "Failed to delete scene: " << scenes3D[selectedScene3DIndex] << std::endl;
+					//std::cout << "Failed to delete scene: " << scenes2D[selectedScene2DIndex] << std::endl;
+					FAY_LOG_ERROR("Failed to delete FayScene: " << scenes[selectedSceneIndex]);
 				}
 				shouldRefreshScenes = true;
 			}
 		}
 		if (ImGui::Button("Save Scene"))
 		{
-			showSaveDialog = true;
+
+			saveCurrentScene();
+			
+			/*showSaveDialog = true;
 			ImGuiFileDialog::Instance()->OpenDialog("SaveScene", "Save Scene File", ".scene_2d, .scene_3d");
-			shouldRefreshScenes = true;
+			shouldRefreshScenes = true;*/
 		}
 		if (showSaveDialog)
 		{
@@ -702,5 +917,66 @@ namespace Fay
 				showSaveDialog = false;
 			}
 		}
+		// Create new scene
+		if (ImGui::Button("New Scene"))
+		{
+			ImGui::OpenPopup("NewScenePop");
+		}
+		if (ImGui::BeginPopup("NewScenePop"))
+		{
+			static char sceneName[256] = "Untitled";
+
+			ImGui::InputText("Scene Name", sceneName, sizeof(sceneName));
+
+			if (ImGui::Button("Create"))
+			{
+				std::string filename = std::string(sceneName) + ".fayScene";
+				std::string fullPath = "Res/Scenes/" + filename;
+
+				createNewScene(fullPath);
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+	}
+	Vec3 Editor::getRayFromMouse(float mouseX, float mouseY, const Mat4& proj, const Mat4& view, const ImVec2& viewportSize)
+	{
+		// Convert to normalized device coords (-1 to 1)
+		float x = (2.0f * mouseX) / viewportSize.x - 1.0f;
+		float y = 1.0f - (2.0f * mouseY) / viewportSize.y; // flip y
+		float z = 1.0f;
+
+		Vec4 rayClip(x, y, -1.0f, 1.0f);
+
+		Mat4 invProj = proj.inverse();
+		Vec4 rayEye = invProj * rayClip;
+		rayEye = Vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
+
+		Mat4 invView = view.inverse();
+		Vec4 rayWorld4 = invView * rayEye;
+		Vec3 rayWorld(rayWorld4.x, rayWorld4.y, rayWorld4.z);
+		rayWorld.normalized();
+
+		return rayWorld;
+	}
+	bool Editor::intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t)
+	{
+		float t1 = (aabbMin.x - rayOrigin.x) / rayDir.x;
+		float t2 = (aabbMax.x - rayOrigin.x) / rayOrigin.x;
+
+		float t3 = (aabbMin.y - rayOrigin.y) / rayDir.y;
+		float t4 = (aabbMax.y - rayOrigin.y) / rayOrigin.y;
+
+		float t5 = (aabbMin.z - rayOrigin.z) / rayDir.z;
+		float t6 = (aabbMax.z - rayOrigin.z) / rayOrigin.z;
+
+		float tmin = std::max({ std::min(t1, t2), std::min(t3, t4), std::min(t5, t6) });
+		float tmax = std::min({ std::max(t1, t2), std::max(t3, t4), std::max(t5, t6) });
+
+		if (tmax < 0 || tmin > tmax) return false;
+		t = tmin;
+		return true;
+
+
 	}
 }

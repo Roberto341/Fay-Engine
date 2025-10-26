@@ -23,21 +23,21 @@ namespace Fay
 	}
 	Mat4& Mat4::multiply(const Mat4& other)
 	{
-		float data[16];
-		for (int y = 0; y < 4; y++)
+		float data[16] = { 0 };
+		for (int row = 0; row < 4; row++)
 		{
-			for (int x = 0; x < 4; x++)
+			for (int col = 0; col < 4; col++)
 			{
 				float sum = 0.0f;
-				for (int e = 0; e < 4; e++)
+				for (int k = 0; k < 4; k++)
 				{
-					sum += elements[x + e * 4] * other.elements[e + y * 4];
+					sum += elements[row + k * 4] * other.elements[k + col * 4];
+					//sum += elements[k + row * 4] * other.elements[col + k * 4];
 				}
-				data[x + y * 4] = sum;
+				data[row + col * 4] = sum;
 			}
 		}
-		memcpy(elements, data, 4 * 4 * sizeof(float));
-
+		memcpy(elements, data, sizeof(float) * 16);
 		return *this;
 	}
 
@@ -69,9 +69,10 @@ namespace Fay
 		);
 	}
 
-	Mat4 operator*(Mat4 left, const Mat4& right)
+	Mat4 operator*(const Mat4& left, const Mat4& right)
 	{
-		return left.multiply(right);
+		Mat4 result = left;
+		return result.multiply(right);
 	}
 
 	Mat4& Mat4::operator*=(const Mat4& other)
@@ -206,10 +207,140 @@ namespace Fay
 
 		result.elements[12] = -s.dot(eye);
 		result.elements[13] = -u.dot(eye);
-		result.elements[14] = f.dot(eye);  // some implementations use -f.dot(eye)
+		result.elements[14] = -f.dot(eye);  // some implementations use -f.dot(eye)
 		result.elements[15] = 1.0f;
 
 		return result;
+	}
+	Mat4 Mat4::inverse() const
+	{
+		Mat4 inv;
+		const float* m = elements;
+
+		inv.elements[0] = m[5] * m[10] * m[15] -
+			m[5] * m[11] * m[14] -
+			m[9] * m[6] * m[15] +
+			m[9] * m[7] * m[14] +
+			m[13] * m[6] * m[11] -
+			m[13] * m[7] * m[10];
+
+		inv.elements[4] = -m[4] * m[10] * m[15] +
+			m[4] * m[11] * m[14] +
+			m[8] * m[6] * m[15] -
+			m[8] * m[7] * m[14] -
+			m[12] * m[6] * m[11] +
+			m[12] * m[7] * m[10];
+
+		inv.elements[8] = m[4] * m[9] * m[15] -
+			m[4] * m[11] * m[13] -
+			m[8] * m[5] * m[15] +
+			m[8] * m[7] * m[13] +
+			m[12] * m[5] * m[11] -
+			m[12] * m[7] * m[9];
+
+		inv.elements[12] = -m[4] * m[9] * m[14] +
+			m[4] * m[10] * m[13] +
+			m[8] * m[5] * m[14] -
+			m[8] * m[6] * m[13] -
+			m[12] * m[5] * m[10] +
+			m[12] * m[6] * m[9];
+
+		inv.elements[1] = -m[1] * m[10] * m[15] +
+			m[1] * m[11] * m[14] +
+			m[9] * m[2] * m[15] -
+			m[9] * m[3] * m[14] -
+			m[13] * m[2] * m[11] +
+			m[13] * m[3] * m[10];
+
+		inv.elements[5] = m[0] * m[10] * m[15] -
+			m[0] * m[11] * m[14] -
+			m[8] * m[2] * m[15] +
+			m[8] * m[3] * m[14] +
+			m[12] * m[2] * m[11] -
+			m[12] * m[3] * m[10];
+
+		inv.elements[9] = -m[0] * m[9] * m[15] +
+			m[0] * m[11] * m[13] +
+			m[8] * m[1] * m[15] -
+			m[8] * m[3] * m[13] -
+			m[12] * m[1] * m[11] +
+			m[12] * m[3] * m[9];
+
+		inv.elements[13] = m[0] * m[9] * m[14] -
+			m[0] * m[10] * m[13] -
+			m[8] * m[1] * m[14] +
+			m[8] * m[2] * m[13] +
+			m[12] * m[1] * m[10] -
+			m[12] * m[2] * m[9];
+
+		inv.elements[2] = m[1] * m[6] * m[15] -
+			m[1] * m[7] * m[14] -
+			m[5] * m[2] * m[15] +
+			m[5] * m[3] * m[14] +
+			m[13] * m[2] * m[7] -
+			m[13] * m[3] * m[6];
+
+		inv.elements[6] = -m[0] * m[6] * m[15] +
+			m[0] * m[7] * m[14] +
+			m[4] * m[2] * m[15] -
+			m[4] * m[3] * m[14] -
+			m[12] * m[2] * m[7] +
+			m[12] * m[3] * m[6];
+
+		inv.elements[10] = m[0] * m[5] * m[15] -
+			m[0] * m[7] * m[13] -
+			m[4] * m[1] * m[15] +
+			m[4] * m[3] * m[13] +
+			m[8] * m[1] * m[7] -
+			m[8] * m[3] * m[5];
+
+		inv.elements[14] = -m[0] * m[5] * m[14] +
+			m[0] * m[6] * m[13] +
+			m[4] * m[1] * m[14] -
+			m[4] * m[2] * m[13] -
+			m[8] * m[1] * m[6] +
+			m[8] * m[2] * m[5];
+
+		inv.elements[3] = -m[1] * m[6] * m[11] +
+			m[1] * m[7] * m[10] +
+			m[5] * m[2] * m[11] -
+			m[5] * m[3] * m[10] -
+			m[9] * m[2] * m[7] +
+			m[9] * m[3] * m[6];
+
+		inv.elements[7] = m[0] * m[6] * m[11] -
+			m[0] * m[7] * m[10] -
+			m[4] * m[2] * m[11] +
+			m[4] * m[3] * m[10] +
+			m[8] * m[2] * m[7] -
+			m[8] * m[3] * m[6];
+
+		inv.elements[11] = -m[0] * m[5] * m[11] +
+			m[0] * m[7] * m[9] +
+			m[4] * m[1] * m[11] -
+			m[4] * m[3] * m[9] -
+			m[8] * m[1] * m[7] +
+			m[8] * m[3] * m[5];
+
+		inv.elements[15] = m[0] * m[5] * m[10] -
+			m[0] * m[6] * m[9] -
+			m[4] * m[1] * m[10] +
+			m[4] * m[2] * m[9] +
+			m[8] * m[1] * m[6] -
+			m[8] * m[2] * m[5];
+
+		float det = m[0] * inv.elements[0] + m[1] * inv.elements[4] +
+			m[2] * inv.elements[8] + m[3] * inv.elements[12];
+
+		if (det == 0)
+			return Mat4(1.0f); // returns identity as fallback
+
+		det = 1.0f / det;
+		
+		for (int i = 0; i < 16; i++)
+			inv.elements[i] *= det;
+
+		return inv;
 	}
 	std::string Mat4::toString() const
 	{
