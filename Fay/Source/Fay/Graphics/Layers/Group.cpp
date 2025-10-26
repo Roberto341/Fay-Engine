@@ -15,16 +15,16 @@ namespace Fay
 		}
 	}
 
-	void Group::add(Renderable2D* renderable)
+	void Group::add(Renderable* renderable)
 	{
 		m_renderables.push_back(renderable);
 	}
 
-	void Group::submit(Renderer2D* renderer) const
+	void Group::submit(Renderer* renderer) const
 	{
 		renderer->push(m_transformationMatrix);
 
-		for (const Renderable2D* renderable : m_renderables)
+		for (const Renderable* renderable : m_renderables)
 		{
 			renderable->submit(renderer);
 		}

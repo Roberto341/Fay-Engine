@@ -8,10 +8,10 @@ namespace Fay {
 	class Window
 	{
 	private:
+		GLFWwindow *m_window;
 		const char* m_title;
 		int m_width, m_height;
 		bool m_closed;
-		GLFWwindow *m_window;
 
 		bool m_keys[MAX_KEYS];
 		bool m_mouseButtons[MAX_BUTTONS];
@@ -33,7 +33,9 @@ namespace Fay {
 
 		GLFWwindow* getWindow() const { return m_window; }
 		bool isKeyPressed(unsigned int keycode);
+		bool isKeyReleased(unsigned int keycode);
 		bool isMouseButtonPressed(unsigned int button);
+		bool isMouseButtonReleased(unsigned int button);
 		void getMousePos(double& x, double& y);
 	private:
 		bool init();

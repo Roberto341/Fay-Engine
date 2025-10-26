@@ -15,120 +15,279 @@ namespace Fay
 
 	void BatchRenderer::init()
 	{
-		glGenVertexArrays(1, &m_vao);
-		glGenVertexArrays(1, &m_vbo);
-		glBindVertexArray(m_vao);
-		glGenBuffers(1, &m_vbo);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		glBufferData(GL_ARRAY_BUFFER, RENDERER_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
-
-		glEnableVertexAttribArray(SHADER_VERTEX_INDEX);
-		glEnableVertexAttribArray(SHADER_UV_INDEX);
-		glEnableVertexAttribArray(SHADER_TID_INDEX);
-		glEnableVertexAttribArray(SHADER_COLOR_INDEX);
-
-		glVertexAttribPointer(SHADER_VERTEX_INDEX, 3, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)0);
-		glVertexAttribPointer(SHADER_UV_INDEX, 2, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(VertexData, VertexData::uv)));
-		glVertexAttribPointer(SHADER_TID_INDEX, 1, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(VertexData, VertexData::tid)));
-		glVertexAttribPointer(SHADER_COLOR_INDEX, 4, GL_UNSIGNED_BYTE, GL_TRUE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(VertexData, VertexData::color)));
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
-
-		GLuint* indicies = new GLuint[RENDERER_INDICES_SIZE];
-
-		int offset = 0;
-		for (int i = 0; i < RENDERER_INDICES_SIZE; i += 6)
+		 // how to change to accept 3d dimension? or just add the 3d variables instead? but i want to render in 2d
+		if (m_dimension == RenderDimension::D2)
 		{
-			indicies[i] = offset + 0;
-			indicies[i + 1] = offset + 1;
-			indicies[i + 2] = offset + 2;
-			indicies[i + 3] = offset + 2;
-			indicies[i + 4] = offset + 3;
-			indicies[i + 5] = offset + 0;
-			
-			offset += 4;
+			glGenVertexArrays(1, &m_vao);
+			glBindVertexArray(m_vao);
+			glGenBuffers(1, &m_vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+			glBufferData(GL_ARRAY_BUFFER, RENDERER_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+
+			glEnableVertexAttribArray(SHADER_VERTEX_INDEX);
+			glEnableVertexAttribArray(SHADER_UV_INDEX);
+			glEnableVertexAttribArray(SHADER_TID_INDEX);
+			glEnableVertexAttribArray(SHADER_COLOR_INDEX);
+
+			glVertexAttribPointer(SHADER_VERTEX_INDEX, 3, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)0);
+			glVertexAttribPointer(SHADER_UV_INDEX, 2, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(TestVertexData, TestVertexData::uv)));
+			glVertexAttribPointer(SHADER_TID_INDEX, 1, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(TestVertexData, TestVertexData::tid)));
+			glVertexAttribPointer(SHADER_COLOR_INDEX, 4, GL_UNSIGNED_BYTE, GL_TRUE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(TestVertexData, TestVertexData::color)));
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+			GLuint* indicies = new GLuint[RENDERER_INDICES_SIZE];
+
+			int offset = 0;
+			for (int i = 0; i < RENDERER_INDICES_SIZE; i += 6)
+			{
+				indicies[i] = offset + 0;
+				indicies[i + 1] = offset + 1;
+				indicies[i + 2] = offset + 2;
+				indicies[i + 3] = offset + 2;
+				indicies[i + 4] = offset + 3;
+				indicies[i + 5] = offset + 0;
+
+				offset += 4;
+			}
+			m_ibo = new IndexBuffer(indicies, RENDERER_INDICES_SIZE);
+			m_ibo->bind();
+			glBindVertexArray(0);
 		}
-		m_ibo = new IndexBuffer(indicies, RENDERER_INDICES_SIZE);
-		m_ibo->bind();
-		glBindVertexArray(0);
+		else {
+			glGenVertexArrays(1, &m_vao);
+			glBindVertexArray(m_vao);
+
+			glGenBuffers(1, &m_vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+			glBufferData(GL_ARRAY_BUFFER, RENDERER_CUBE_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
+
+			glEnableVertexAttribArray(SHADER_VERTEX_INDEX);
+			glEnableVertexAttribArray(SHADER_UV_INDEX);
+			glEnableVertexAttribArray(SHADER_TID_INDEX);
+			glEnableVertexAttribArray(SHADER_COLOR_INDEX);
+
+			glVertexAttribPointer(SHADER_VERTEX_INDEX, 3, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)0);
+			glVertexAttribPointer(SHADER_UV_INDEX, 2, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(TestVertexData, TestVertexData::uv)));
+			glVertexAttribPointer(SHADER_TID_INDEX, 1, GL_FLOAT, GL_FALSE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(TestVertexData, TestVertexData::tid)));
+			glVertexAttribPointer(SHADER_COLOR_INDEX, 4, GL_UNSIGNED_BYTE, GL_TRUE, RENDERER_VERTEX_SIZE, (const GLvoid*)(offsetof(TestVertexData, TestVertexData::color)));
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+
+			GLuint* indicies = new GLuint[RENDERER_INDICES_CUBE_SIZE];
+
+			int cubeCount = RENDERER_INDICES_CUBE_SIZE / 36;
+
+			for (int cube = 0; cube < cubeCount; cube++)
+			{
+				int vertexOffset = cube * 24;
+				int indexOffset = cube * 36;
+
+				for (int face = 0; face < 6; face++)
+				{
+					int faceVertexOffset = vertexOffset + face * 4;
+					int faceIndexOffset = indexOffset + face * 6;
+
+					indicies[faceIndexOffset + 0] = faceVertexOffset + 0;
+					indicies[faceIndexOffset + 1] = faceVertexOffset + 1;
+					indicies[faceIndexOffset + 2] = faceVertexOffset + 2;
+					indicies[faceIndexOffset + 3] = faceVertexOffset + 2;
+					indicies[faceIndexOffset + 4] = faceVertexOffset + 3;
+					indicies[faceIndexOffset + 5] = faceVertexOffset + 0;
+				}
+			}
+			m_ibo = new IndexBuffer(indicies, RENDERER_INDICES_CUBE_SIZE);
+			m_ibo->bind();
+			glBindVertexArray(0);
+		}
 	}
 
 	void BatchRenderer::begin()
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		m_buffer = (VertexData*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		m_buffer = (TestVertexData*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	}
 
-	void BatchRenderer::submit(const Renderable2D* renderable)
+	void BatchRenderer::submit(const Renderable* renderable)
 	{
-		const Vec3& position = renderable->getPosition();
-		const Vec2& size = renderable->getSize();
-		const Vec4& color = renderable->getColor();
-		const std::vector<Vec2>& uv = renderable->getUV();
-		const GLuint tid = renderable->getTID();
-
-		unsigned int c = 0;
-
-		float ts = 0.0f;
-		if (tid > 0)
+		if (renderable->getDimension() == RenderDimension::D2)
 		{
-			bool found = false;
-			for (int i = 0; i < m_textureSlots.size(); i++)
+			const Vec3& position = renderable->getPosition();
+			const Vec3& size = renderable->getSize();
+			const Vec4& color = renderable->getColor();
+			const std::vector<Vec2>& uv = renderable->getUV();
+			const GLuint tid = renderable->getTID();
+
+			unsigned int c = 0;
+
+			float ts = 0.0f;
+			if (tid > 0)
 			{
-				if (m_textureSlots[i] == tid)
+				bool found = false;
+				for (int i = 0; i < m_textureSlots.size(); i++)
 				{
-					ts = (float)(i + 1);
-					found = true;
-					break;
+					if (m_textureSlots[i] == tid)
+					{
+						ts = (float)(i + 1);
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					if (m_textureSlots.size() >= 16)
+					{
+						end();
+						flush();
+						begin();
+					}
+					m_textureSlots.push_back(tid);
+					ts = (float)(m_textureSlots.size());
 				}
 			}
 
-			if (!found)
-			{
-				if (m_textureSlots.size() >= 16)
-				{
-					end();
-					flush();
-					begin();
-				}
-				m_textureSlots.push_back(tid);
-				ts = (float)(m_textureSlots.size());
-			}
+			int r = color.x * 255.0f;
+			int g = color.y * 255.0f;
+			int b = color.z * 255.0f;
+			int a = color.w * 255.0f;
+
+			c = a << 24 | b << 16 | g << 8 | r;
+
+			m_buffer->vertex = *m_transBack * position;
+			m_buffer->uv = uv[0];
+			m_buffer->tid = ts;
+			m_buffer->color = c;
+			m_buffer++;
+
+			m_buffer->vertex = *m_transBack * Vec3(position.x, position.y + size.y, position.z);
+			m_buffer->uv = uv[1];
+			m_buffer->tid = ts;
+			m_buffer->color = c;
+			m_buffer++;
+
+			m_buffer->vertex = *m_transBack * Vec3(position.x + size.x, position.y + size.y, position.z);
+			m_buffer->uv = uv[2];
+			m_buffer->tid = ts;
+			m_buffer->color = c;
+			m_buffer++;
+
+			m_buffer->vertex = *m_transBack * Vec3(position.x + size.x, position.y, position.z);
+			m_buffer->uv = uv[3];
+			m_buffer->tid = ts;
+			m_buffer->color = c;
+			m_buffer++;
+
+			m_indexCount += 6;
 		}
+		else {
+			const Vec3& position = renderable->getPosition();
+			const Vec3& size = renderable->getSize();
+			const Vec4& color = renderable->getColor();
+			const std::vector<Vec2>& uv = renderable->getUV();
+			const GLuint tid = renderable->getTID();
 
-		int r = color.x * 255.0f;
-		int g = color.y * 255.0f;
-		int b = color.z * 255.0f;
-		int a = color.w * 255.0f;
+			float ts = 0.0f;
+			if (tid > 0)
+			{
+				bool found = false;
+				for (int i = 0; i < m_textureSlots.size(); i++)
+				{
+					if (m_textureSlots[i] == tid)
+					{
+						ts = (float)(i + 1);
+						found = true;
+						break;
+					}
+				}
 
-		c = a << 24 | b << 16 | g << 8 | r;
+				if (!found)
+				{
+					if (m_textureSlots.size() >= 16)
+					{
+						end();
+						flush();
+						begin();
+					}
+					m_textureSlots.push_back(tid);
+					ts = (float)(m_textureSlots.size());
+				}
+			}
 
-		m_buffer->vertex = *m_transBack * position;
-		m_buffer->uv = uv[0];
-		m_buffer->tid = ts;
-		m_buffer->color = c;
-		m_buffer++;
+			unsigned int c = ((int)(color.w * 255.0f) << 24) |
+				((int)(color.z * 255.0f) << 16) |
+				((int)(color.y * 255.0f) << 8) |
+				((int)(color.x * 255.0f));
 
-		m_buffer->vertex = *m_transBack * Vec3(position.x, position.y + size.y, position.z);
-		m_buffer->uv = uv[1];
-		m_buffer->tid = ts;
-		m_buffer->color = c;
-		m_buffer++;
+			// Use a flaot quad in 3D space (z-facing)
+			Vec3 pos = position;
+			Vec3 s = size;
 
-		m_buffer->vertex = *m_transBack * Vec3(position.x + size.x, position.y + size.y, position.z);
-		m_buffer->uv = uv[2];
-		m_buffer->tid = ts;
-		m_buffer->color = c;
-		m_buffer++;
-
-		m_buffer->vertex = *m_transBack * Vec3(position.x + size.x, position.y, position.z);
-		m_buffer->uv = uv[3];
-		m_buffer->tid = ts;
-		m_buffer->color = c;
-		m_buffer++;
-
-		m_indexCount += 6;
+			Vec3 cubeVertices[6][4] = {
+				// Front face
+			{	Vec3(0, 0, 0) * size + position,
+				Vec3(0, 1, 0) * size + position,
+				Vec3(1, 1, 0) * size + position,
+				Vec3(1, 0, 0) * size + position
+			},
+				// Back face
+			{
+				Vec3(0, 0, 1) * size + position,
+				Vec3(0, 1, 1) * size + position,
+				Vec3(1, 1, 1)* size + position,
+				Vec3(1, 0, 1)* size + position
+			},
+				// Left face
+			{	 
+				Vec3(0, 0, 1) * size + position,
+				Vec3(0, 1, 1)* size + position,
+				Vec3(0, 1, 0)* size + position,
+				Vec3(0, 0, 0)* size + position
+			},
+				// Right face
+			{	Vec3(1, 0, 0) * size + position,
+				Vec3(1, 1, 0) * size + position,
+				Vec3(1, 1, 1) * size + position,
+				Vec3(1, 0, 1) * size + position
+			},
+				// Top face
+			{	Vec3(0, 1, 0) * size + position,
+				Vec3(0, 1, 1) * size + position,
+				Vec3(1, 1, 1) * size + position,
+				Vec3(1, 1, 0) * size + position
+			},
+				// Bottom face
+				{	Vec3(0, 0, 1) * size + position,
+					Vec3(0, 0, 0) * size + position,
+					Vec3(1, 0, 0) * size + position,
+					Vec3(1, 0, 1) * size + position
+				}
+			};
+			Vec2 faceUVs[4] = {
+				Vec2(0, 0),
+				Vec2(0, 1),
+				Vec2(1, 1),
+				Vec2(1, 0)
+			};
+			for (int face = 0; face < 6; face++)
+			{
+				for (int i = 0; i < 4; i++)
+				{
+					Mat4 model = *m_transBack;
+					//Vec3 transformed = model * cubeVertices[face][i];
+					//m_buffer->vertex = transformed;
+					m_buffer->vertex = model * cubeVertices[face][i];// apply full MVP transform
+					m_buffer->uv = faceUVs[i];
+					m_buffer->tid = ts;
+					m_buffer->color = c;
+					m_buffer++;
+				}
+			}
+			//std::cout << "Transformed vertex: " << m_buffer->vertex.x << ", " << m_buffer->vertex.y << ", " << m_buffer->vertex.z << "\n";
+			m_indexCount += 36;
+		}
 	}
 
 	void BatchRenderer::drawString(const std::string& text, const Vec3& position, const Font& font, const Vec4& color)
@@ -246,5 +405,9 @@ namespace Fay
 		glBindVertexArray(0);
 
 		m_indexCount = 0; // reset the index count
+	}
+	void BatchRenderer::setDimension(RenderDimension dimension)
+	{
+		m_dimension = dimension;
 	}
 }

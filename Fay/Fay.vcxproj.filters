@@ -10,9 +10,6 @@
     <Filter Include="Source\Engine\graphics">
       <UniqueIdentifier>{bc0aeb5c-e4b7-4330-b4af-1157b320465f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Game">
-      <UniqueIdentifier>{888453b6-3a61-4a98-986d-fa3f1bfa677a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\utils">
       <UniqueIdentifier>{faca4fbd-2a73-4580-bba5-261899d8a3f0}</UniqueIdentifier>
     </Filter>
@@ -91,6 +88,12 @@
     <Filter Include="Source\Engine\renderer\3drenderer">
       <UniqueIdentifier>{74aca9dd-d74f-4f0d-8ba9-9e4845bd6ac1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Engine\scripting">
+      <UniqueIdentifier>{b10459e3-0971-4a2d-8e66-581f89d6d66c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Engine\entity">
+      <UniqueIdentifier>{5938ac06-955f-498d-ae55-2764c1dabbe5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Fay\Graphics\Window.cpp">
@@ -122,12 +125,6 @@
     </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\Texture.cpp">
       <Filter>Source\Engine\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\SimpleRenderer.cpp">
-      <Filter>Source\Engine\renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\StaticSprite.cpp">
-      <Filter>Source\Engine\renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\Layers\Layer.cpp">
       <Filter>Source\Engine\graphics\layers</Filter>
@@ -276,20 +273,8 @@
     <ClCompile Include="Source\Fay\Graphics\Font\FontManager.cpp">
       <Filter>Source\Engine\graphics\font</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Fay\Graphics\Layers\Group.cpp">
-      <Filter>Source\Engine\graphics\layers</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\Label.cpp">
       <Filter>Source\Engine\graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Game\Player.cpp">
-      <Filter>Source\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Game\Game.cpp">
-      <Filter>Source\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Game\Npc.cpp">
-      <Filter>Source\Game</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\ImGui\imgui.cpp">
       <Filter>Source\Engine\ImGui</Filter>
@@ -316,29 +301,17 @@
     <ClCompile Include="Source\Fay\Graphics\Camera.cpp">
       <Filter>Source\Engine\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Game\WorldLoader.cpp">
-      <Filter>Source\Game</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Fay\Utils\MapEditor.cpp">
-      <Filter>Source\Engine\utils</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\ImGui\ImGuiFileDialog.cpp">
       <Filter>Source\Engine\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\TextureManager.cpp">
       <Filter>Source\Engine\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Game\Hud.cpp">
-      <Filter>Source\Game</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\EngineEditor\Editor.cpp">
       <Filter>Source\Engine\EngineEditor</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\Buffers\FrameBuffer.cpp">
       <Filter>Source\Engine\graphics\buffers</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\Scene2D.cpp">
-      <Filter>Source\Engine\renderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\ImGuizmo\GraphEditor.cpp">
       <Filter>Source\Engine\ImGuizmo</Filter>
@@ -355,17 +328,26 @@
     <ClCompile Include="Source\Fay\ImGuizmo\ImSequencer.cpp">
       <Filter>Source\Engine\ImGuizmo</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\3DRenderer\BatchRenderer3D.cpp">
-      <Filter>Source\Engine\renderer\3drenderer</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\Renderer\3DRenderer\Cube.cpp">
       <Filter>Source\Engine\renderer\3drenderer</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\Camera3D.cpp">
       <Filter>Source\Engine\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\Scene3D.cpp">
+    <ClCompile Include="Source\Fay\Scripting\ScriptEngine.cpp">
+      <Filter>Source\Engine\scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Scripting\ScriptSystem.cpp">
+      <Filter>Source\Engine\scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Scripting\ScriptGlue.cpp">
+      <Filter>Source\Engine\scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\Scene.cpp">
       <Filter>Source\Engine\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Graphics\Layers\Group.cpp">
+      <Filter>Source\Engine\graphics\layers</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -410,18 +392,6 @@
     </ClInclude>
     <ClInclude Include="Source\Fay\Graphics\Texture.h">
       <Filter>Source\Engine\graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\Renderable2d.h">
-      <Filter>Source\Engine\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\Renderer2d.h">
-      <Filter>Source\Engine\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\SimpleRenderer.h">
-      <Filter>Source\Engine\renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\StaticSprite.h">
-      <Filter>Source\Engine\renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\Graphics\Layers\Layer.h">
       <Filter>Source\Engine\graphics\layers</Filter>
@@ -483,23 +453,11 @@
     <ClInclude Include="Source\Fay\Graphics\Font\FontManager.h">
       <Filter>Source\Engine\graphics\font</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Graphics\Layers\Group.h">
-      <Filter>Source\Engine\graphics\layers</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\Graphics\Label.h">
       <Filter>Source\Engine\graphics</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\Utils\Timer.h">
       <Filter>Source\Engine\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\Player.h">
-      <Filter>Source\Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\Game.h">
-      <Filter>Source\Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Game\Npc.h">
-      <Filter>Source\Game</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\ImGui\imconfig.h">
       <Filter>Source\Engine\ImGui</Filter>
@@ -531,12 +489,6 @@
     <ClInclude Include="Source\Fay\Graphics\Camera.h">
       <Filter>Source\Engine\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Game\WorldLoader.h">
-      <Filter>Source\Game</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Utils\MapEditor.h">
-      <Filter>Source\Engine\utils</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\ImGui\ImGuiFileDialog.h">
       <Filter>Source\Engine\ImGui</Filter>
     </ClInclude>
@@ -549,17 +501,11 @@
     <ClInclude Include="Source\Fay\Graphics\TextureManager.h">
       <Filter>Source\Engine\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Game\Hud.h">
-      <Filter>Source\Game</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\EngineEditor\Editor.h">
       <Filter>Source\Engine\EngineEditor</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\Graphics\Buffers\FrameBuffer.h">
       <Filter>Source\Engine\graphics\buffers</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\Scene2D.h">
-      <Filter>Source\Engine\renderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\ImGuizmo\GraphEditor.h">
       <Filter>Source\Engine\ImGuizmo</Filter>
@@ -579,23 +525,44 @@
     <ClInclude Include="Source\Fay\ImGuizmo\ImZoomSlider.h">
       <Filter>Source\Engine\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Renderable3d.h">
-      <Filter>Source\Engine\renderer\3drenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Renderer3d.h">
-      <Filter>Source\Engine\renderer\3drenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\BatchRenderer3D.h">
-      <Filter>Source\Engine\renderer\3drenderer</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\Renderer\3DRenderer\Cube.h">
       <Filter>Source\Engine\renderer\3drenderer</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\Graphics\Camera3D.h">
       <Filter>Source\Engine\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\Scene3D.h">
+    <ClInclude Include="Source\Fay\Scripting\ScriptEngine.h">
+      <Filter>Source\Engine\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Entity\ComponentManager.h">
+      <Filter>Source\Engine\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Entity\Entity.h">
+      <Filter>Source\Engine\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Entity\Components.h">
+      <Filter>Source\Engine\entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Scripting\ScriptSystem.h">
+      <Filter>Source\Engine\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Scripting\ScriptGlue.h">
+      <Filter>Source\Engine\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Core\Logger.h">
+      <Filter>Source\Engine\core</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\Scene.h">
       <Filter>Source\Engine\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\Renderable.h">
+      <Filter>Source\Engine\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\Renderer.h">
+      <Filter>Source\Engine\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Graphics\Layers\Group.h">
+      <Filter>Source\Engine\graphics\layers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

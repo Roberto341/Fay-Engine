@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Renderer/Renderable2d.h>
+#include <Renderer/Renderable.h>
 namespace Fay
 {
-	class Label : public Renderable2D
+	class Label : public Renderable
 	{
 	public:
 		Font* m_font;
@@ -13,6 +13,6 @@ namespace Fay
 		float x, y;
 	public:
 		Label(std::string text, float x, float y, Font* font, Vec4 color);
-		void submit(Renderer2D* renderer) const override;
+		void submit(Renderer* renderer) const override;
 	};
 }

@@ -38,6 +38,7 @@ namespace Fay {
 			std::cout << "Failed to initialize GLFW!" << std::endl;
 			return false;
 		}
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 		m_window = glfwCreateWindow(m_width, m_height, m_title, NULL, NULL);
 		if (!m_window)
 		{
@@ -50,21 +51,29 @@ namespace Fay {
 		glfwSetKeyCallback(m_window, key_callback);
 		glfwSetMouseButtonCallback(m_window, mouse_button_callback);
 		glfwSetCursorPosCallback(m_window, cursor_position_callback);
+		glfwSetWindowAttrib(m_window, GLFW_FOCUSED, GLFW_FALSE);
 		glfwSwapInterval(1.0); // 0 is disabled 1 is enabled;
+		//Fay::ScriptGlue::SetWindow(this);
 			if (glewInit() != GLEW_OK)
 			{
 				std::cout << "Could not initialize glew" << std::endl;
 				return false;
 			}
 			glEnable(GL_BLEND);
-			//glDisable(GL_CULL_FACE);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+			glfwSwapBuffers(m_window);
+			glfwShowWindow(m_window);
+			//clear();
+
 			std::cout << "OpenGL " << glGetString(GL_VERSION) << std::endl;
+
 
 			return true;
 	}
 	void Window::clear() const
 	{
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 	void Window::update()
@@ -92,6 +101,13 @@ namespace Fay {
 			return false;
 		return m_keys[keycode];
 	}
+	bool Window::isKeyReleased(unsigned int keycode)
+	{
+		if (keycode >= MAX_KEYS)
+			return true; // Consider out-of-range keys as 'released'
+		return !m_keys[keycode];
+		return false;
+	}
 	bool Window::isMouseButtonPressed(unsigned int button)
 	{
 		// TODO: Log this
@@ -99,7 +115,14 @@ namespace Fay {
 			return false;
 		return m_mouseButtons[button];
 	}
-
+	bool Window::isMouseButtonReleased(unsigned int button)
+	{
+		// TODO: Log this
+		if (button >= MAX_BUTTONS)
+			return true;
+		return !m_mouseButtons[button];
+		return false;
+	}
 	void Window::getMousePos(double& x, double& y)
 	{
 		x = mx;
@@ -115,7 +138,18 @@ namespace Fay {
 
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 	{
-		Window* win = (Window*)glfwGetWindowUserPointer(window);
+		/*Window* win = (Window*)glfwGetWindowUserPointer(window);
+		win->m_keys[key] = action != GLFW_RELEASE;*/
+		if (key < 0 || key >= MAX_KEYS)
+			return; // Skip invalid keycodes
+
+		Window* win = static_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (!win)
+		{
+			std::cerr << "[KeyCallback] ERROR: Window user pointer is null!" << std::endl;
+			return;
+		}
+
 		win->m_keys[key] = action != GLFW_RELEASE;
 	}
 

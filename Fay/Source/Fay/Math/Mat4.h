@@ -23,7 +23,7 @@ namespace Fay
 		static Mat4 identity();
 
 		Mat4& multiply(const Mat4& other);
-		friend Mat4 operator*(Mat4 left, const Mat4& right);
+		friend Mat4 operator*(const Mat4& left, const Mat4& right);
 		Mat4& operator*=(const Mat4& other);
 
 		Vec3 transformDirection(const Vec3& dir) const;
@@ -41,7 +41,7 @@ namespace Fay
 		static Mat4 rotation(float angle, const Vec3& axis);
 		static Mat4 scale(const Vec3& scale);
 		static Mat4 lookAt(const Vec3& eye, const Vec3& center, const Vec3& up);
-		
+		Mat4 inverse() const;
 		std::string toString() const;
 		inline float* data() { return elements; }
 		inline const float* data() const { return elements; }
