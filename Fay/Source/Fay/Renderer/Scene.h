@@ -30,6 +30,7 @@ namespace Fay
 		void setSceneType(SceneType type);
 		SceneType getSceneType() { return m_ActiveScene; }
 		bool canSwitchScene() const;
+		EntityID generateEntityID() { return m_nextEntityID++; }
 	private:
 		bool has2DEntities() const;
 		bool has3DEntities() const;
@@ -37,5 +38,6 @@ namespace Fay
 		void writeString(std::ofstream& out, const std::string& str) const;
 		std::string readString(std::ifstream& in) const;
 		std::vector<Renderable*> m_objects;
+		EntityID m_nextEntityID = 0;
 	};
 }

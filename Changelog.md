@@ -63,10 +63,10 @@
      There is also a Properties panel where you can toggle wireframe on or off pretty neat to see if everything is working good
      Once your ready to save just hit the save button and give it a name **!!NOTE!!** when saving make sure to choose what scene it is if it's 2d use scene_2d 3d use scene_3d make sure to select it in the file dialog other wise it will not work and the file will become corrupt
      **Also** the scenes are saved as binary 
-- ###Update October 25th 2025
-    - ####New Features
+- ### Update October 25th 2025
+    - #### New Features
       - C# Scripting
-    - ####Updates
+    - #### Updates
       - Added a Entity class 
       - Removed ImGui::Selectable() from entities tab replaced with mouse picking 
       - Added components 
@@ -88,4 +88,16 @@
       I went through and updated the render mode to accomdate the new Scene class if you have a scene your working on and it has 2d entites you cannot swtich to 3d same for 3d you must first delete the entites to go back 
     - ### ImGuizmo 
       fixed a few bugs and got it to where the gizmo will show up when a entity is selected works in both 2d and 3d 
-
+- ### Update October 28th 2025
+  - #### Notes
+    This update is primarily a bug fix 
+  - #### New Features
+    - 3D Ray Casting
+    - Camera3D update supports setting perspective and getting it back
+    - Editor now has a intersectAABB method and a getRayFromMouse method for the Cube selection and interaction
+  - #### Updates
+    - Fixed 2 issues 
+      - Sprite deletion causing silent crash 
+      - Cube not being selected and deleted
+      - Replaced old selection code with the actual EntityID 
+      - Auto generate next id when creating a entity

@@ -27,6 +27,8 @@ namespace Fay
 		Vec4& operator-=(const Vec4& other);
 		Vec4& operator*=(const Vec4& other);
 		Vec4& operator/=(const Vec4& other);
+		Vec4& operator/=(float scalar);
+
 		friend std::ostream& operator<<(std::ostream& stream, const Vec4& vector);
 	};
 }

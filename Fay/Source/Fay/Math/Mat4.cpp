@@ -207,7 +207,7 @@ namespace Fay
 
 		result.elements[12] = -s.dot(eye);
 		result.elements[13] = -u.dot(eye);
-		result.elements[14] = -f.dot(eye);  // some implementations use -f.dot(eye)
+		result.elements[14] = f.dot(eye);  // some implementations use -f.dot(eye)
 		result.elements[15] = 1.0f;
 
 		return result;

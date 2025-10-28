@@ -101,6 +101,14 @@ namespace Fay
 		*this = *this / other;
 		return *this;
 	}
+	Vec4& Vec4::operator/=(float scalar)
+	{
+		x /= scalar;
+		y /= scalar;
+		z /= scalar;
+		w /= scalar;
+		return *this;
+	}
 
 	bool Vec4::operator==(const Vec4& other)
 	{
