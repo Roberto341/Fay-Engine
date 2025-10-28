@@ -19,6 +19,7 @@ namespace Fay
 	public:
 		virtual ~Layer();
 		virtual void add(Renderable* renderable);
+		virtual void remove(Renderable* renderable);
 		virtual void render();
 		virtual void clear();
 	};

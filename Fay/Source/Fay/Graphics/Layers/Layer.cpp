@@ -28,6 +28,14 @@ namespace Fay
 		//std::cout << "Adding sprite with ID: " << dynamic_cast<Sprite*>(renderable)->getEntityId() << std::endl;
 		m_Renderables.push_back(renderable);
 	}
+	void Layer::remove(Renderable* renderable)
+	{
+		auto it = std::find(m_Renderables.begin(), m_Renderables.end(), renderable);
+		if (it != m_Renderables.end())
+		{
+			m_Renderables.erase(it);
+		}
+	}
 	void Layer::render()
 	{
 		m_shader->enable();

@@ -31,9 +31,8 @@ namespace Fay
 		m_renderLayer = new TileLayer(m_batchRenderer);
 		m_renderLayer->setShader(m_shader);
 		m_Scene.setSceneType(SceneType::Scene2D);
-		selectedSpriteIndex = -1;
 		m_lastTime = glfwGetTime();
-		selectedCubeIndex = -1;
+		selectedEntityID = -1;
 	}
 
 	Editor::~Editor()
@@ -128,9 +127,9 @@ namespace Fay
 			ImGui::Begin("Entity Components");
 			if (m_renderMode == RenderMode::MODE_2D)
 			{
-				if (selectedSpriteIndex >= 0 && selectedSpriteIndex < (int)m_Scene.getObjects().size())
+				if (selectedEntityID != -1)
 				{
-					EntityID entity = static_cast<EntityID>(selectedSpriteIndex); 
+					EntityID entity = selectedEntityID;
 					auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
 
 					if (!comp)
@@ -174,9 +173,9 @@ namespace Fay
 			ImGui::Begin("Entity Properites");
 			if (m_renderMode == RenderMode::MODE_2D)
 			{
-				if (selectedSpriteIndex >= 0 && selectedSpriteIndex < (int)m_Scene.getObjects().size())
+				if (selectedEntityID != -1)
 				{
-					EntityID entity = static_cast<EntityID>(selectedSpriteIndex);
+					EntityID entity = selectedEntityID;
 					auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
 
 					if (!comp) return;
@@ -191,7 +190,7 @@ namespace Fay
 					};
 
 					char idBuf[32];
-					sprintf(idBuf, "%d", selectedSpriteIndex);
+					sprintf(idBuf, "%d", selectedEntityID);
 
 					ImGui::InputText("Sprite ID", idBuf, IM_ARRAYSIZE(idBuf), ImGuiInputTextFlags_ReadOnly);
 					if (ImGui::ColorEdit4("Color", color))
@@ -227,9 +226,9 @@ namespace Fay
 			}
 			else if (m_renderMode == RenderMode::MODE_3D)
 			{
-				if (selectedCubeIndex >= 0 && selectedCubeIndex < (int)m_Scene.getObjects().size())
+				if (selectedEntityID != -1)
 				{
-					EntityID entity = static_cast<EntityID>(selectedCubeIndex);
+					EntityID entity = selectedEntityID;
 					auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity);
 					if (!comp) return;
 
@@ -309,7 +308,7 @@ namespace Fay
 			bool clickedLeft = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
 			if (hoveredViewport && clickedLeft && !gizmoActive)
 			{
-				selectedSpriteIndex = -1;
+				selectedEntityID = -1;
 			}
 			Mat4 modelMatrix = Mat4::translation(Vec3(0, 0, 0));
 			Mat4 viewMatrix = Mat4::identity();
@@ -350,9 +349,9 @@ namespace Fay
 				m_shader->setUniformMat4("pr_matrix", proj);
 
 				// Gizmo manipulation for selected sprite
-				if (selectedSpriteIndex >= 0 && selectedSpriteIndex < (int)m_Scene.getObjects().size())
+				if (selectedEntityID != -1)
 				{
-					EntityID entity = static_cast<EntityID>(selectedSpriteIndex);
+					EntityID entity = selectedEntityID;
 					auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
 					if (!comp) return;
 
@@ -463,11 +462,11 @@ namespace Fay
 
 				// Setup camera and projection
 				float aspect = viewportSize.x / viewportSize.y;
-				float fov = 45.0f;
+				float fov = 70.0f;
 				float near = 0.1f;
-				float far = 100.0f;
+				float far = 1000.0f;
 				Mat4 pj = Mat4::perspective(fov, aspect, near, far);
-
+				m_camera3D->setPerspective(fov, aspect, near, far);
 				Mat4 vm = m_camera3D->getViewMatrix();
 				m_shader3d->enable();
 				m_shader3d->setUniformMat4("pr_matrix", pj);
@@ -480,9 +479,9 @@ namespace Fay
 				ImVec2 imgSize = ImGui::GetItemRectSize();
 				ImGui::InvisibleButton("viewport_btn", viewportSize, ImGuiButtonFlags_MouseButtonLeft);
 
-				if (selectedCubeIndex >= 0 && selectedCubeIndex < (int)m_Scene.getObjects().size())
+				if (selectedEntityID != -1)
 				{
-					EntityID entity = static_cast<EntityID>(selectedCubeIndex);
+					EntityID entity = selectedEntityID;
 					auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity);
 					if (!comp) return;
 
@@ -544,7 +543,7 @@ namespace Fay
 			{
 				if (ImGui::Button("Add Sprite"))
 				{
-					EntityID entity = static_cast<EntityID>(m_Scene.getObjects().size());
+					EntityID entity = m_Scene.generateEntityID();
 					auto sprite = new Sprite(0, 0, 0, 100, 100, 0, Vec4(1, 0, 0, 1));
 
 					// Generate EntityID 
@@ -553,25 +552,25 @@ namespace Fay
 				}
 				if (ImGui::Button("Delete Sprite"))
 				{
-					EntityID entity = static_cast<EntityID>(selectedSpriteIndex);
-					
+					EntityID entity = static_cast<EntityID>(selectedEntityID);
 					SpriteComponent* spriteComp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
 					if (spriteComp && spriteComp->sprite)
 					{
 						FAY_LOG_DEBUG("Deleting sprite entity: " << entity);
 
 						// remove from scene 
+						selectedEntityID = -1;
+						m_renderLayer->remove(spriteComp->sprite);
 						m_Scene.removeObject(spriteComp->sprite);
 						// remove component from ECS
 						ComponentManager<SpriteComponent>::Get().removeComponent(entity);
+
 					}
 				}
-				//bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
 				auto& spriteEntities = ComponentManager<SpriteComponent>::Get().getEntities();
 				int idx = 0;
 				for (auto* sp : m_Scene.getObjects())
 				{
-					// new code
 					Vec3 spritePos = sp->getPosition();
 					Vec3 spriteSize = sp->getSize();
 
@@ -580,9 +579,10 @@ namespace Fay
 					{
 						if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 						{
-							std::cout << "SelectedSpriteIndex: " << idx << std::endl;
-							selectedSpriteIndex = idx;
-							//break;
+							EntityID entity = spriteEntities[idx];  // <- store real entity ID
+							selectedEntityID = entity;              // <- store this instead of index
+							std::cout << "Selected EntityID: " << entity << std::endl;
+							break;
 						}
 					}
 					idx++;
@@ -590,68 +590,84 @@ namespace Fay
 			}
 			else if (m_renderMode == RenderMode::MODE_3D)
 			{
-				selectedSpriteIndex = -1;
 				if (ImGui::Button("Add Cube"))
 				{
-					auto* cube = new Cube(0, 0, -10, 1, 1, 1, Vec4(1, 0, 0, 1));
+					EntityID entity = m_Scene.generateEntityID();
 
-					EntityID entity = static_cast<EntityID>(m_Scene.getObjects().size());
+					auto* cube = new Cube(0, 0, 0, 1, 1, 1, Vec4(1, 0, 0, 1));
 
 					ComponentManager<CubeComponent>::Get().addComponent(entity, CubeComponent(cube));
 					m_Scene.addObject(cube);
 				}
 				if (ImGui::Button("Delete Cube"))
 				{
-					EntityID entity = static_cast<EntityID>(selectedCubeIndex);
-
-					CubeComponent* cubeComp = ComponentManager<CubeComponent>::Get().getComponent(entity);
+					CubeComponent* cubeComp = ComponentManager<CubeComponent>::Get().getComponent(selectedEntityID);
 					if (cubeComp && cubeComp->cube)
 					{
-						FAY_LOG_DEBUG("Deleting cube entity: " << entity);
+						FAY_LOG_DEBUG("Deleting cube entity: " << selectedEntityID);
 
 						// remove from scene 
 						m_Scene.removeObject(cubeComp->cube);
+						m_renderLayer->remove(cubeComp->cube);
 						// remove component from ECS
-						ComponentManager<CubeComponent>::Get().removeComponent(entity);
+						ComponentManager<CubeComponent>::Get().removeComponent(selectedEntityID);
+						selectedEntityID = -1;
 					}
 				}
-				//bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
-				auto& cubeEntities = ComponentManager<CubeComponent>::Get().getEntities();
+				// --- Get camera matrices ---
+				Mat4 proj = m_camera3D->getProjectionMatrix((float)m_framebuffer.getWidth() / (float)m_framebuffer.getHeight());
+				Mat4 view = m_camera3D->getViewMatrix();
 
-				Vec3 rayOrigin = m_camera3D->getPosition();
-				double mousePosX, mousePosY;
-				m_window.getMousePos(mousePosX, mousePosY);
-				Vec3 rayDir = getRayFromMouse(mousePosY, mousePosY, proj, viewMatrix, viewportSize);
-
-				float closestT = FLT_MAX;
+				// --- Get ray from mouse ---
+				Ray ray = getRayFromMouse(mouse, viewportPos, viewportSize, proj, view);
+				Vec3 rayOrigin = ray.origin;
+				Vec3 rayDir = ray.dir;
+				// 6. Raycast all cubes
 				int selectedIdx = -1;
-
-				int idx = 0;
-				for (auto* cb : m_Scene.getObjects())
+				float closestT = FLT_MAX;
+				for (int i = 0; i < m_Scene.getObjects().size(); ++i)
 				{
-					// new code
-					Vec3 cubePos = cb->getPosition();
-					Vec3 cubeSize = cb->getSize();
-
-					Vec3 aabbMin = cubePos - cubeSize * 0.5f;
-					Vec3 aabbMax = cubePos + cubeSize * 0.5f;
+					auto* cube = m_Scene.getObjects()[i];
+					Vec3 aabbMin = cube->getPosition() - cube->getSize() * 0.5f;
+					Vec3 aabbMax = cube->getPosition() + cube->getSize() * 0.5f;
 
 					float t;
-
 					if (intersectRayAABB(rayOrigin, rayDir, aabbMin, aabbMax, t))
 					{
-						if (t < closestT)
+						if (t > 0 && t < closestT)
 						{
 							closestT = t;
-							selectedIdx = idx;
+							selectedIdx = i;
 						}
 					}
-					idx++;
 				}
-				if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && selectedIdx != -1)
+				bool mouseInViewport =
+					mouse.x >= viewportPos.x && mouse.x <= viewportPos.x + viewportSize.x &&
+					mouse.y >= viewportPos.y && mouse.y <= viewportPos.y + viewportSize.y;
+
+				// 7. Update selection
+				if (mouseInViewport && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 				{
-					selectedCubeIndex = selectedIdx;
-					FAY_LOG_DEBUG("Selected cube index: " << selectedCubeIndex);
+					if (selectedIdx != -1)
+					{
+						auto* selectedObj = m_Scene.getObjects()[selectedIdx];
+						auto& cubeEntities = ComponentManager<CubeComponent>::Get().getEntities();
+
+						for (EntityID e : cubeEntities)
+						{
+							CubeComponent* comp = ComponentManager<CubeComponent>::Get().getComponent(e);
+							if (comp && comp->cube == selectedObj)
+							{
+								selectedEntityID = e;
+								FAY_LOG_DEBUG("Selected cube entity: " << selectedEntityID);
+								break;
+							}
+						}
+					}
+					else
+					{
+						selectedEntityID = static_cast<EntityID>(-1);
+					}
 				}
 			}
 			ImGui::End();
@@ -881,14 +897,12 @@ namespace Fay
 			{
 				if (m_Scene.deleteSceneFile(fullPath))
 				{
-					//std::cout << "Deleted scene: " << scenes2D[selectedScene2DIndex] << std::endl; // change to FAY_LOG_WARN
 					FAY_LOG_WARN("Deleted Scene: " << scenes[selectedSceneIndex]);
 					scenes = m_Scene.listScenesDir(sceneDir);
 					selectedSceneIndex = 0;
 					m_Scene.clear();
 				}
 				else {
-					//std::cout << "Failed to delete scene: " << scenes2D[selectedScene2DIndex] << std::endl;
 					FAY_LOG_ERROR("Failed to delete FayScene: " << scenes[selectedSceneIndex]);
 				}
 				shouldRefreshScenes = true;
@@ -896,12 +910,7 @@ namespace Fay
 		}
 		if (ImGui::Button("Save Scene"))
 		{
-
 			saveCurrentScene();
-			
-			/*showSaveDialog = true;
-			ImGuiFileDialog::Instance()->OpenDialog("SaveScene", "Save Scene File", ".scene_2d, .scene_3d");
-			shouldRefreshScenes = true;*/
 		}
 		if (showSaveDialog)
 		{
@@ -939,44 +948,55 @@ namespace Fay
 			ImGui::EndPopup();
 		}
 	}
-	Vec3 Editor::getRayFromMouse(float mouseX, float mouseY, const Mat4& proj, const Mat4& view, const ImVec2& viewportSize)
-	{
-		// Convert to normalized device coords (-1 to 1)
-		float x = (2.0f * mouseX) / viewportSize.x - 1.0f;
-		float y = 1.0f - (2.0f * mouseY) / viewportSize.y; // flip y
-		float z = 1.0f;
-
-		Vec4 rayClip(x, y, -1.0f, 1.0f);
-
-		Mat4 invProj = proj.inverse();
-		Vec4 rayEye = invProj * rayClip;
-		rayEye = Vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
-
-		Mat4 invView = view.inverse();
-		Vec4 rayWorld4 = invView * rayEye;
-		Vec3 rayWorld(rayWorld4.x, rayWorld4.y, rayWorld4.z);
-		rayWorld.normalized();
-
-		return rayWorld;
-	}
 	bool Editor::intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t)
 	{
 		float t1 = (aabbMin.x - rayOrigin.x) / rayDir.x;
-		float t2 = (aabbMax.x - rayOrigin.x) / rayOrigin.x;
-
+		float t2 = (aabbMax.x - rayOrigin.x) / rayDir.x;
 		float t3 = (aabbMin.y - rayOrigin.y) / rayDir.y;
-		float t4 = (aabbMax.y - rayOrigin.y) / rayOrigin.y;
-
+		float t4 = (aabbMax.y - rayOrigin.y) / rayDir.y;
 		float t5 = (aabbMin.z - rayOrigin.z) / rayDir.z;
-		float t6 = (aabbMax.z - rayOrigin.z) / rayOrigin.z;
+		float t6 = (aabbMax.z - rayOrigin.z) / rayDir.z;
 
-		float tmin = std::max({ std::min(t1, t2), std::min(t3, t4), std::min(t5, t6) });
-		float tmax = std::min({ std::max(t1, t2), std::max(t3, t4), std::max(t5, t6) });
+		float tmin = std::max({ std::min(t1,t2), std::min(t3,t4), std::min(t5,t6) });
+		float tmax = std::min({ std::max(t1,t2), std::max(t3,t4), std::max(t5,t6) });
 
-		if (tmax < 0 || tmin > tmax) return false;
-		t = tmin;
+		if (tmax < 0 || tmin > tmax)
+			return false;
+
+		t = (tmin < 0.0f) ? tmax : tmin;
 		return true;
+	}
+	Ray Editor::getRayFromMouse(const ImVec2& mousePos, const ImVec2& viewportPos, const ImVec2& viewportSize, const Mat4& proj, const Mat4& view)
+	{
+		 // 1. Convert mouse position to normalized device coordinates (-1 to 1)
+		float relX = mousePos.x - viewportPos.x;
+		float relY = mousePos.y - viewportPos.y;
 
+		float ndcX = (2.0f * relX) / viewportSize.x - 1.0f;
+		float ndcY = 1.0f - (2.0f * relY) / viewportSize.y;
 
+		// 2. Define clip-space positions for near and far planes
+		Vec4 rayStartClip(ndcX, ndcY, -1.0f, 1.0f);
+		Vec4 rayEndClip(ndcX, ndcY, 1.0f, 1.0f);
+
+		// 3. Invert the combined view-projection matrix
+		Mat4 invViewProj = (proj * view).inverse();
+
+		// 4. Unproject to world space
+		Vec4 rayStartWorld = invViewProj * rayStartClip;
+		rayStartWorld /= rayStartWorld.w;
+
+		Vec4 rayEndWorld = invViewProj * rayEndClip;
+		rayEndWorld /= rayEndWorld.w;
+
+		// 5. Build ray
+		Vec3 origin(rayStartWorld.x, rayStartWorld.y, rayStartWorld.z);
+		Vec3 direction = Vec3(
+			rayEndWorld.x - rayStartWorld.x,
+			rayEndWorld.y - rayStartWorld.y,
+			rayEndWorld.z - rayStartWorld.z
+		).normalized();
+
+		return { origin, direction };
 	}
 }

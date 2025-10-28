@@ -23,6 +23,11 @@ namespace Fay
 		MODE_2D,
 		MODE_3D
 	};
+	struct Ray
+	{
+		Vec3 origin;
+		Vec3 dir;
+	};
 	class Editor
 	{
 	public:
@@ -56,8 +61,7 @@ namespace Fay
 		bool showLoadDialog = false;
 		void setupDockspace();
 		void setupFileMenu();
-		int selectedSpriteIndex;
-		int selectedCubeIndex;
+		EntityID selectedEntityID;
 		float m_lastTime;
 		std::string m_currentScenePath;
 		// Misc
@@ -72,7 +76,7 @@ namespace Fay
 		// Scene Management
 		SceneType m_activeScene = SceneType::None;
 		// private methods
-		Vec3 getRayFromMouse(float mouseX, float mouseY, const Mat4& proj, const Mat4& view, const ImVec2& viewportSize);;
 		bool intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t);
+		Ray getRayFromMouse(const ImVec2& mousePos, const ImVec2& viewportPos, const ImVec2& viewportSize, const Mat4& proj, const Mat4& view);
 	};
 }

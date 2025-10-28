@@ -8,11 +8,12 @@ namespace Fay
 	}
 	void Scene::removeObject(Renderable* object)
 	{
+		// Find and remove from render list
 		auto it = std::find(m_objects.begin(), m_objects.end(), object);
 		if (it != m_objects.end())
 		{
-			delete* it;             // free memory
-			m_objects.erase(it);    // remove from list
+			delete* it;
+			m_objects.erase(it);
 		}
 	}
 	void Scene::clear()
