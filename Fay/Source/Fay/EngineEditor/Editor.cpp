@@ -30,9 +30,14 @@ namespace Fay
 		m_batchRenderer = new BatchRenderer();
 		m_renderLayer = new TileLayer(m_batchRenderer);
 		m_renderLayer->setShader(m_shader);
+		m_tileRenerLayer = new TileLayer(m_batchRenderer);
+		//m_tileRenerLayer->setShader(m_shader);
 		m_Scene.setSceneType(SceneType::Scene2D);
 		m_lastTime = glfwGetTime();
 		selectedEntityID = -1;
+		m_selectedTile = TileInfo();
+		m_tiles.resize(m_window.getWidth() / 32 * m_window.getHeight() / 32, TileInfo());
+		loadTilePalette("Res/MapEditor/default.config");
 	}
 
 	Editor::~Editor()
@@ -94,7 +99,6 @@ namespace Fay
 			glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			//auto& objects = m_scene2D.getObjects();
 
 			// new render mode
 			if (!m_Scene.getObjects().empty())
@@ -192,7 +196,7 @@ namespace Fay
 					char idBuf[32];
 					sprintf(idBuf, "%d", selectedEntityID);
 
-					ImGui::InputText("Sprite ID", idBuf, IM_ARRAYSIZE(idBuf), ImGuiInputTextFlags_ReadOnly);
+					ImGui::InputText("Entity ID", idBuf, IM_ARRAYSIZE(idBuf), ImGuiInputTextFlags_ReadOnly);
 					if (ImGui::ColorEdit4("Color", color))
 					{
 						sprite->setColor(Vec4(color[0], color[1], color[2], color[3]));
@@ -233,7 +237,10 @@ namespace Fay
 					if (!comp) return;
 
 					auto* cube = comp->cube;
+					char idBuf[32];
+					sprintf(idBuf, "%d", selectedEntityID);
 
+					ImGui::InputText("Entity ID", idBuf, IM_ARRAYSIZE(idBuf), ImGuiInputTextFlags_ReadOnly);
 					float color[4] = {
 						cube->getColor().x,
 						cube->getColor().y,
@@ -277,401 +284,8 @@ namespace Fay
 			}
 			ImGui::End();
 			// Viewport window
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-			ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar);
-
-			ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-			ImVec2 viewportPos = ImGui::GetWindowPos();
-			ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-			ImVec2 mouse = ImGui::GetMousePos();
-			ImVec2 viewportPosImGui = ImGui::GetItemRectMin(); 
-			ImGui::Image((void*)(intptr_t)m_framebuffer.getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
-			ImVec2 imgPos = ImGui::GetItemRectMin();
-			ImVec2 imgSize = ImGui::GetItemRectSize();
-
-			Vec2 viewPos(viewportPosImGui.x, viewportPosImGui.y);
-
-			// Final result
-			Vec2 relativeMousePos = {
-				mouse.x - cursorPos.x,
-				(imgPos.y + viewportSize.y) - mouse.y
-			};
-			//relativeMousePos.y = viewportPos.y - relativeMousePos.y;
-			Vec2 worldMousePos = {
-				relativeMousePos.x - (viewportSize.x / 2.0f),
-				relativeMousePos.y - (viewportSize.y / 2.0f)
-			};
-
-
-			bool hoveredViewport = ImGui::IsItemHovered();
-			bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
-			bool clickedLeft = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-			if (hoveredViewport && clickedLeft && !gizmoActive)
-			{
-				selectedEntityID = -1;
-			}
-			Mat4 modelMatrix = Mat4::translation(Vec3(0, 0, 0));
-			Mat4 viewMatrix = Mat4::identity();
-			Mat4 proj = Mat4::identity();
-
-			if (m_renderMode == RenderMode::MODE_2D)
-			{
-				if ((int)viewportSize.x != m_framebuffer.getWidth() || (int)viewportSize.y != m_framebuffer.getHeight())
-				{
-					m_framebuffer.resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-					float left = -m_framebuffer.getWidth() / 2.0f;
-					float right = m_framebuffer.getWidth() / 2.0f;
-					float bottom = -m_framebuffer.getHeight() / 2.0f;
-					float top = m_framebuffer.getHeight() / 2.0f;
-					float near = -1.0f;
-					float far = 1.0f;
-					proj = Mat4::orthographic(left, right, bottom, top, near, far);
-					m_shader->enable();
-					m_shader->setUniformMat4("pr_matrix", proj);
-				}
-				ImGui::InvisibleButton("viewport_btn", viewportSize);
-
-				ImGuizmo::SetDrawlist();
-				ImGuizmo::SetOrthographic(true);
-				ImGuizmo::SetRect(imgPos.x, imgPos.y, imgSize.x, imgSize.y);
-				float left = -m_framebuffer.getWidth() / 2.0f;
-				float right = m_framebuffer.getWidth() / 2.0f;
-				float bottom = -m_framebuffer.getHeight() / 2.0f;
-				float top = m_framebuffer.getHeight() / 2.0f;
-				float near = -1.0f;
-				float far = 1.0f;
-
-				proj = Mat4::orthographic(-imgSize.x / 2, imgSize.x / 2,
-					-imgSize.y / 2, imgSize.y / 2,
-					-1, 1);
-
-				m_shader->enable();
-				m_shader->setUniformMat4("pr_matrix", proj);
-
-				// Gizmo manipulation for selected sprite
-				if (selectedEntityID != -1)
-				{
-					EntityID entity = selectedEntityID;
-					auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
-					if (!comp) return;
-
-					auto* sprite = comp->sprite;
-
-					float left = -m_framebuffer.getWidth() / 2.0f;
-					float right = m_framebuffer.getWidth() / 2.0f;
-					float bottom = -m_framebuffer.getHeight() / 2.0f;
-					float top = m_framebuffer.getHeight() / 2.0f;
-					float near = -1.0f;
-					float far = 1.0f;
-
-					Mat4 model = Mat4::translation(sprite->getPosition()) *
-						Mat4::scale(Vec3(sprite->getSize().x, sprite->getSize().y, 1.0f));
-
-					viewMatrix = Mat4::identity(); //  not using camera
-					proj = Mat4::orthographic(-imgSize.x / 2, imgSize.x / 2,
-						-imgSize.y / 2, imgSize.y / 2,
-						-1, 1);
-
-					bool manipulated = ImGuizmo::Manipulate(
-						viewMatrix.data(),
-						proj.data(),
-						ImGuizmo::TRANSLATE,
-						ImGuizmo::LOCAL,
-						model.data()
-					);
-
-					if (manipulated) {
-						// Update your sprite position
-						Vec3 newPos(model.elements[12], model.elements[13], model.elements[14]);
-						sprite->setPosition(newPos);
-					}
-
-					Vec3 origin = sprite->getPosition();
-					Vec3 size = sprite->getSize();
-					Vec3 cornersWorld[4] = { 
-						origin,                                         // bottom-left
-						origin + Vec3(size.x, 0, 0),                    // bottom-right
-						origin + Vec3(size.x, size.y, 0),               // top-right
-						origin + Vec3(0, size.y, 0),                    // top-left
-					};
-
-					Mat4 view = viewMatrix;
-					//Mat4 proj = camera->getProjection();
-
-					ImVec2 screenCorners[4];
-					bool valid = true;
-
-					const float fbWidth = imgSize.x;
-					const float fbHeight = imgSize.y;
-					Vec3 localCorners[4] = {
-						Vec3(0, 0, 0),                          // bottom-left
-						Vec3(1, 0, 0),                          // bottom-right
-						Vec3(1, 1, 0),                          // top-right
-						Vec3(0, 1, 0),                          // top-left
-					};
-
-
-					for (int i = 0; i < 4; ++i)
-					{
-						Vec4 world = model * Vec4(localCorners[i].x, localCorners[i].y, localCorners[i].z, 1.0f);
-						Vec4 clip = proj * view * world;
-
-						if (clip.w == 0.0f) {
-							valid = false;
-							break;
-						}
-
-						clip.x /= clip.w;
-						clip.y /= clip.w;
-
-						float ndcX = clip.x * 0.5f + 0.5f;
-						float ndcY = clip.y * 0.5f + 0.5f;
-
-						// Flip Y to match ImGui::Image(0,1)-(1,0)
-						float screenX = imgPos.x + ndcX * fbWidth;
-						float screenY = imgPos.y + (1.0f - ndcY) * fbHeight;
-
-						screenCorners[i] = ImVec2(screenX, screenY);
-					}
-
-						auto* dl = ImGui::GetWindowDrawList();
-					if (valid)
-					{
-						for (auto& sc : screenCorners) {
-							if (ComponentManager<CollisionSpriteComponent>::Get().getComponent(entity))
-							{
-								dl->AddCircleFilled(sc, 3.0f, IM_COL32(0, 255, 0, 255));
-							}
-						}
-						dl->AddPolyline(screenCorners, 4, IM_COL32(255, 255, 0, 155), true, 2.0f);
-					}
-
-					/*if (ComponentManager<TransformComponent>::Get().hasComponent(entity))
-					{
-						dl->AddPolyline(screenCorners, 4, IM_COL32(0, 0, 255, 255), true, 2.0f);
-					}*/
-				}
-			}
-			else if (m_renderMode == RenderMode::MODE_3D)
-			{
-				// Resize framebuffer if needed
-				if ((int)viewportSize.x != m_framebuffer.getWidth() || (int)viewportSize.y != m_framebuffer.getHeight())
-				{
-					m_framebuffer.resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-				}
-
-				// Setup camera and projection
-				float aspect = viewportSize.x / viewportSize.y;
-				float fov = 70.0f;
-				float near = 0.1f;
-				float far = 1000.0f;
-				Mat4 pj = Mat4::perspective(fov, aspect, near, far);
-				m_camera3D->setPerspective(fov, aspect, near, far);
-				Mat4 vm = m_camera3D->getViewMatrix();
-				m_shader3d->enable();
-				m_shader3d->setUniformMat4("pr_matrix", pj);
-				m_shader3d->setUniformMat4("vw_matrix", vm);
-				m_shader3d->setUniformMat4("ml_matrix", modelMatrix);
-
-				// Draw framebuffer
-				ImGui::Image((void*)(intptr_t)m_framebuffer.getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
-				ImVec2 imgPos = ImGui::GetItemRectMin();
-				ImVec2 imgSize = ImGui::GetItemRectSize();
-				ImGui::InvisibleButton("viewport_btn", viewportSize, ImGuiButtonFlags_MouseButtonLeft);
-
-				if (selectedEntityID != -1)
-				{
-					EntityID entity = selectedEntityID;
-					auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity);
-					if (!comp) return;
-
-					auto* cube = comp->cube;
-					Mat4 model = Mat4::translation(cube->getPosition()) * Mat4::scale(cube->getSize());
-					ImGuizmo::SetDrawlist();
-					ImGuizmo::SetOrthographic(false);
-					
-					bool manip = ImGuizmo::Manipulate(
-						vm.data(),
-						pj.data(),
-						ImGuizmo::TRANSLATE,
-						ImGuizmo::WORLD,
-						model.data()
-					);
-
-					if (manip)
-					{
-						Vec3 newPos(model.elements[12], model.elements[13], model.elements[14]);
-						cube->setPosition(newPos);
-					}
-				}
-			}
-			ImGui::End();
-			ImGui::PopStyleVar();
-			// File menu
-			ImGui::Begin("File");
-			const char* modes[] = { "2D", "3D" };
-			static int currentMode = 0;
-
-			if (ImGui::Combo("Render Mode", &currentMode, modes, IM_ARRAYSIZE(modes)))
-			{
-				if (m_Scene.canSwitchScene())
-				{
-					m_renderMode = (RenderMode)currentMode;
-				}
-				if (m_renderMode == RenderMode::MODE_3D)
-				{
-					SetActiveScene(SceneType::Scene3D);
-					m_Scene.setSceneType(SceneType::Scene3D);
-					m_batchRenderer->setDimension(RenderDimension::D3);
-					m_renderLayer->setProjectionType(ProjectionType::Cube3D);
-					m_renderLayer->setShader(m_shader3d);
-				}
-				if (m_renderMode == RenderMode::MODE_2D)
-				{
-					SetActiveScene(SceneType::Scene2D);
-					m_Scene.setSceneType(SceneType::Scene2D);
-					m_batchRenderer->setDimension(RenderDimension::D2);
-					m_renderLayer->setProjectionType(ProjectionType::Quad2D);
-					m_renderLayer->setShader(m_shader);
-				}
-			}
-				setupFileMenu();
-			ImGui::End();
-			// Entities panel (Add + List)
-			ImGui::Begin("Entities");
-			if (m_renderMode == RenderMode::MODE_2D)
-			{
-				if (ImGui::Button("Add Sprite"))
-				{
-					EntityID entity = m_Scene.generateEntityID();
-					auto sprite = new Sprite(0, 0, 0, 100, 100, 0, Vec4(1, 0, 0, 1));
-
-					// Generate EntityID 
-					ComponentManager<SpriteComponent>::Get().addComponent(entity, SpriteComponent(sprite));
-					m_Scene.addObject(sprite);
-				}
-				if (ImGui::Button("Delete Sprite"))
-				{
-					EntityID entity = static_cast<EntityID>(selectedEntityID);
-					SpriteComponent* spriteComp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
-					if (spriteComp && spriteComp->sprite)
-					{
-						FAY_LOG_DEBUG("Deleting sprite entity: " << entity);
-
-						// remove from scene 
-						selectedEntityID = -1;
-						m_renderLayer->remove(spriteComp->sprite);
-						m_Scene.removeObject(spriteComp->sprite);
-						// remove component from ECS
-						ComponentManager<SpriteComponent>::Get().removeComponent(entity);
-
-					}
-				}
-				auto& spriteEntities = ComponentManager<SpriteComponent>::Get().getEntities();
-				int idx = 0;
-				for (auto* sp : m_Scene.getObjects())
-				{
-					Vec3 spritePos = sp->getPosition();
-					Vec3 spriteSize = sp->getSize();
-
-					if (worldMousePos.x >= spritePos.x && worldMousePos.x <= spritePos.x + spriteSize.x &&
-						worldMousePos.y >= spritePos.y && worldMousePos.y <= spritePos.y + spriteSize.y)
-					{
-						if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-						{
-							EntityID entity = spriteEntities[idx];  // <- store real entity ID
-							selectedEntityID = entity;              // <- store this instead of index
-							std::cout << "Selected EntityID: " << entity << std::endl;
-							break;
-						}
-					}
-					idx++;
-				}
-			}
-			else if (m_renderMode == RenderMode::MODE_3D)
-			{
-				if (ImGui::Button("Add Cube"))
-				{
-					EntityID entity = m_Scene.generateEntityID();
-
-					auto* cube = new Cube(0, 0, 0, 1, 1, 1, Vec4(1, 0, 0, 1));
-
-					ComponentManager<CubeComponent>::Get().addComponent(entity, CubeComponent(cube));
-					m_Scene.addObject(cube);
-				}
-				if (ImGui::Button("Delete Cube"))
-				{
-					CubeComponent* cubeComp = ComponentManager<CubeComponent>::Get().getComponent(selectedEntityID);
-					if (cubeComp && cubeComp->cube)
-					{
-						FAY_LOG_DEBUG("Deleting cube entity: " << selectedEntityID);
-
-						// remove from scene 
-						m_Scene.removeObject(cubeComp->cube);
-						m_renderLayer->remove(cubeComp->cube);
-						// remove component from ECS
-						ComponentManager<CubeComponent>::Get().removeComponent(selectedEntityID);
-						selectedEntityID = -1;
-					}
-				}
-				// --- Get camera matrices ---
-				Mat4 proj = m_camera3D->getProjectionMatrix((float)m_framebuffer.getWidth() / (float)m_framebuffer.getHeight());
-				Mat4 view = m_camera3D->getViewMatrix();
-
-				// --- Get ray from mouse ---
-				Ray ray = getRayFromMouse(mouse, viewportPos, viewportSize, proj, view);
-				Vec3 rayOrigin = ray.origin;
-				Vec3 rayDir = ray.dir;
-				// 6. Raycast all cubes
-				int selectedIdx = -1;
-				float closestT = FLT_MAX;
-				for (int i = 0; i < m_Scene.getObjects().size(); ++i)
-				{
-					auto* cube = m_Scene.getObjects()[i];
-					Vec3 aabbMin = cube->getPosition() - cube->getSize() * 0.5f;
-					Vec3 aabbMax = cube->getPosition() + cube->getSize() * 0.5f;
-
-					float t;
-					if (intersectRayAABB(rayOrigin, rayDir, aabbMin, aabbMax, t))
-					{
-						if (t > 0 && t < closestT)
-						{
-							closestT = t;
-							selectedIdx = i;
-						}
-					}
-				}
-				bool mouseInViewport =
-					mouse.x >= viewportPos.x && mouse.x <= viewportPos.x + viewportSize.x &&
-					mouse.y >= viewportPos.y && mouse.y <= viewportPos.y + viewportSize.y;
-
-				// 7. Update selection
-				if (mouseInViewport && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-				{
-					if (selectedIdx != -1)
-					{
-						auto* selectedObj = m_Scene.getObjects()[selectedIdx];
-						auto& cubeEntities = ComponentManager<CubeComponent>::Get().getEntities();
-
-						for (EntityID e : cubeEntities)
-						{
-							CubeComponent* comp = ComponentManager<CubeComponent>::Get().getComponent(e);
-							if (comp && comp->cube == selectedObj)
-							{
-								selectedEntityID = e;
-								FAY_LOG_DEBUG("Selected cube entity: " << selectedEntityID);
-								break;
-							}
-						}
-					}
-					else
-					{
-						selectedEntityID = static_cast<EntityID>(-1);
-					}
-				}
-			}
-			ImGui::End();
-
+			setupViewport();
+			setupTileMap();
 			// Rendering ImGui
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -948,6 +562,524 @@ namespace Fay
 			ImGui::EndPopup();
 		}
 	}
+	void Editor::setupViewport()
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::Begin("Viewport", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoTitleBar);
+
+		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		ImVec2 viewportPos = ImGui::GetWindowPos();
+		ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+		ImVec2 mouse = ImGui::GetMousePos();
+		ImVec2 viewportPosImGui = ImGui::GetItemRectMin();
+		ImGui::Image((void*)(intptr_t)m_framebuffer.getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+		ImVec2 imgPos = ImGui::GetItemRectMin();
+		ImVec2 imgSize = ImGui::GetItemRectSize();
+
+		Vec2 viewPos(viewportPosImGui.x, viewportPosImGui.y);
+
+		// Final result
+		Vec2 relativeMousePos = {
+			mouse.x - cursorPos.x,
+			(imgPos.y + viewportSize.y) - mouse.y
+		};
+		//relativeMousePos.y = viewportPos.y - relativeMousePos.y;
+		Vec2 worldMousePos = {
+			relativeMousePos.x - (viewportSize.x / 2.0f),
+			relativeMousePos.y - (viewportSize.y / 2.0f)
+		};
+
+
+		bool hoveredViewport = ImGui::IsItemHovered();
+		bool gizmoActive = ImGuizmo::IsUsing() || ImGuizmo::IsOver();
+		bool clickedLeft = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+		if (hoveredViewport && clickedLeft && !gizmoActive)
+		{
+			selectedEntityID = -1;
+		}
+		Mat4 modelMatrix = Mat4::translation(Vec3(0, 0, 0));
+		Mat4 viewMatrix = Mat4::identity();
+		Mat4 proj = Mat4::identity();
+
+		if (m_renderMode == RenderMode::MODE_2D)
+		{
+			if ((int)viewportSize.x != m_framebuffer.getWidth() || (int)viewportSize.y != m_framebuffer.getHeight())
+			{
+				m_framebuffer.resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+				float left = -m_framebuffer.getWidth() / 2.0f;
+				float right = m_framebuffer.getWidth() / 2.0f;
+				float bottom = -m_framebuffer.getHeight() / 2.0f;
+				float top = m_framebuffer.getHeight() / 2.0f;
+				float near = -1.0f;
+				float far = 1.0f;
+				proj = Mat4::orthographic(left, right, bottom, top, near, far);
+				m_shader->enable();
+				m_shader->setUniformMat4("pr_matrix", proj);
+			}
+			ImGui::InvisibleButton("viewport_btn", viewportSize);
+
+			ImGuizmo::SetDrawlist();
+			ImGuizmo::SetOrthographic(true);
+			ImGuizmo::SetRect(imgPos.x, imgPos.y, imgSize.x, imgSize.y);
+			float left = -m_framebuffer.getWidth() / 2.0f;
+			float right = m_framebuffer.getWidth() / 2.0f;
+			float bottom = -m_framebuffer.getHeight() / 2.0f;
+			float top = m_framebuffer.getHeight() / 2.0f;
+			float near = -1.0f;
+			float far = 1.0f;
+
+			proj = Mat4::orthographic(-imgSize.x / 2, imgSize.x / 2,
+				-imgSize.y / 2, imgSize.y / 2,
+				-1, 1);
+
+			m_shader->enable();
+			m_shader->setUniformMat4("pr_matrix", proj);
+
+			// Gizmo manipulation for selected sprite
+			if (selectedEntityID != -1)
+			{
+				EntityID entity = selectedEntityID;
+				auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
+				if (!comp) return;
+
+				auto* sprite = comp->sprite;
+
+				float left = -m_framebuffer.getWidth() / 2.0f;
+				float right = m_framebuffer.getWidth() / 2.0f;
+				float bottom = -m_framebuffer.getHeight() / 2.0f;
+				float top = m_framebuffer.getHeight() / 2.0f;
+				float near = -1.0f;
+				float far = 1.0f;
+
+				Mat4 model = Mat4::translation(sprite->getPosition()) *
+					Mat4::scale(Vec3(sprite->getSize().x, sprite->getSize().y, 1.0f));
+
+				viewMatrix = Mat4::identity(); //  not using camera
+				proj = Mat4::orthographic(-imgSize.x / 2, imgSize.x / 2,
+					-imgSize.y / 2, imgSize.y / 2,
+					-1, 1);
+
+				bool manipulated = ImGuizmo::Manipulate(
+					viewMatrix.data(),
+					proj.data(),
+					ImGuizmo::TRANSLATE,
+					ImGuizmo::LOCAL,
+					model.data()
+				);
+
+				if (manipulated) {
+					// Update your sprite position
+					Vec3 newPos(model.elements[12], model.elements[13], model.elements[14]);
+					sprite->setPosition(newPos);
+				}
+
+				Vec3 origin = sprite->getPosition();
+				Vec3 size = sprite->getSize();
+				Vec3 cornersWorld[4] = {
+					origin,                                         // bottom-left
+					origin + Vec3(size.x, 0, 0),                    // bottom-right
+					origin + Vec3(size.x, size.y, 0),               // top-right
+					origin + Vec3(0, size.y, 0),                    // top-left
+				};
+
+				Mat4 view = viewMatrix;
+				//Mat4 proj = camera->getProjection();
+
+				ImVec2 screenCorners[4];
+				bool valid = true;
+
+				const float fbWidth = imgSize.x;
+				const float fbHeight = imgSize.y;
+				Vec3 localCorners[4] = {
+					Vec3(0, 0, 0),                          // bottom-left
+					Vec3(1, 0, 0),                          // bottom-right
+					Vec3(1, 1, 0),                          // top-right
+					Vec3(0, 1, 0),                          // top-left
+				};
+
+
+				for (int i = 0; i < 4; ++i)
+				{
+					Vec4 world = model * Vec4(localCorners[i].x, localCorners[i].y, localCorners[i].z, 1.0f);
+					Vec4 clip = proj * view * world;
+
+					if (clip.w == 0.0f) {
+						valid = false;
+						break;
+					}
+
+					clip.x /= clip.w;
+					clip.y /= clip.w;
+
+					float ndcX = clip.x * 0.5f + 0.5f;
+					float ndcY = clip.y * 0.5f + 0.5f;
+
+					// Flip Y to match ImGui::Image(0,1)-(1,0)
+					float screenX = imgPos.x + ndcX * fbWidth;
+					float screenY = imgPos.y + (1.0f - ndcY) * fbHeight;
+
+					screenCorners[i] = ImVec2(screenX, screenY);
+				}
+
+				auto* dl = ImGui::GetWindowDrawList();
+				if (valid)
+				{
+					for (auto& sc : screenCorners) {
+						if (ComponentManager<CollisionSpriteComponent>::Get().getComponent(entity))
+						{
+							dl->AddCircleFilled(sc, 3.0f, IM_COL32(0, 255, 0, 255));
+						}
+					}
+					dl->AddPolyline(screenCorners, 4, IM_COL32(255, 255, 0, 155), true, 2.0f);
+				}
+
+				/*if (ComponentManager<TransformComponent>::Get().hasComponent(entity))
+				{
+					dl->AddPolyline(screenCorners, 4, IM_COL32(0, 0, 255, 255), true, 2.0f);
+				}*/
+			}
+		}
+		else if (m_renderMode == RenderMode::MODE_3D)
+		{
+			// Resize framebuffer if needed
+			if ((int)viewportSize.x != m_framebuffer.getWidth() || (int)viewportSize.y != m_framebuffer.getHeight())
+			{
+				m_framebuffer.resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+			}
+
+			// Setup camera and projection
+			float aspect = viewportSize.x / viewportSize.y;
+			float fov = 70.0f;
+			float near = 0.1f;
+			float far = 1000.0f;
+			Mat4 pj = Mat4::perspective(fov, aspect, near, far);
+			m_camera3D->setPerspective(fov, aspect, near, far);
+			Mat4 vm = m_camera3D->getViewMatrix();
+			m_shader3d->enable();
+			m_shader3d->setUniformMat4("pr_matrix", pj);
+			m_shader3d->setUniformMat4("vw_matrix", vm);
+			m_shader3d->setUniformMat4("ml_matrix", modelMatrix);
+
+			// Draw framebuffer
+			ImGui::Image((void*)(intptr_t)m_framebuffer.getTexture(), viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+			ImVec2 imgPos = ImGui::GetItemRectMin();
+			ImVec2 imgSize = ImGui::GetItemRectSize();
+			ImGui::InvisibleButton("viewport_btn", viewportSize, ImGuiButtonFlags_MouseButtonLeft);
+
+			if (selectedEntityID != -1)
+			{
+				EntityID entity = selectedEntityID;
+				auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity);
+				if (!comp) return;
+
+				auto* cube = comp->cube;
+				Mat4 model = Mat4::translation(cube->getPosition()) * Mat4::scale(cube->getSize());
+				ImGuizmo::SetDrawlist();
+				ImGuizmo::SetOrthographic(false);
+
+				bool manip = ImGuizmo::Manipulate(
+					vm.data(),
+					pj.data(),
+					ImGuizmo::TRANSLATE,
+					ImGuizmo::WORLD,
+					model.data()
+				);
+
+				if (manip)
+				{
+					Vec3 newPos(model.elements[12], model.elements[13], model.elements[14]);
+					cube->setPosition(newPos);
+				}
+			}
+		}
+		ImGui::End();
+		ImGui::PopStyleVar();
+		// File menu
+		ImGui::Begin("File");
+		const char* modes[] = { "2D", "3D" };
+		static int currentMode = 0;
+
+		if (ImGui::Combo("Render Mode", &currentMode, modes, IM_ARRAYSIZE(modes)))
+		{
+			if (m_Scene.canSwitchScene())
+			{
+				m_renderMode = (RenderMode)currentMode;
+			}
+			if (m_renderMode == RenderMode::MODE_3D)
+			{
+				SetActiveScene(SceneType::Scene3D);
+				m_Scene.setSceneType(SceneType::Scene3D);
+				m_batchRenderer->setDimension(RenderDimension::D3);
+				m_renderLayer->setProjectionType(ProjectionType::Cube3D);
+				m_renderLayer->setShader(m_shader3d);
+			}
+			if (m_renderMode == RenderMode::MODE_2D)
+			{
+				SetActiveScene(SceneType::Scene2D);
+				m_Scene.setSceneType(SceneType::Scene2D);
+				m_batchRenderer->setDimension(RenderDimension::D2);
+				m_renderLayer->setProjectionType(ProjectionType::Quad2D);
+				m_renderLayer->setShader(m_shader);
+			}
+		}
+		const char* layerNames[] = { "Tile Editor", "Tile Palette", "Render" };
+		static int currentLayer = 0;
+		if (ImGui::Combo("Active Layer", &currentLayer, layerNames, IM_ARRAYSIZE(layerNames)))
+		{
+			m_tileLayerMode = (TilesLayer)currentLayer;
+		}
+
+		setupFileMenu();
+		ImGui::End();
+		if (m_Scene.getObjects().empty())
+		{
+			m_Scene.resetEntityID();
+		}
+		// Entities panel (Add + List)
+		ImGui::Begin("Entities");
+		if (m_renderMode == RenderMode::MODE_2D)
+		{
+			if (ImGui::Button("Add Sprite"))
+			{
+				EntityID entity = m_Scene.generateEntityID();
+				auto sprite = new Sprite(0, 0, 0, 100, 100, 0, Vec4(1, 0, 0, 1));
+
+				// Generate EntityID 
+				ComponentManager<SpriteComponent>::Get().addComponent(entity, SpriteComponent(sprite));
+				m_Scene.addObject(sprite);
+			}
+			if (ImGui::Button("Delete Sprite"))
+			{
+				EntityID entity = static_cast<EntityID>(selectedEntityID);
+				SpriteComponent* spriteComp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
+				if (spriteComp && spriteComp->sprite)
+				{
+					FAY_LOG_DEBUG("Deleting sprite entity: " << entity);
+
+					// remove from scene 
+					selectedEntityID = -1;
+					m_renderLayer->remove(spriteComp->sprite);
+					m_Scene.removeObject(spriteComp->sprite);
+					// remove component from ECS
+					ComponentManager<SpriteComponent>::Get().removeComponent(entity);
+
+				}
+			}
+			auto& spriteEntities = ComponentManager<SpriteComponent>::Get().getEntities();
+			int idx = 0;
+			for (auto* sp : m_Scene.getObjects())
+			{
+				Vec3 spritePos = sp->getPosition();
+				Vec3 spriteSize = sp->getSize();
+
+				if (worldMousePos.x >= spritePos.x && worldMousePos.x <= spritePos.x + spriteSize.x &&
+					worldMousePos.y >= spritePos.y && worldMousePos.y <= spritePos.y + spriteSize.y)
+				{
+					if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+					{
+						EntityID entity = spriteEntities[idx];  // <- store real entity ID
+						selectedEntityID = entity;              // <- store this instead of index
+						std::cout << "Selected EntityID: " << entity << std::endl;
+						break;
+					}
+				}
+				idx++;
+			}
+		}
+		else if (m_renderMode == RenderMode::MODE_3D)
+		{
+			if (ImGui::Button("Add Cube"))
+			{
+				EntityID entity = m_Scene.generateEntityID();
+
+				auto* cube = new Cube(0, 0, 0, 1, 1, 1, Vec4(1, 0, 0, 1));
+
+				ComponentManager<CubeComponent>::Get().addComponent(entity, CubeComponent(cube));
+				m_Scene.addObject(cube);
+			}
+			if (ImGui::Button("Delete Cube"))
+			{
+				CubeComponent* cubeComp = ComponentManager<CubeComponent>::Get().getComponent(selectedEntityID);
+				if (cubeComp && cubeComp->cube)
+				{
+					FAY_LOG_DEBUG("Deleting cube entity: " << selectedEntityID);
+
+					// remove from scene 
+					m_Scene.removeObject(cubeComp->cube);
+					m_renderLayer->remove(cubeComp->cube);
+					// remove component from ECS
+					ComponentManager<CubeComponent>::Get().removeComponent(selectedEntityID);
+					selectedEntityID = -1;
+				}
+			}
+			// --- Get camera matrices ---
+			Mat4 proj = m_camera3D->getProjectionMatrix((float)m_framebuffer.getWidth() / (float)m_framebuffer.getHeight());
+			Mat4 view = m_camera3D->getViewMatrix();
+
+			// --- Get ray from mouse ---
+			Ray ray = getRayFromMouse(mouse, viewportPos, viewportSize, proj, view);
+			Vec3 rayOrigin = ray.origin;
+			Vec3 rayDir = ray.dir;
+			// 6. Raycast all cubes
+			int selectedIdx = -1;
+			float closestT = FLT_MAX;
+			for (int i = 0; i < m_Scene.getObjects().size(); ++i)
+			{
+				auto* cube = m_Scene.getObjects()[i];
+				Vec3 aabbMin = cube->getPosition() - cube->getSize() * 0.5f;
+				Vec3 aabbMax = cube->getPosition() + cube->getSize() * 0.5f;
+
+				float t;
+				if (intersectRayAABB(rayOrigin, rayDir, aabbMin, aabbMax, t))
+				{
+					if (t > 0 && t < closestT)
+					{
+						closestT = t;
+						selectedIdx = i;
+					}
+				}
+			}
+			bool mouseInViewport =
+				mouse.x >= viewportPos.x && mouse.x <= viewportPos.x + viewportSize.x &&
+				mouse.y >= viewportPos.y && mouse.y <= viewportPos.y + viewportSize.y;
+
+			// 7. Update selection
+			if (mouseInViewport && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+			{
+				if (selectedIdx != -1)
+				{
+					auto* selectedObj = m_Scene.getObjects()[selectedIdx];
+					auto& cubeEntities = ComponentManager<CubeComponent>::Get().getEntities();
+
+					for (EntityID e : cubeEntities)
+					{
+						CubeComponent* comp = ComponentManager<CubeComponent>::Get().getComponent(e);
+						if (comp && comp->cube == selectedObj)
+						{
+							selectedEntityID = e;
+							FAY_LOG_DEBUG("Selected cube entity: " << selectedEntityID);
+							break;
+						}
+					}
+				}
+				else
+				{
+					selectedEntityID = static_cast<EntityID>(-1);
+				}
+			}
+		}
+		ImGui::End();
+	}
+	void Editor::setupTileMap()
+	{
+		ImGui::Begin("Tile map", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+		// Canvas origin
+		ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
+
+		int tileSize = 32;
+		int windowW = m_window.getWidth();
+		int windowH = m_window.getHeight();
+
+		if (windowW <= 0 || windowH <= 0)
+		{
+			ImGui::Text("Invalid window size (%d x %d)", windowW, windowH);
+			ImGui::End();
+			return;
+		}
+
+		int tilesXSize = windowW / tileSize;
+		int tilesYSize = windowH / tileSize;
+		ImVec2 canvasSize(tilesXSize * tileSize, tilesYSize * tileSize);
+		ImVec2 canvas_p1(canvas_p0.x + canvasSize.x, canvas_p0.y + canvasSize.y);
+
+		if (m_tileLayerMode == TilesLayer::Tile_Editor)
+		{
+			// Invisible canvas button for input
+			ImGui::InvisibleButton("canvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft);
+			ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+			// Background
+			drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(30, 30, 30, 255));
+
+			// Grid lines
+			for (int x = 0; x <= tilesXSize; x++)
+			{
+				float xPos = canvas_p0.x + x * tileSize;
+				drawList->AddLine(ImVec2(xPos, canvas_p0.y), ImVec2(xPos, canvas_p0.y + canvasSize.y), IM_COL32(100, 100, 100, 255));
+			}
+			for (int y = 0; y <= tilesYSize; y++)
+			{
+				float yPos = canvas_p0.y + y * tileSize;
+				drawList->AddLine(ImVec2(canvas_p0.x, yPos), ImVec2(canvas_p0.x + canvasSize.x, yPos), IM_COL32(100, 100, 100, 255));
+			}
+
+			// Draw existing tiles
+			for (int y = 0; y < tilesYSize; y++)
+			{
+				for (int x = 0; x < tilesXSize; x++)
+				{
+					TileInfo tile = getTile(x, y);
+					if (tile.id == 0) continue; // skip empty tiles
+
+					ImVec2 min(canvas_p0.x + x * tileSize, canvas_p0.y + y * tileSize);
+					ImVec2 max(min.x + tileSize, min.y + tileSize);
+
+					if (tile.isTexture && tile.texture)
+					{
+						drawList->AddImage((ImTextureID)(intptr_t)tile.texture->getId(), min, max, ImVec2(0, 1), ImVec2(1, 0));
+					}
+					else
+					{
+						Vec4 c = tile.color;
+						ImU32 col = IM_COL32(
+							(int)(c.x * 255),
+							(int)(c.y * 255),
+							(int)(c.z * 255),
+							(int)(c.w * 255)
+						);
+						drawList->AddRectFilled(min, max, col);
+					}
+				}
+			}
+
+			// Mouse painting
+			if (ImGui::IsItemActive() && ImGui::IsMouseDown(ImGuiMouseButton_Left))
+			{
+				ImVec2 mousePos = ImGui::GetMousePos();
+				ImVec2 localMouse(mousePos.x - canvas_p0.x, mousePos.y - canvas_p0.y);
+				int tileX = (int)(localMouse.x / tileSize);
+				int tileY = (int)(localMouse.y / tileSize); // top-left origin
+
+				if (tileX >= 0 && tileX < tilesXSize && tileY >= 0 && tileY < tilesYSize)
+					setTile(tileX, tileY, m_selectedTile);
+			}
+
+			// Highlight hovered tile
+			ImVec2 mousePos = ImGui::GetMousePos();
+			ImVec2 hoverMouse(mousePos.x - canvas_p0.x, mousePos.y - canvas_p0.y);
+			int hoverX = (int)(hoverMouse.x / tileSize);
+			int hoverY = (int)(hoverMouse.y / tileSize);
+
+			if (hoverX >= 0 && hoverX < tilesXSize && hoverY >= 0 && hoverY < tilesYSize)
+			{
+				ImVec2 min(canvas_p0.x + hoverX * tileSize, canvas_p0.y + hoverY * tileSize);
+				ImVec2 max(min.x + tileSize, min.y + tileSize);
+				drawList->AddRect(min, max, IM_COL32(255, 255, 0, 200), 0.0f, 0, 2.0f); // yellow hover outline
+			}
+		}
+		else if (m_tileLayerMode == TilesLayer::Tile_Palette)
+		{
+			showTilePalette();
+		}
+		else if (m_tileLayerMode == TilesLayer::Render)
+		{
+			m_tileRenerLayer->render();
+		}
+
+		ImGui::End();
+
+	}
 	bool Editor::intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t)
 	{
 		float t1 = (aabbMin.x - rayOrigin.x) / rayDir.x;
@@ -998,5 +1130,157 @@ namespace Fay
 		).normalized();
 
 		return { origin, direction };
+	}
+
+	TileInfo Editor::getTile(int x, int y) const
+	{
+		int tilesX = m_window.getWidth() / 32;
+		int tilesY = m_window.getHeight() / 32;
+		if (x < 0 || x >= tilesX || y < 0 || y >= tilesY)
+			return TileInfo();
+		return m_tiles[y * tilesX + x];
+		//return m_tiles[y * width + x];*/
+	}
+	void Editor::loadTilePalette(const std::string& path)
+	{
+		std::ifstream file(path);
+		if (!file.is_open())
+		{
+			FAY_LOG_ERROR("Failed to open tile palette: " << path);
+			return;
+		}
+
+		m_tilePalette.clear();
+
+		auto trim = [](std::string& s) {
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isspace(c); }));
+			s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char c) { return !std::isspace(c); }).base(), s.end());
+			};
+
+		std::string line;
+		while (std::getline(file, line))
+		{
+			trim(line);
+			if (line.empty() || line[0] == '#') continue;
+
+			if (line.rfind("[Tile]", 0) == 0)
+			{
+				// Read next line with tile data
+				if (!std::getline(file, line)) break;
+				trim(line);
+				if (line.empty()) continue;
+
+				std::stringstream ss(line);
+				std::string idStr, name, value;
+
+				if (!std::getline(ss, idStr, ',')) continue;
+				if (!std::getline(ss, name, ',')) continue;
+				if (!std::getline(ss, value)) value = ""; // read the rest of the line as value
+
+				trim(idStr); trim(name); trim(value);
+
+				int id = std::stoi(idStr);
+
+				if (value.find("vec4(") == 0)
+				{
+					std::string inside = value.substr(5, value.size() - 6); // remove "vec4(" and ")"
+					inside.erase(std::remove(inside.begin(), inside.end(), 'f'), inside.end()); // remove 'f'
+
+					std::stringstream ssVec(inside);
+					std::string component;
+					float r = 0, g = 0, b = 0, a = 1;
+
+					if (std::getline(ssVec, component, ',')) { trim(component); r = std::stof(component); }
+					if (std::getline(ssVec, component, ',')) { trim(component); g = std::stof(component); }
+					if (std::getline(ssVec, component, ',')) { trim(component); b = std::stof(component); }
+					if (std::getline(ssVec, component, ',')) { trim(component); a = std::stof(component); }
+
+					m_tilePalette.emplace_back(id, name, Vec4(r, g, b, a));
+				}
+				else
+				{
+					// treat as texture path
+					m_tilePalette.emplace_back(id, name, value);
+					TextureManager::add(new Texture(name, value));
+				}
+			}
+		}
+
+		// Load textures
+		for (auto& tile : m_tilePalette)
+		{
+			if (tile.isTexture)
+				tile.texture = TextureManager::getTexture(tile.name);
+		}
+
+		FAY_LOG_DEBUG("Loaded: " << m_tilePalette.size() << " tiles from " << path);
+	}
+	void Editor::showTilePalette()
+	{
+		static int selectedTileIndex = -1; // no selected tile yet
+
+		float thumbnailSize = 48.0f;
+		int itemsPerRow = 8;
+
+		for (int i = 0; i < m_tilePalette.size(); i++)
+		{
+			auto& tile = m_tilePalette[i];
+			ImGui::PushID(i);
+
+			// Use an invisible button so we can click it regardless of texture/color
+			if (ImGui::InvisibleButton("tileBtn", ImVec2(thumbnailSize, thumbnailSize)))
+			{
+				selectedTileIndex = i;
+			}
+
+			ImVec2 pos = ImGui::GetItemRectMin();
+			ImVec2 size = ImGui::GetItemRectSize();
+
+			// Draw texture or colored rectangle
+			if (tile.texture && tile.texture->getId() != 0)
+			{
+				ImGui::GetWindowDrawList()->AddImage(
+					(void*)(intptr_t)tile.texture->getId(),
+					pos,
+					ImVec2(pos.x + size.x, pos.y + size.y),
+					ImVec2(0, 1),
+					ImVec2(1, 0)
+				);
+			}
+			else
+			{
+				ImU32 col = IM_COL32(
+					(int)(tile.color.x * 255),
+					(int)(tile.color.y * 255),
+					(int)(tile.color.z * 255),
+					(int)(tile.color.w * 255)
+				);
+				ImGui::GetWindowDrawList()->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y), col);
+			}
+
+			// Draw selection border
+			if (i == selectedTileIndex)
+			{
+				ImGui::GetWindowDrawList()->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+			}
+
+			if (ImGui::IsItemHovered())
+				ImGui::SetTooltip(tile.name.c_str());
+
+			ImGui::PopID();
+
+			if ((i + 1) % itemsPerRow != 0)
+				ImGui::SameLine();
+		}
+
+		if (selectedTileIndex >= 0)
+			m_selectedTile = m_tilePalette[selectedTileIndex];
+	}
+	void Editor::setTile(int x, int y, const TileInfo& tile)
+	{
+
+		int tilesX = m_window.getWidth() / 32;
+		int tilesY = m_window.getHeight() / 32;
+		m_tiles[y * tilesX + x] = tile;
 	}
 }

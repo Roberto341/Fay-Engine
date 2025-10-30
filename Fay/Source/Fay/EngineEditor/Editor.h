@@ -15,6 +15,7 @@
 #include <Scripting/ScriptGlue.h>
 #include <Scripting/ScriptSystem.h>
 #include <Renderer/Scene.h>
+#include <Entity/Tile.h>
 #define TEST 0
 namespace Fay
 {
@@ -22,6 +23,12 @@ namespace Fay
 	{
 		MODE_2D,
 		MODE_3D
+	};
+	enum class TilesLayer
+	{
+		Tile_Editor,
+		Tile_Palette,
+		Render
 	};
 	struct Ray
 	{
@@ -54,6 +61,7 @@ namespace Fay
 		void setShader(Fay::Shader* shader);
 		void setShader3D(Fay::Shader* shader);
 		RenderMode m_renderMode = RenderMode::MODE_2D;
+		TilesLayer m_tileLayerMode = TilesLayer::Tile_Editor;
 		// File
 		void saveCurrentScene();
 		void createNewScene(const std::string& path);
@@ -61,13 +69,15 @@ namespace Fay
 		bool showLoadDialog = false;
 		void setupDockspace();
 		void setupFileMenu();
+		void setupViewport();
+		void setupTileMap();
 		EntityID selectedEntityID;
 		float m_lastTime;
 		std::string m_currentScenePath;
 		// Misc
 		Camera3D* m_camera3D;
 		TileLayer* m_renderLayer;
-		//TileLayer* m_renderLayer3D;
+		TileLayer* m_tileRenerLayer;
 		Scene m_Scene;
 		TextureManager m_textureManager;
 		Window& m_window;
@@ -78,5 +88,14 @@ namespace Fay
 		// private methods
 		bool intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t);
 		Ray getRayFromMouse(const ImVec2& mousePos, const ImVec2& viewportPos, const ImVec2& viewportSize, const Mat4& proj, const Mat4& view);
+		// Tile map
+		std::vector<TileInfo> m_tiles;
+		TileInfo getTile(int x, int y) const;
+		std::unordered_map<int, TileInfo*> m_tileLookup;
+		void loadTilePalette(const std::string& path);
+		void showTilePalette();
+		std::vector<TileInfo> m_tilePalette;
+		TileInfo m_selectedTile;
+		void setTile(int x, int y, const TileInfo& tile);
 	};
 }

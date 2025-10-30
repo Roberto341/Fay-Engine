@@ -94,6 +94,9 @@
     <Filter Include="Source\Engine\entity">
       <UniqueIdentifier>{5938ac06-955f-498d-ae55-2764c1dabbe5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Res\Editor">
+      <UniqueIdentifier>{bbe35d27-2e3a-4a2f-ad47-8881486c0fc6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Fay\Graphics\Window.cpp">
@@ -564,6 +567,9 @@
     <ClInclude Include="Source\Fay\Graphics\Layers\Group.h">
       <Filter>Source\Engine\graphics\layers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Fay\Entity\Tile.h">
+      <Filter>Source\Engine\entity</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Res\Shaders\basic.frag">
@@ -596,6 +602,9 @@
     </None>
     <None Include="Res\Shaders\basic_3d.vert">
       <Filter>Res\Shaders</Filter>
+    </None>
+    <None Include="Res\MapEditor\default.config">
+      <Filter>Res\Editor</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -101,3 +101,15 @@
       - Cube not being selected and deleted
       - Replaced old selection code with the actual EntityID 
       - Auto generate next id when creating a entity
+- ### Update October 30th 2025
+  - #### Notes
+    - This update is a dev branch update as features are still in progress
+    - This update is also a small bug fix
+  - #### New Features
+    - TileMap editor
+  - #### Updates
+    - The TileMap editor has once again made a comeback with a bit of a refurbishment as well the Editor class is getting pretty big with over 1,000 lines of code as of this update I've moved some things around and am in the process of making each function for each imgui display that way it's easier to edit
+    - Tile is a header only file that stores the Tile struct and TileInfo struct for the tilemap editor it allows both colored tiles and texture tiles
+    - As with the previous version of the tile map editor it loads a configuration file for the tiles I updated it so that it works hand in hand with both tile formats it will also save the config as well
+    - TileLayer class has recived a much needed update after finally discovering that the layer was logging a error on construction but didnt crash because it set proper so I moved it to the layer class and added a 2d default overide it also works in 3d I made sure to thoroughly test everything 
+    - The tile map editor is part of the main editor so you can switch between the 2 at any time it will save as a standard scene file with sprite components however there will be no transform component on them as they are essentially static sprites 

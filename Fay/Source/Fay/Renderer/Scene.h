@@ -31,6 +31,7 @@ namespace Fay
 		SceneType getSceneType() { return m_ActiveScene; }
 		bool canSwitchScene() const;
 		EntityID generateEntityID() { return m_nextEntityID++; }
+		void resetEntityID() { m_nextEntityID = 0; }
 	private:
 		bool has2DEntities() const;
 		bool has3DEntities() const;

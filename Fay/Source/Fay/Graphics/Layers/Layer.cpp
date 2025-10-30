@@ -5,6 +5,8 @@ namespace Fay
 	Layer::Layer(Renderer* renderer, Shader* shader, Mat4 projectionMatrix, Mat4 viewMatrix)
 		: m_Renderer(renderer), m_shader(shader), m_projectionMatrix(projectionMatrix), m_viewMatrix(viewMatrix)
 	{
+		setShader(new Shader("Res/Shaders/basic.vert", "Res/Shaders/basic.frag")); // default to 2d
+		//m_shader = getShader();
 		if (m_shader) {
 			m_shader->enable();
 			m_shader->setUniformMat4("pr_matrix", m_projectionMatrix);
@@ -52,5 +54,14 @@ namespace Fay
 	void Layer::clear()
 	{
 		m_Renderables.clear();
+	}
+
+	void Layer::setProjectionType(ProjectionType type)
+	{
+		m_ptype = type;
+	}
+	void Layer::setShader(Shader* shader)
+	{
+		m_shader = shader;
 	}
 }
