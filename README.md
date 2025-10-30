@@ -17,7 +17,8 @@
 - If not go to [Visual Studio](https://visualstudio.microsoft.com/) and download and install Visual Studio 2019 or 2022 make sure to add the desktop c++ package
 
 # Notes
-    I highly recomend you do a build to see if everything compiles correctly some operating systems seem to bug out and throw random errors best tested on Windows 10 or 1
+I highly recomend you do a build to see if everythingcompiles correctly some operating systems seem to bug outand throw random errors best tested on Windows 10 or 1
+
 # Project History
 Back in 2019, this project began with the originalrepository called Game-Engine. Progress was slow — Jr. wasattending high school and spent his free time adding bitsand pieces to the engine. The project was originallyinspired by none other than our dear friend [The Cherno(https://www.youtube.com/@TheCherno)
 
