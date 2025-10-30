@@ -19,8 +19,7 @@
 # Notes
     I highly recomend you do a build to see if everything compiles correctly some operating systems seem to bug out and throw random errors best tested on Windows 10 or 1
 # Project History
-	Back in 2019, this project began with the original repository called Game-Engine. Progress was slow — Jr. was attending high school and spent his free time adding bits and pieces to the engine. The project was originally inspired by none other than our dear friend [The Cherno](https://www.youtube.com/@TheCherno)
-.
+Back in 2019, this project began with the originalrepository called Game-Engine. Progress was slow — Jr. wasattending high school and spent his free time adding bitsand pieces to the engine. The project was originallyinspired by none other than our dear friend [The Cherno(https://www.youtube.com/@TheCherno)
 
 Jr. was 16 at the time and just getting into C++ development when he came across a playlist called The Sparky Engine — a 2D game engine written in C++ using OpenGL. It was Jr.’s first time working with C++ and graphics. He followed every tutorial, learning how to use C++ and how graphics worked. He bounced back and forth between DirectX and OpenGL, but ultimately found OpenGL easier to work with.
 
