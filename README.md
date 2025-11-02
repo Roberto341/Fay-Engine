@@ -18,9 +18,3 @@
 
 # Notes
 I highly recomend you do a build to see if everythingcompiles correctly some operating systems seem to bug outand throw random errors best tested on Windows 10 or 11
-
-He has also improved many aspects of the engine and fixed several bugs along the way. It’s still a lightweight engine, but over time, it will continue to evolve — gaining more features and better optimization.
-
-I personally thank The Cherno for his tutorials, which sparked this entire idea. Originally, I was going to abandon the whole project and let the engine sit, but I saw purpose in it and wanted to keep building.
-
-This is the story of **Fay Engine**.
