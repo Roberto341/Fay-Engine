@@ -5,6 +5,7 @@ namespace Fay
 	EntityID Editor::s_SelectedEntity = 0;
 	SceneType Editor::s_ActiveScene = SceneType::None;
 	bool Editor::shouldRefreshScenes = false;
+	bool Editor::shouldRefreshConfigs = false;
 	Editor::Editor(Window& window) : m_window(window), m_framebuffer(window.getWidth(), window.getHeight())
 	{
 		// Init ImGui
@@ -37,7 +38,7 @@ namespace Fay
 		selectedEntityID = -1;
 		m_selectedTile = TileInfo();
 		m_tiles.resize(m_window.getWidth() / 32 * m_window.getHeight() / 32, TileInfo());
-		loadTilePalette("Res/MapEditor/default.config");
+		//loadTilePalette("Res/MapEditor/default.config");
 	}
 
 	Editor::~Editor()
@@ -284,8 +285,16 @@ namespace Fay
 			}
 			ImGui::End();
 			// Viewport window
-			setupViewport();
-			setupTileMap();
+			// Now toggle between pages
+			if (m_tileLayerMode == TilesLayer::Render)
+			{
+				setupViewport();   // Shows 2D/3D viewport + entity editor
+			}
+			else
+			{
+				setupTileMap();    // Shows tilemap or palette editor
+			}
+			setupFileMenu();
 			// Rendering ImGui
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -458,7 +467,7 @@ namespace Fay
 		}
 	}
 
-	void Editor::createNewScene(const std::string& path)
+	void Editor::createScene(const std::string& path)
 	{
 		m_Scene.clear();
 		m_renderLayer->clear();
@@ -472,21 +481,138 @@ namespace Fay
 
 	void Editor::setupFileMenu()
 	{
-		static std::string sceneDir = "Res\\Scenes\\";
-		// 2d
-		static std::vector<std::string> scenes;
-		shouldRefreshScenes = true;
-		static int selectedSceneIndex = -1;
-		if (shouldRefreshScenes) {
-			
-			scenes = m_Scene.listScenesDir(sceneDir);
-			selectedSceneIndex = -1;
-			shouldRefreshScenes = false;
-		}
-		ImGui::Text("Select scene");
-
-		if (ImGui::BeginListBox("Scenes"))
+		ImGui::Begin("File");
+		const char* layerNames[] = { "Tile Editor", "Tile Palette", "Render" };
+		static int currentLayer = 0;
+		if (ImGui::Combo("Active Layer", &currentLayer, layerNames, IM_ARRAYSIZE(layerNames)))
 		{
+			m_tileLayerMode = (TilesLayer)currentLayer;
+		}
+		// configuration file load and save 
+		static std::string configDir = "Res\\Assets\\Configurations\\";
+		static std::vector<std::string> configs;
+		static int selectedConfigIndex = -1;
+		static bool shouldRefreshConfigs = true; // Make sure this is properly defined somewhere
+
+		if (shouldRefreshConfigs)
+		{
+			configs = m_Configuration.listConfigurationsDir(configDir);
+			selectedConfigIndex = -1;
+			shouldRefreshConfigs = false;
+		}
+
+		ImGui::Text("Select configuration");
+
+		if (ImGui::BeginListBox("Configurations"))
+		{
+			for (int i = 0; i < configs.size(); i++)
+			{
+				bool isSel = (selectedConfigIndex == i);
+				if (ImGui::Selectable(configs[i].c_str(), isSel))
+				{
+					selectedConfigIndex = i;
+				}
+				// Check double-click immediately after drawing this item
+				if (isSel)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndListBox();
+		}
+		if (selectedConfigIndex >= 0)
+		{
+			std::string fullPath = configDir + configs[selectedConfigIndex];
+
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+			{
+				loadPalette(fullPath);
+			}
+
+			if (ImGui::Button("Delete Configuration"))
+			{
+				if (m_Configuration.deleteConfiguration(fullPath))
+				{
+					FAY_LOG_WARN("Deleted Configuration: " << configs[selectedConfigIndex]);
+					configs = m_Configuration.listConfigurationsDir(configDir);
+					selectedConfigIndex = 0;
+					m_Configuration.clear();
+					shouldRefreshConfigs = true;
+					m_currentConfigPath = "";
+				}
+				else
+				{
+					FAY_LOG_ERROR("Failed to delete Configuration: " << configs[selectedConfigIndex]);
+				}
+				shouldRefreshConfigs = true;
+			}
+		}
+		if (ImGui::Button("Save Configuration"))
+		{
+			saveCurrentPalette();
+		}
+		// Create new configuration
+		if (ImGui::Button("New Configuration"))
+		{
+			ImGui::OpenPopup("NewConfigPop");
+		}
+		if (ImGui::BeginPopup("NewConfigPop"))
+		{
+			static char configName[256] = "Untitled";
+
+			ImGui::InputText("Config Name", configName, sizeof(configName));
+
+			if (ImGui::Button("Create"))
+			{
+				std::string filename = std::string(configName) + ".config";
+				std::string fullPath = "Res/Assets/Configurations/" + filename;
+
+				createPalette(fullPath);
+				shouldRefreshConfigs = true;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+		if (m_tileLayerMode == TilesLayer::Render)
+		{
+			const char* modes[] = { "2D", "3D" };
+			static int currentMode = 0;
+			if (ImGui::Combo("Render Mode", &currentMode, modes, IM_ARRAYSIZE(modes)))
+			{
+				if (m_Scene.canSwitchScene())
+				{
+					m_renderMode = (RenderMode)currentMode;
+				}
+				if (m_renderMode == RenderMode::MODE_3D)
+				{
+					SetActiveScene(SceneType::Scene3D);
+					m_Scene.setSceneType(SceneType::Scene3D);
+					m_batchRenderer->setDimension(RenderDimension::D3);
+					m_renderLayer->setProjectionType(ProjectionType::Cube3D);
+					m_renderLayer->setShader(m_shader3d);
+				}
+				if (m_renderMode == RenderMode::MODE_2D)
+				{
+					SetActiveScene(SceneType::Scene2D);
+					m_Scene.setSceneType(SceneType::Scene2D);
+					m_batchRenderer->setDimension(RenderDimension::D2);
+					m_renderLayer->setProjectionType(ProjectionType::Quad2D);
+					m_renderLayer->setShader(m_shader);
+				}
+			}
+			static std::string sceneDir = "Res\\Assets\\Scenes\\";
+			// 2d
+			static std::vector<std::string> scenes;
+			shouldRefreshScenes = true;
+			static int selectedSceneIndex = -1;
+			if (shouldRefreshScenes) {
+
+				scenes = m_Scene.listScenesDir(sceneDir);
+				selectedSceneIndex = -1;
+				shouldRefreshScenes = false;
+			}
+			ImGui::Text("Select scene");
+
+			if (ImGui::BeginListBox("Scenes"))
+			{
 				for (int i = 0; i < scenes.size(); i++)
 				{
 					bool isSelected = (selectedSceneIndex == i);
@@ -498,69 +624,56 @@ namespace Fay
 					if (isSelected)
 						ImGui::SetItemDefaultFocus();
 				}
-			ImGui::EndListBox();
-		}
-		if (selectedSceneIndex >= 0)
-		{
-			std::string fullPath = sceneDir + scenes[selectedSceneIndex];
-			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
-			{
-				loadScene(fullPath);  // Double-click loads the scene
+				ImGui::EndListBox();
 			}
-			if (ImGui::Button("Delete Scene"))
+			if (selectedSceneIndex >= 0)
 			{
-				if (m_Scene.deleteSceneFile(fullPath))
+				std::string fullPath = sceneDir + scenes[selectedSceneIndex];
+				if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 				{
-					FAY_LOG_WARN("Deleted Scene: " << scenes[selectedSceneIndex]);
-					scenes = m_Scene.listScenesDir(sceneDir);
-					selectedSceneIndex = 0;
-					m_Scene.clear();
+					loadScene(fullPath);  // Double-click loads the scene
 				}
-				else {
-					FAY_LOG_ERROR("Failed to delete FayScene: " << scenes[selectedSceneIndex]);
-				}
-				shouldRefreshScenes = true;
-			}
-		}
-		if (ImGui::Button("Save Scene"))
-		{
-			saveCurrentScene();
-		}
-		if (showSaveDialog)
-		{
-			if (ImGuiFileDialog::Instance()->Display("SaveScene"))
-			{
-				if (ImGuiFileDialog::Instance()->IsOk())
+				if (ImGui::Button("Delete Scene"))
 				{
-					std::string filePath = ImGuiFileDialog::Instance()->GetFilePathName();
-					//(filePath.c_str());
-					saveScene(filePath);
+					if (m_Scene.deleteSceneFile(fullPath))
+					{
+						FAY_LOG_WARN("Deleted Scene: " << scenes[selectedSceneIndex]);
+						scenes = m_Scene.listScenesDir(sceneDir);
+						selectedSceneIndex = 0;
+						m_Scene.clear();
+					}
+					else {
+						FAY_LOG_ERROR("Failed to delete FayScene: " << scenes[selectedSceneIndex]);
+					}
+					shouldRefreshScenes = true;
 				}
-				ImGuiFileDialog::Instance()->Close();
-				showSaveDialog = false;
 			}
-		}
-		// Create new scene
-		if (ImGui::Button("New Scene"))
-		{
-			ImGui::OpenPopup("NewScenePop");
-		}
-		if (ImGui::BeginPopup("NewScenePop"))
-		{
-			static char sceneName[256] = "Untitled";
-
-			ImGui::InputText("Scene Name", sceneName, sizeof(sceneName));
-
-			if (ImGui::Button("Create"))
+			if (ImGui::Button("Save Scene"))
 			{
-				std::string filename = std::string(sceneName) + ".fayScene";
-				std::string fullPath = "Res/Scenes/" + filename;
-
-				createNewScene(fullPath);
-				ImGui::CloseCurrentPopup();
+				saveCurrentScene();
 			}
-			ImGui::EndPopup();
+			// Create new scene
+			if (ImGui::Button("New Scene"))
+			{
+				ImGui::OpenPopup("NewScenePop");
+			}
+			if (ImGui::BeginPopup("NewScenePop"))
+			{
+				static char sceneName[256] = "Untitled";
+
+				ImGui::InputText("Scene Name", sceneName, sizeof(sceneName));
+
+				if (ImGui::Button("Create"))
+				{
+					std::string filename = std::string(sceneName) + ".fayScene";
+					std::string fullPath = "Res/Scenes/" + filename;
+					createScene(fullPath);
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
 		}
+		ImGui::End();
 	}
 	void Editor::setupViewport()
 	{
@@ -795,42 +908,6 @@ namespace Fay
 		ImGui::End();
 		ImGui::PopStyleVar();
 		// File menu
-		ImGui::Begin("File");
-		const char* modes[] = { "2D", "3D" };
-		static int currentMode = 0;
-
-		if (ImGui::Combo("Render Mode", &currentMode, modes, IM_ARRAYSIZE(modes)))
-		{
-			if (m_Scene.canSwitchScene())
-			{
-				m_renderMode = (RenderMode)currentMode;
-			}
-			if (m_renderMode == RenderMode::MODE_3D)
-			{
-				SetActiveScene(SceneType::Scene3D);
-				m_Scene.setSceneType(SceneType::Scene3D);
-				m_batchRenderer->setDimension(RenderDimension::D3);
-				m_renderLayer->setProjectionType(ProjectionType::Cube3D);
-				m_renderLayer->setShader(m_shader3d);
-			}
-			if (m_renderMode == RenderMode::MODE_2D)
-			{
-				SetActiveScene(SceneType::Scene2D);
-				m_Scene.setSceneType(SceneType::Scene2D);
-				m_batchRenderer->setDimension(RenderDimension::D2);
-				m_renderLayer->setProjectionType(ProjectionType::Quad2D);
-				m_renderLayer->setShader(m_shader);
-			}
-		}
-		const char* layerNames[] = { "Tile Editor", "Tile Palette", "Render" };
-		static int currentLayer = 0;
-		if (ImGui::Combo("Active Layer", &currentLayer, layerNames, IM_ARRAYSIZE(layerNames)))
-		{
-			m_tileLayerMode = (TilesLayer)currentLayer;
-		}
-
-		setupFileMenu();
-		ImGui::End();
 		if (m_Scene.getObjects().empty())
 		{
 			m_Scene.resetEntityID();
@@ -1070,7 +1147,14 @@ namespace Fay
 		}
 		else if (m_tileLayerMode == TilesLayer::Tile_Palette)
 		{
-			showTilePalette();
+			if (!m_currentConfigPath.empty())
+			{
+				showPalette();
+				createTile();
+			}
+			else {
+				ImGui::Text("No Configuration is loaded please load one");
+			}
 		}
 		else if (m_tileLayerMode == TilesLayer::Render)
 		{
@@ -1078,7 +1162,6 @@ namespace Fay
 		}
 
 		ImGui::End();
-
 	}
 	bool Editor::intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t)
 	{
@@ -1139,95 +1222,77 @@ namespace Fay
 		if (x < 0 || x >= tilesX || y < 0 || y >= tilesY)
 			return TileInfo();
 		return m_tiles[y * tilesX + x];
-		//return m_tiles[y * width + x];*/
 	}
-	void Editor::loadTilePalette(const std::string& path)
+	void Editor::loadPalette(const std::string& path)
 	{
-		std::ifstream file(path);
-		if (!file.is_open())
+		if (path.ends_with(".config"))
 		{
-			FAY_LOG_ERROR("Failed to open tile palette: " << path);
+			if (m_Configuration.loadConfiguration(path))
+			{
+				FAY_LOG_DEBUG("Configuration file loaded: " << path);
+				FAY_LOG_DEBUG("Tile count: " << m_Configuration.getSize());
+				m_currentConfigPath = path;
+			}
+		}
+		else {
+			FAY_LOG_ERROR("Failed to load Configuration: " << path);
+		}
+	}
+	void Editor::savePalette(const std::string& path)
+	{
+		if (path.ends_with(".config"))
+		{
+			if (m_Configuration.saveConfiguration(path))
+				FAY_LOG_INFO("Configuration Saved: " << path)
+			else
+				FAY_LOG_ERROR("Failed to save Configuration: " << path);
+		}
+		else
+		{
+			FAY_LOG_WARN("Failed to save, Unkown Configuration type: " << path);
+		}
+	}
+	void Editor::createPalette(const std::string& path)
+	{
+		m_Configuration.clear();
+		m_Configuration.saveConfiguration(path);
+		m_currentConfigPath = path;
+		FAY_LOG_INFO("New Configuration Created: " << path);
+		shouldRefreshConfigs = true;
+	}
+	void Editor::saveCurrentPalette()
+	{
+		if (m_currentConfigPath.empty())
+		{
+			FAY_LOG_WARN("No Configuration currently loaded to save.");
 			return;
 		}
 
-		m_tilePalette.clear();
-
-		auto trim = [](std::string& s) {
-			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isspace(c); }));
-			s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char c) { return !std::isspace(c); }).base(), s.end());
-			};
-
-		std::string line;
-		while (std::getline(file, line))
+		if (m_currentConfigPath.ends_with(".config"))
 		{
-			trim(line);
-			if (line.empty() || line[0] == '#') continue;
-
-			if (line.rfind("[Tile]", 0) == 0)
-			{
-				// Read next line with tile data
-				if (!std::getline(file, line)) break;
-				trim(line);
-				if (line.empty()) continue;
-
-				std::stringstream ss(line);
-				std::string idStr, name, value;
-
-				if (!std::getline(ss, idStr, ',')) continue;
-				if (!std::getline(ss, name, ',')) continue;
-				if (!std::getline(ss, value)) value = ""; // read the rest of the line as value
-
-				trim(idStr); trim(name); trim(value);
-
-				int id = std::stoi(idStr);
-
-				if (value.find("vec4(") == 0)
-				{
-					std::string inside = value.substr(5, value.size() - 6); // remove "vec4(" and ")"
-					inside.erase(std::remove(inside.begin(), inside.end(), 'f'), inside.end()); // remove 'f'
-
-					std::stringstream ssVec(inside);
-					std::string component;
-					float r = 0, g = 0, b = 0, a = 1;
-
-					if (std::getline(ssVec, component, ',')) { trim(component); r = std::stof(component); }
-					if (std::getline(ssVec, component, ',')) { trim(component); g = std::stof(component); }
-					if (std::getline(ssVec, component, ',')) { trim(component); b = std::stof(component); }
-					if (std::getline(ssVec, component, ',')) { trim(component); a = std::stof(component); }
-
-					m_tilePalette.emplace_back(id, name, Vec4(r, g, b, a));
-				}
-				else
-				{
-					// treat as texture path
-					m_tilePalette.emplace_back(id, name, value);
-					TextureManager::add(new Texture(name, value));
-				}
-			}
+			savePalette(m_currentConfigPath);
 		}
-
-		// Load textures
-		for (auto& tile : m_tilePalette)
+		else
 		{
-			if (tile.isTexture)
-				tile.texture = TextureManager::getTexture(tile.name);
+			FAY_LOG_WARN("Failed to save, Unkown Configuration type: " << m_currentConfigPath);
 		}
-
-		FAY_LOG_DEBUG("Loaded: " << m_tilePalette.size() << " tiles from " << path);
 	}
-	void Editor::showTilePalette()
+	void Editor::showPalette()
 	{
 		static int selectedTileIndex = -1; // no selected tile yet
 
 		float thumbnailSize = 48.0f;
 		int itemsPerRow = 8;
 
-		for (int i = 0; i < m_tilePalette.size(); i++)
+		ImGui::Text("Tile Palette");
+
+		for (int i = 0; i < m_Configuration.getSize(); i++)
 		{
-			auto& tile = m_tilePalette[i];
+			//auto& tile = m_Configuration.m_tiles[i]; // Correct data source
+			auto& tile = m_Configuration.getTiles()[i];
 			ImGui::PushID(i);
 
-			// Use an invisible button so we can click it regardless of texture/color
+			// Clickable area
 			if (ImGui::InvisibleButton("tileBtn", ImVec2(thumbnailSize, thumbnailSize)))
 			{
 				selectedTileIndex = i;
@@ -1236,8 +1301,8 @@ namespace Fay
 			ImVec2 pos = ImGui::GetItemRectMin();
 			ImVec2 size = ImGui::GetItemRectSize();
 
-			// Draw texture or colored rectangle
-			if (tile.texture && tile.texture->getId() != 0)
+			// Draw texture or color
+			if (tile.isTexture && tile.texture && tile.texture->getId() != 0)
 			{
 				ImGui::GetWindowDrawList()->AddImage(
 					(void*)(intptr_t)tile.texture->getId(),
@@ -1258,12 +1323,18 @@ namespace Fay
 				ImGui::GetWindowDrawList()->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y), col);
 			}
 
-			// Draw selection border
+			// Selection border
 			if (i == selectedTileIndex)
 			{
-				ImGui::GetWindowDrawList()->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), IM_COL32(255, 255, 0, 255), 0.0f, 0, 2.0f);
+				ImGui::GetWindowDrawList()->AddRect(
+					pos,
+					ImVec2(pos.x + size.x, pos.y + size.y),
+					IM_COL32(255, 255, 0, 255),
+					0.0f, 0, 2.0f
+				);
 			}
 
+			// Tooltip
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip(tile.name.c_str());
 
@@ -1273,12 +1344,80 @@ namespace Fay
 				ImGui::SameLine();
 		}
 
-		if (selectedTileIndex >= 0)
-			m_selectedTile = m_tilePalette[selectedTileIndex];
+		// Make sure we select from the same source
+		if (selectedTileIndex >= 0 && selectedTileIndex < m_Configuration.getSize())
+		{
+			//m_selectedTile = m_Configuration.m_tiles[selectedTileIndex];
+			m_selectedTile = m_Configuration.getTiles()[selectedTileIndex];
+		}
+	}
+	void Editor::createTile()
+	{
+		ImGui::NewLine();
+		ImGui::Separator();
+		
+		static int tileType = 0; // 0 = Color, 1 = Texture
+		static char newTileName[128] = "";
+		static char newTexturePath[256] = "";
+		static Vec4 newTileColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		ImGui::Text("Add New Tile");
+
+		// Tile type selector
+		ImGui::RadioButton("Color Tile", &tileType, 0);
+		ImGui::SameLine();
+		ImGui::RadioButton("Texture Tile", &tileType, 1);
+
+		ImGui::InputText("Tile Name", newTileName, IM_ARRAYSIZE(newTileName));
+
+		if (tileType == 0)
+		{
+			ImGui::ColorEdit4("Tile Color", (float*)&newTileColor);
+		}
+		else
+		{
+			ImGui::InputText("Texture Path", newTexturePath, IM_ARRAYSIZE(newTexturePath));
+		}
+		if (ImGui::Button("Add Tile"))
+		{
+			int nextId = 0;
+			if (!m_Configuration.isEmpty())
+				nextId = m_Configuration.getNextId();
+
+			if (tileType == 0)
+			{
+				// Add color tile
+				TileInfo tile = TileInfo(nextId, newTileName, newTileColor);
+				m_Configuration.addTile(tile);
+			}
+			else 
+			{
+				// Add texture tile
+				std::string texPath = newTexturePath;
+				TileInfo tile = TileInfo(nextId, newTileName, texPath);
+				m_Configuration.addTile(tile);
+				TextureManager::add(new Texture(newTileName, texPath));
+				m_Configuration.getBack().texture = TextureManager::getTexture(newTileName);
+			}
+			// Reset input fields
+			newTileName[0] = '\0';
+			newTexturePath[0] = '\0';
+			newTileColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		if (ImGui::Button("Delete Tile"))
+		{
+			if (m_Configuration.getSize() >= 0)
+			{
+				// Delete the tile 
+				FAY_LOG_DEBUG("Deleting tile: " << m_selectedTile.id);
+				m_Configuration.removeTile(m_selectedTile);
+			}
+		}
+		ImGui::Separator();
+
 	}
 	void Editor::setTile(int x, int y, const TileInfo& tile)
 	{
-
 		int tilesX = m_window.getWidth() / 32;
 		int tilesY = m_window.getHeight() / 32;
 		m_tiles[y * tilesX + x] = tile;

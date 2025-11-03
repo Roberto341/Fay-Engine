@@ -113,3 +113,30 @@
     - As with the previous version of the tile map editor it loads a configuration file for the tiles I updated it so that it works hand in hand with both tile formats it will also save the config as well
     - TileLayer class has recived a much needed update after finally discovering that the layer was logging a error on construction but didnt crash because it set proper so I moved it to the layer class and added a 2d default overide it also works in 3d I made sure to thoroughly test everything 
     - The tile map editor is part of the main editor so you can switch between the 2 at any time it will save as a standard scene file with sprite components however there will be no transform component on them as they are essentially static sprites 
+- ### Update November 2nd 2025
+  - ### Notes
+    - First of all I would like to welcome everyone to a brand new month of the year getting closer to christmas time
+  - ### Updates
+    - **Core Improvements**
+      - Some improvements have been made to the new Configuration class and will also be added to other classes like scene to help manage the vector stack when you delete a tile for example tile with id 5 when you add a new tile it will carry id 5 with it instead of jumping over to 6 I will be overhauling the scene class and scene stuff to acomadate it as well and entitys will no longer start at 0 and instead start at 1 I've learned quite a bit with the Configuration Class that we should use id 1 instead of 0 for a better system.
+      - Also some folders have been moved and deleted we now have a **Assets** folder that holds subfolders of Textures, Configurations, and Scenes
+    - **Configuration Class**
+      - This new class is responsible for the tile palette in the tile editor. What it does is the same as the scene class, you can add new tiles and remove them you can load, save, delete, and create configuration files **.config**
+      - Some helper functions have been added and will be introduced in other classes as time progresses: 
+        - **getSize** returns the m_tiles.size()
+        - **isEmpty** returns m_tiles.empty() 
+        - **getBack** returns m_tiles.back()
+        - **getNextId** returns the next id from m_tiles
+    - **Editor Class** 
+      - In the Editor class you can now make new tiles either color or texture and it automatically add's it
+      - I also refurbished the display a little so when your working with the tile editor you dont see everything from the **Viewport** and added a combo to toggle between the 2
+      - There is also a configurations box
+      - **m_tilePalette** has been removed from Editor
+      - **showSaveDialog** and **showLoadDialog** has been removed from Editor
+      - Some functions have been **removed/renamed** and some new functions have been **added**:
+        - **createNewScene** is now **createScene**
+        - **loadTilePalette** is now **loadPalette**
+        - **saveTilePalette** is now **savePalette**
+        - **showTilePalette** is now **showPalette**
+        - **createPalette** has been added
+        - **createNewTile** is now **createTile**

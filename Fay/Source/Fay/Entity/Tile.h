@@ -1,7 +1,14 @@
 #pragma once
-
+#include <fstream>
+#include <filesystem>
+#include <set>
+#include <string>
+#include <Core/Logger.h>
+#include <Math/Math.h>           // for Vec4
+#include <Graphics/TextureManager.h> 
 namespace Fay
 {
+	class Texture;
 	struct Tile
 	{
 		int id;
