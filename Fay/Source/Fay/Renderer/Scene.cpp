@@ -23,6 +23,18 @@ namespace Fay
 		ComponentManager<TransformComponent>::Get().clear();
 		m_objects.clear();
 	}
+	void Scene::render(TileLayer* renderingLayer) const
+	{
+		if (!getObjects().empty())
+		{
+			renderingLayer->clear();
+			for (auto* sp : getObjects())
+			{
+				renderingLayer->add(sp);
+			}
+			renderingLayer->render();
+		}
+	}
 	bool Scene::saveScene(const std::string& filepath) const
 	{
 		std::ofstream out(filepath, std::ios::binary);
@@ -58,7 +70,7 @@ namespace Fay
 
 			bool hasTransform = ComponentManager<TransformComponent>::Get().hasComponent(entity);
 			bool hasCamera = ComponentManager<CameraComponent>::Get().hasComponent(entity);
-			bool hasHitBox = ComponentManager<CollisionSpriteComponent>::Get().hasComponent(entity);
+			bool hasHitBox = ComponentManager<CollisionComponent>::Get().hasComponent(entity);
 			bool hasCube = ComponentManager<CubeComponent>::Get().hasComponent(entity);
 			uint32_t componentCount = 0;
 
@@ -86,10 +98,12 @@ namespace Fay
 					Vec3 pos = sprite->getPosition();
 					Vec3 size = sprite->getSize();
 					Vec4 color = sprite->getColor();
+					bool hasCol = sprite->getCollision();
 
 					out.write(reinterpret_cast<const char*>(&pos), sizeof(Vec3));
 					out.write(reinterpret_cast<const char*>(&size), sizeof(Vec3));
 					out.write(reinterpret_cast<const char*>(&color), sizeof(Vec4));
+					out.write(reinterpret_cast<const char*>(&hasCol), sizeof(bool));
 					std::string texName = sprite->getTexture() ? sprite->getTexture()->getName() : "";
 					writeString(out, texName);
 				}
@@ -112,12 +126,12 @@ namespace Fay
 			}
 			if (hasHitBox)
 			{
-				std::string compName = "CollisionSpriteComponent";
+				std::string compName = "CollisionComponent";
 				uint32_t nameLen = static_cast<uint32_t>(compName.size());
 				out.write(reinterpret_cast<const char*>(&nameLen), sizeof(uint32_t));
 				out.write(compName.c_str(), nameLen);
 
-				const CollisionSpriteComponent* hitBox = ComponentManager<CollisionSpriteComponent>::Get().getComponent(entity);
+				const CollisionComponent* hitBox = ComponentManager<CollisionComponent>::Get().getComponent(entity);
 
 				if (hitBox)
 				{
@@ -135,11 +149,16 @@ namespace Fay
 
 				// Write CubeComponent data
 				const CubeComponent* cube = ComponentManager<CubeComponent>::Get().getComponent(entity);
+
+				Vec3 pos = cube->getPosition();
+				Vec3 size = cube->getSize();
+				Vec4 color = cube->getColor();
+				bool hasCol = cube->getCollision();
 				// Serialize members (pos, size, color, hasCollision)
-				out.write(reinterpret_cast<const char*>(&cube->position), sizeof(Vec3));
-				out.write(reinterpret_cast<const char*>(&cube->size), sizeof(Vec3));
-				out.write(reinterpret_cast<const char*>(&cube->color), sizeof(Vec4));
-				out.write(reinterpret_cast<const char*>(&cube->hasCol), sizeof(bool));
+				out.write(reinterpret_cast<const char*>(&pos), sizeof(Vec3));
+				out.write(reinterpret_cast<const char*>(&size), sizeof(Vec3));
+				out.write(reinterpret_cast<const char*>(&color), sizeof(Vec4));
+				out.write(reinterpret_cast<const char*>(&hasCol), sizeof(bool));
 			}
 			// add camera later
 		}
@@ -192,11 +211,11 @@ namespace Fay
 					if (!texName.empty())
 					{
 						Texture* tex = TextureManager::getTexture(texName);
-						sprite = new Sprite(pos.x, pos.y, pos.z, size.x, size.y, size.z, tex);
+						sprite = new Sprite(entity, pos.x, pos.y, pos.z, size.x, size.y, size.z, tex);
 					}
 					else
 					{
-						sprite = new Sprite(pos.x, pos.y, pos.z, size.x, size.y, size.z, color);
+						sprite = new Sprite(entity, pos.x, pos.y, pos.z, size.x, size.y, size.z, color);
 					}
 					m_objects.push_back(sprite);
 					std::cout << "Sprite ID: " << entity << ", Sprite color " << sprite->getColor() << std::endl;
@@ -213,14 +232,14 @@ namespace Fay
 
 					ComponentManager<TransformComponent>::Get().addComponent(entity, TransformComponent(pos, rot, Vec3(0, 0, 0), scale));
 				}
-				else if (compName == "CollisionSpriteComponent")
+				else if (compName == "CollisionComponent")
 				{
 					Vec3 pos;
 					Vec3 size;
 					in.read(reinterpret_cast<char*>(&pos), sizeof(Vec3));
 					in.read(reinterpret_cast<char*>(&size), sizeof(Vec2));
 
-					ComponentManager<CollisionSpriteComponent>::Get().addComponent(entity, CollisionSpriteComponent(pos, size));
+					ComponentManager<CollisionComponent>::Get().addComponent(entity, CollisionComponent(pos, size));
 				}
 				else if (compName == "CubeComponent")
 				{
@@ -236,7 +255,7 @@ namespace Fay
 
 					Cube* cube = nullptr;
 
-					cube = new Cube(pos.x, pos.y, pos.z, size.x, size.y, size.z, color);
+					cube = new Cube(entity, pos.x, pos.y, pos.z, size.x, size.y, size.z, color);
 
 					m_objects.push_back(cube);
 
@@ -305,6 +324,27 @@ namespace Fay
 		if (m_ActiveScene == SceneType::Scene3D && has3DEntities())
 			return false;
 		return true;
+	}
+	EntityID Scene::getNextId()
+	{
+		if (m_objects.empty())
+			return 1;
+		uint32_t maxId = 1;
+		std::set<uint32_t> usedIds;
+		for (const auto& obj : m_objects)
+		{
+			usedIds.insert(obj->getId());
+			if (obj->getId() > maxId)
+				maxId = obj->getId();
+		}
+
+		// Look for the first gap
+		for (int i = 1; i <= maxId; ++i)
+		{
+			if (usedIds.find(i) == usedIds.end())
+				return i; // reuse id
+		}
+		return maxId + 1; // no gaps, assign next id
 	}
 	bool Scene::has2DEntities() const
 	{

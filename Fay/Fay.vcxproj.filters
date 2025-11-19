@@ -603,12 +603,6 @@
       <Filter>Res\Shaders</Filter>
     </None>
     <None Include="Changelog.md" />
-    <None Include="Res\Shaders\basic_3d.frag">
-      <Filter>Res\Shaders</Filter>
-    </None>
-    <None Include="Res\Shaders\basic_3d.vert">
-      <Filter>Res\Shaders</Filter>
-    </None>
     <None Include="Res\Assets\Configurations\default.config">
       <Filter>Res\Editor</Filter>
     </None>

@@ -10,26 +10,25 @@ namespace Fay
 	void ScriptGlue::RegisterComponents()
 	{
         s_EntityHasComponentFuncs.clear();
-		RegisterComponent<TransformComponent, SpriteComponent, CameraComponent, CollisionSpriteComponent>();
+		RegisterComponent<TransformComponent, SpriteComponent, CameraComponent, CubeComponent, CollisionComponent>();
 	}
 	void ScriptGlue::RegisterFunctions()
 	{
+		// Entity
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetSelected);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_HasComponent);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_SetEntityPosition);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_GetEntityPosition);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_SetEntityId);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_GetEntityId);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_GetSelectedEntity);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_Sprite_GetPosition);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_Sprite_SetPosition);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_Cube_SetPosition);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_Cube_GetPosition);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_SetEntityCollision);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_GetEntityCollision);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_SetPosition);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetPosition);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_SetID);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetID);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_SetCollision);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetCollision);
+		// Input handling
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_KeyPressed);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_KeyReleased);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_MouseDown);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_MouseUp);
+		// Scene handling
 		FAY_ADD_INTERNAL_CALL(InternalCalls_SetActiveScene);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_GetActiveScene);
 	}
@@ -62,18 +61,16 @@ namespace Fay
 		FAY_LOG_ERROR("No Match Found for MonoType!");
 		return false;
 	}
-	int ScriptGlue::InternalCalls_GetEntityId(MonoObject* object)
+	int ScriptGlue::InternalCalls_Entity_GetID(MonoObject* object)
 	{
 		EntityID entityID = GetEntityIDFromMonoObject(object);
 		return entityID;
 	}
-	uint32_t ScriptGlue::InternalCalls_GetSelectedEntity()
+	uint32_t ScriptGlue::InternalCalls_Entity_GetSelected()
 	{
-		//return Editor::GetSelEntity();
-		//int selected = Editor::GetSelEntity();
 		return Editor::GetSelEntity();
 	}
-	void ScriptGlue::InternalCalls_SetEntityId(MonoObject* object, uint32_t id)
+	void ScriptGlue::InternalCalls_Entity_SetID(MonoObject* object, uint32_t id)
 	{
 		MonoClass* klass = mono_object_get_class(object);
 
@@ -86,7 +83,7 @@ namespace Fay
 		}
 		mono_field_set_value(object, field, &id);
 	}
-	void ScriptGlue::InternalCalls_SetEntityPosition(MonoObject* object, float x, float y, float z)
+	void ScriptGlue::InternalCalls_Entity_SetPosition(MonoObject* object, float x, float y, float z)
 	{
 		EntityID entityID = GetEntityIDFromMonoObject(object);
 		if (entityID == -1)
@@ -105,10 +102,15 @@ namespace Fay
 		if (entity.GetComponent<SpriteComponent>())
 		{
 			auto& sprite = *entity.GetComponent<SpriteComponent>();
-			sprite.sprite->setPosition(Vec3(x, y, z));
+			sprite.setPosition(Vec3(x, y, z));
+		}
+		if (entity.GetComponent<CubeComponent>())
+		{
+			auto& cube = *entity.GetComponent<CubeComponent>();
+			cube.setPosition(Vec3(x, y, z));
 		}
 	}
-	Vec3 ScriptGlue::InternalCalls_GetEntityPosition(uint32_t entityID)
+	Vec3 ScriptGlue::InternalCalls_Entity_GetPosition(uint32_t entityID)
 	{
 		Entity entity{ entityID };
 
@@ -117,71 +119,50 @@ namespace Fay
 			auto& sprite = *entity.GetComponent<SpriteComponent>();
 			return sprite.getPosition();
 		}
+		if (entity.GetComponent<CubeComponent>())
+		{
+			auto& cube = *entity.GetComponent<CubeComponent>();
+			return cube.getPosition();
+		}
 		// otherwise return fallback
 		return { 0, 0, 0 };
 	}
-	Vec3 ScriptGlue::InternalCalls_Sprite_GetPosition(void* spritePtr)
+	bool ScriptGlue::InternalCalls_Entity_GetCollision(int entity)
 	{
-		Sprite* sprite = reinterpret_cast<Sprite*>(spritePtr);
-
-		return sprite->getPosition();
-	}
-
-	void ScriptGlue::InternalCalls_Sprite_SetPosition(void* spritePtr, Vec3 position)
-	{
-		Sprite* sprite = reinterpret_cast<Sprite*>(spritePtr);
-		sprite->setPosition(position);
-	}
-
-	Vec3 ScriptGlue::InternalCalls_Cube_GetPosition(void* cubePtr)
-	{
-		Cube* cube = reinterpret_cast<Cube*>(cubePtr);
-		return cube->getPosition();
-	}
-	void ScriptGlue::InternalCalls_Cube_SetPosition(void* cubePtr, Vec3 position)
-	{
-		Cube* cube = reinterpret_cast<Cube*>(cubePtr);
-		cube->setPosition(position);
-	}
-	void ScriptGlue::InternalCalls_Sprite_SetCollision(void* entity, bool condition)
-	{
-		Sprite* sprite = reinterpret_cast<Sprite*>(entity);
-		sprite->setCollision(condition);
-	}
-	
-	bool ScriptGlue::InternalCalls_Sprite_GetCollision(void* entity)
-	{
-		Sprite* sprite = reinterpret_cast<Sprite*>(entity);
-		return sprite->getCollision();
-	}
-	bool ScriptGlue::InternalCalls_GetEntityCollision(int entityID)
-	{
-		EntityID id = static_cast<EntityID>(entityID);
-		if (ComponentManager<CollisionSpriteComponent>::Get().hasComponent(id))
+		EntityID id = static_cast<EntityID>(entity);
+		if (ComponentManager<CollisionComponent>::Get().hasComponent(id))
 		{
 			auto* sprite = ComponentManager<SpriteComponent>::Get().getComponent(id);
 			if (sprite)
 				return sprite->getCollision();
+			auto* cube = ComponentManager<CubeComponent>::Get().getComponent(id);
+			if (cube)
+				return cube->getCollision();
 		}
 		// add other collision types
 		return false;
 	}
 	
-	void ScriptGlue::InternalCalls_SetEntityCollision(int entityID, bool condition)
+	void ScriptGlue::InternalCalls_Entity_SetCollision(int entity, bool condition)
 	{
-		EntityID id = static_cast<EntityID>(entityID);
+		EntityID id = static_cast<EntityID>(entity);
 		auto* sprite = ComponentManager<SpriteComponent>::Get().getComponent(id);
+		auto* cube = ComponentManager<CubeComponent>::Get().getComponent(id);
 		if (sprite)
 		{
-			// Optionally add CollisionSpriteComponent if it's not already present
-			if (!ComponentManager<CollisionSpriteComponent>::Get().hasComponent(id))
-			{
-				ComponentManager<CollisionSpriteComponent>::Get().addComponent(id, CollisionSpriteComponent{});
-			}
-
+			//// Optionally add CollisionSpriteComponent if it's not already present
+			//if (!ComponentManager<CollisionComponent>::Get().hasComponent(id))
+			//{
+			//	ComponentManager<CollisionComponent>::Get().addComponent(id, CollisionComponent{});
+			//}
 			sprite->setCollision(condition);
 		}
+		else if (cube)
+		{
+			cube->setCollision(condition);
+		}
 	}
+	// Input handling
 	bool ScriptGlue::InternalCalls_Window_KeyPressed(int keyCode)
 	{
 		auto& window = Fay::ScriptGlue::GetWindow();
@@ -219,6 +200,7 @@ namespace Fay
 		//std::cout << "[ScriptGlue] GetWindow called: " << s_Window << std::endl;
 		return *s_Window;
 	}
+	// Scene handling
 	SceneType ScriptGlue::InternalCalls_GetActiveScene()
 	{
 		return Editor::GetCurrentScene();

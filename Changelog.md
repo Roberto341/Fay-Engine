@@ -140,3 +140,31 @@
         - **showTilePalette** is now **showPalette**
         - **createPalette** has been added
         - **createNewTile** is now **createTile**
+- ### Update November --date-- 2025
+  - ### Notes
+    - Moving forward with refurbishment the Editor class no longer has 2 shaders simply because with the new rendering system only 1 shader is needed so I cut back on all the other code and deleted a few functions below 
+    - The Scene class got updated as well to use the new id format and other fixes
+    - Finished adding tile map functionallity to the scene
+    - The InternalCalls.cs class has been updated I removed sprite and cube calls as they are no longer needed. With the ECS system in place the entity has everything so all functions are named InternalCalls_Entity_**MethodName** instead and takes the Entity object instead of indivisual sprites or cubes
+  - ### Known bug updates
+    - [Fix framebuffer issue when switching from viewport to tile map #7](https://github.com/Roberto341/Fay-Engine/issues/7)
+  - ### Updates
+    - **Renderable**, **Sprite**, and **Cube** have a new parameter uint32_t id 
+    - **Scene** has gotten a small update as previously discused in the last update the new id generator has been implemented:
+      - **render** has been added 
+      - **generateEntityID** has been renamed **getNextId**
+      - It now starts at 1 instead of 0 
+    - **Renderable Class**:
+      - **setTexture** has been added
+    - **Editor Class** has received a few updates: 
+      - **setShader**   has been removed
+      - **setShader3D** has been removed
+      - **m_shader3D** has been removed
+      - **setupRenderMode** has been added
+      - **setupDockspace** has been refactored to include a main menu bar
+    - **Components**:
+      - **CollisionSpriteComponent** renamed to **CollisionComponent**
+    - **C# FayRuntime**:
+      - **FayMath.cs** class has been added 
+      - **InternalCalls.cs** has been updated 
+      - **EntityScript.cs** has been updated

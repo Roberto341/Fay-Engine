@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="API.cs" />
     <Compile Include="EntityScript.cs" />
+    <Compile Include="FayMath.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="InternalCalls.cs" />
     <Compile Include="MyScript.cs" />

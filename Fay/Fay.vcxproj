@@ -335,8 +335,6 @@
     <None Include="Res\Fonts\cambria.ttc" />
     <None Include="Res\Shaders\basic.frag" />
     <None Include="Res\Shaders\basic.vert" />
-    <None Include="Res\Shaders\basic_3d.frag" />
-    <None Include="Res\Shaders\basic_3d.vert" />
     <None Include="Res\Shaders\light.frag" />
     <None Include="Res\Shaders\light.vert" />
   </ItemGroup>

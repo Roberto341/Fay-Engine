@@ -10,7 +10,7 @@ namespace Fay
 		~FrameBuffer();
 
 		void bind() const;
-		void unbind(int windowWidth, int windowHeight) const;
+		void unbind() const;
 		void resize(uint32_t width, uint32_t height);
 		GLuint getTexture() const { return m_texture; }
 		inline int getWidth() const { return m_width; }
@@ -19,6 +19,6 @@ namespace Fay
 		int m_width, m_height;
 		GLuint m_fbo;
 		GLuint m_texture;
-		//GLuint m_rbo; // optional for depth/stencil
+		GLuint m_rbo; // optional for depth/stencil
 	};
 }

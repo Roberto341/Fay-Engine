@@ -31,25 +31,17 @@ namespace Fay
 
         // All C# InternalCalls.cs functions
         static bool InternalCalls_Entity_HasComponent(MonoObject* object, MonoReflectionType* componentType);
-        static int InternalCalls_GetEntityId(MonoObject* object);
-        static uint32_t InternalCalls_GetSelectedEntity();
-        static void InternalCalls_SetEntityId(MonoObject* object, uint32_t id);
-        static void InternalCalls_SetEntityPosition(MonoObject* object, float x, float y, float z);
-        static Vec3 InternalCalls_GetEntityPosition(uint32_t entityID);
+        static int InternalCalls_Entity_GetID(MonoObject* object);
+        static void InternalCalls_Entity_SetID(MonoObject* object, uint32_t id);
 
-        // Sprite 
-        static Vec3 InternalCalls_Sprite_GetPosition(void* spritePtr);
-        static void InternalCalls_Sprite_SetPosition(void* spritePtr, Vec3 position);
+        static uint32_t InternalCalls_Entity_GetSelected();
+        static void InternalCalls_Entity_SetPosition(MonoObject* object, float x, float y, float z);
+        static Vec3 InternalCalls_Entity_GetPosition(uint32_t entityID);
 
-        // Cube
-        static Vec3 InternalCalls_Cube_GetPosition(void* cubePtr);
-        static void InternalCalls_Cube_SetPosition(void* cubePtr, Vec3 position);
 
         // Collsion
-        static void InternalCalls_Sprite_SetCollision(void* entity, bool condition);
-        static bool InternalCalls_Sprite_GetCollision(void* entity);
-        static void InternalCalls_SetEntityCollision(int entityID, bool condition);
-        static bool InternalCalls_GetEntityCollision(int entityID);
+        static void InternalCalls_Entity_SetCollision(int entity, bool condition);
+        static bool InternalCalls_Entity_GetCollision(int entity);
 
         // Input
         static bool InternalCalls_Window_KeyPressed(int keyCode);

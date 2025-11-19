@@ -16,19 +16,12 @@
 #include <Scripting/ScriptSystem.h>
 #include <Renderer/Scene.h>
 #include <EngineEditor/Configuration.h>
-#define TEST 0
 namespace Fay
 {
 	enum class RenderMode
 	{
 		MODE_2D,
 		MODE_3D
-	};
-	enum class TilesLayer
-	{
-		Tile_Editor,
-		Tile_Palette,
-		Render
 	};
 	struct Ray
 	{
@@ -53,16 +46,15 @@ namespace Fay
 		static void SetActiveScene(SceneType type);
 		static bool shouldRefreshScenes;
 		static bool shouldRefreshConfigs;
+		// New variables
+		static bool shouldShowViewport;
+		static bool newSceneRequested; // for popup
 	private:
 		// Camera stuff
 		void cameraUpdate();
 		// Shader stuff
 		Shader* m_shader;
-		Shader* m_shader3d;
-		void setShader(Fay::Shader* shader);
-		void setShader3D(Fay::Shader* shader);
 		RenderMode m_renderMode = RenderMode::MODE_2D;
-		TilesLayer m_tileLayerMode = TilesLayer::Tile_Editor;
 		// File
 		// Scene
 		void saveCurrentScene();
@@ -72,7 +64,12 @@ namespace Fay
 		void setupFileMenu();
 		void setupViewport();
 		void setupTileMap();
-
+		void setupTilePalette();
+		void setupRenderMode();
+		void setupEntityPanel() const;
+		void setupWireFrame() const;
+		void setSceneBox();
+		void setConfigBox();
 		EntityID selectedEntityID;
 		float m_lastTime;
 		// Current path

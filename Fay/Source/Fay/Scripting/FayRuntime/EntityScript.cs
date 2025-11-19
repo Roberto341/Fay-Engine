@@ -33,14 +33,14 @@ namespace FayRuntime
             if (currentScene == SceneType.Scene2D)
             {
                 Entity entity = Entity.GetSelected();
-                entity.Move(1.0f);
+                entity.Move(1.0f, false);
                 bool rightMouseCurrentlyDown = Input.GetMouse(MouseButton.Right);
 
                 if (rightMouseCurrentlyDown && !rightMousePreviouslyDown)
                 {
                     // Mouse button was just pressed this frame
                     Console.ForegroundColor = ConsoleColor.Blue;
-                    Console.WriteLine("Selected Entity is: " + entity.GetEnityId());
+                    Console.WriteLine("Selected Entity is: " + entity.GetId());
                     Console.ResetColor();
 
                     bool hasTransform = InternalCalls.InternalCalls_Entity_HasComponent(entity, typeof(FayRuntime.TransformComponent));
@@ -48,7 +48,37 @@ namespace FayRuntime
                     Console.WriteLine("Entity has TransformComponent? " + hasTransform);
                     Console.ResetColor();
 
-                    bool hasHitBox = InternalCalls.InternalCalls_Entity_HasComponent(entity, typeof(FayRuntime.CollisionSpriteComponent));
+                    bool hasHitBox = InternalCalls.InternalCalls_Entity_HasComponent(entity, typeof(FayRuntime.CollisionComponent));
+                    if (hasHitBox)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkYellow;
+                        Console.WriteLine("Entity has CollisionSpriteComponent? " + hasHitBox);
+                        Console.ResetColor();
+                    }
+                }
+                // Update the previous state for the next frame
+                rightMousePreviouslyDown = rightMouseCurrentlyDown;
+            }
+            else
+            {
+                Entity entity = Entity.GetSelected();
+                entity.Move(1.0f, true);
+
+                bool rightMouseCurrentlyDown = Input.GetMouse(MouseButton.Right);
+
+                if (rightMouseCurrentlyDown && !rightMousePreviouslyDown)
+                {
+                    // Mouse button was just pressed this frame
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.WriteLine("Selected Entity is: " + entity.GetId());
+                    Console.ResetColor();
+
+                    bool hasTransform = InternalCalls.InternalCalls_Entity_HasComponent(entity, typeof(FayRuntime.TransformComponent));
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.WriteLine("Entity has TransformComponent? " + hasTransform);
+                    Console.ResetColor();
+
+                    bool hasHitBox = InternalCalls.InternalCalls_Entity_HasComponent(entity, typeof(FayRuntime.CollisionComponent));
                     if (hasHitBox)
                     {
                         Console.ForegroundColor = ConsoleColor.DarkYellow;
