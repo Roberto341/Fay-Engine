@@ -140,7 +140,7 @@
         - **showTilePalette** is now **showPalette**
         - **createPalette** has been added
         - **createNewTile** is now **createTile**
-- ### Update November --date-- 2025
+- ### Update November 19th 2025
   - ### Notes
     - Moving forward with refurbishment the Editor class no longer has 2 shaders simply because with the new rendering system only 1 shader is needed so I cut back on all the other code and deleted a few functions below 
     - The Scene class got updated as well to use the new id format and other fixes
