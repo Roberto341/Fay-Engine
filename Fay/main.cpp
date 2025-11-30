@@ -12,10 +12,8 @@ int main()
 
 	Fay::ScriptGlue::RegisterFunctions();
 	Fay::ScriptGlue::RegisterComponents();
-	Fay::ScriptEngine::InvokeStatic("MyScript", "OnStart");
-	Fay::ScriptEngine::InvokeStatic("MyScript", "OnUpdate");
 	Fay::ScriptEngine::InvokeStatic("EntityScript", "OnStart");
-	//Fay::ScriptEngine::InvokeStatic("PlayerController", "OnStart"); // Still a work in progress
 	editor.run();
+
 	return 0;
 }

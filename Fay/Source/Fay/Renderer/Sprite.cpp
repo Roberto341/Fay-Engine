@@ -18,25 +18,5 @@ namespace Fay
 		m_size = Vec3(width, height, depth);
 		m_texture = texture;
 		m_collision = false;
-
-	}
-	void Sprite::setCollision(bool hasCollision)
-	{
-		m_collision = hasCollision;
-	}
-	bool Sprite::checkCollision(bool hasCollision, Sprite* obj1, Sprite* obj2)
-	{
-		if (hasCollision)
-		{
-			return obj1->pos.x < obj2->pos.x + obj2->size.x &&
-				obj2->pos.x < obj1->pos.x + obj1->size.x &&
-				obj1->pos.y < obj2->pos.y + obj2->size.y &&
-				obj2->pos.y < obj1->pos.y + obj1->size.y;
-		}
-	}
-
-	Sprite* Sprite::getSprite()
-	{
-		return this;
 	}
 }

@@ -114,9 +114,9 @@
     - TileLayer class has recived a much needed update after finally discovering that the layer was logging a error on construction but didnt crash because it set proper so I moved it to the layer class and added a 2d default overide it also works in 3d I made sure to thoroughly test everything 
     - The tile map editor is part of the main editor so you can switch between the 2 at any time it will save as a standard scene file with sprite components however there will be no transform component on them as they are essentially static sprites 
 - ### Update November 2nd 2025
-  - ### Notes
+  - #### Notes
     - First of all I would like to welcome everyone to a brand new month of the year getting closer to christmas time
-  - ### Updates
+  - #### Updates
     - **Core Improvements**
       - Some improvements have been made to the new Configuration class and will also be added to other classes like scene to help manage the vector stack when you delete a tile for example tile with id 5 when you add a new tile it will carry id 5 with it instead of jumping over to 6 I will be overhauling the scene class and scene stuff to acomadate it as well and entitys will no longer start at 0 and instead start at 1 I've learned quite a bit with the Configuration Class that we should use id 1 instead of 0 for a better system.
       - Also some folders have been moved and deleted we now have a **Assets** folder that holds subfolders of Textures, Configurations, and Scenes
@@ -140,15 +140,15 @@
         - **showTilePalette** is now **showPalette**
         - **createPalette** has been added
         - **createNewTile** is now **createTile**
-- ### Update November --date-- 2025
-  - ### Notes
+- ### Update November 19th 2025
+  - #### Notes
     - Moving forward with refurbishment the Editor class no longer has 2 shaders simply because with the new rendering system only 1 shader is needed so I cut back on all the other code and deleted a few functions below 
     - The Scene class got updated as well to use the new id format and other fixes
     - Finished adding tile map functionallity to the scene
     - The InternalCalls.cs class has been updated I removed sprite and cube calls as they are no longer needed. With the ECS system in place the entity has everything so all functions are named InternalCalls_Entity_**MethodName** instead and takes the Entity object instead of indivisual sprites or cubes
-  - ### Known bug updates
+  - #### Known bug updates
     - [Fix framebuffer issue when switching from viewport to tile map #7](https://github.com/Roberto341/Fay-Engine/issues/7)
-  - ### Updates
+  - #### Updates
     - **Renderable**, **Sprite**, and **Cube** have a new parameter uint32_t id 
     - **Scene** has gotten a small update as previously discused in the last update the new id generator has been implemented:
       - **render** has been added 
@@ -168,3 +168,31 @@
       - **FayMath.cs** class has been added 
       - **InternalCalls.cs** has been updated 
       - **EntityScript.cs** has been updated
+- ### Update Novemeber 30th 2025
+  - #### Notes
+    - Alot more refurbishment going on in this update getting most of the C# scripting added in adding new pages for tools and cleaning alot of stuff up.
+    - Tile map has been removed
+    - For right now the configurations will remain
+  - #### Known bug updates
+    - [Scene save and load not working correctly](https://github.com/Roberto341/Fay-Engine/issues/8) has been resolved with this commit
+    - [Fix framebuffer issue when switching from viewport to tile map #7](https://github.com/Roberto341/Fay-Engine/issues/7) has been removed
+  - #### Updates
+    - C# Scripting:
+      - **InternalCalls_Entity_CheckCollision** added
+      - **InternalCalls_SetActiveScene** renamed to ***InternalCalls_Scene_SetActive***
+      - **InternalCalls_GetActiveScene** renamed to ***InternalCalls_Scene_GetActive***
+      - **InternalCalls_Entity_GetSpeed** added
+    - Renderable.h: 
+      - **checkCollision** added checks both 2d and 3d
+    - Editor.h:
+      - **static bool** added to shouldRefreshConfigs
+      - **s_Scene** added
+      - **SetScene** added
+      - **GetSceneObjects()** added
+      - **s_EntitySpeed** added
+      - **SetEntitySpeed** added
+      - **GetEntitySpeed** added
+      - **setupTools** added
+    - Sprite.h:
+      - **checkCollision** removed moved to Renderable.h
+      - **getSprite** removed no longer needed

@@ -3,6 +3,7 @@
 #include <string> 
 #include <mono/metadata/object.h>
 #include <Entity/ComponentManager.h>
+#include <Core/Logger.h>
 namespace Fay
 {
 	using EntityID = uint32_t;
@@ -19,7 +20,6 @@ namespace Fay
 		{
 			return ComponentManager<T>::Get().hasComponent(id);
 		}
-
 		template<typename T>
 		T* GetComponent() const
 		{

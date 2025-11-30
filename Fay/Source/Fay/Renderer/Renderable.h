@@ -72,6 +72,24 @@ namespace Fay
 
 		RenderDimension getDimension() const { return m_dimension; }
 
+		bool checkCollision(const Renderable* other, bool useZ = false)
+		{
+			bool collision =
+				m_position.x < other->m_position.x + other->m_size.x &&
+				other->m_position.x < m_position.x + m_size.x &&
+				m_position.y < other->m_position.y + other->m_size.y &&
+				other->m_position.y < m_position.y + m_size.y;
+
+			if (useZ)
+			{
+				collision = collision &&
+					m_position.z < other->m_position.z + other->m_size.z &&
+					other->m_position.z < m_position.z + m_size.z;
+			}
+
+			return collision;
+		}
+
 	private:
 		void setUVDefaults()
 		{

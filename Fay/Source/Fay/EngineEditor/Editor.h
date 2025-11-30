@@ -37,18 +37,28 @@ namespace Fay
 		~Editor();
 
 		void run();
+		// Entity
 		void SetSelectedEntity(EntityID id);
 		static EntityID GetSelEntity();
 		static EntityID s_SelectedEntity;
+		static float s_EntitySpeed;
+		void SetEntitySpeed(float speed);
+		static float GetEntitySpeed();
+		// Scene mangagement
 		static SceneType s_ActiveScene;
+		static Scene* s_Scene;
+		void SetScene();
+		static size_t GetSceneObjects();
 		static bool IsSceneActive();
 		static SceneType GetCurrentScene();
 		static void SetActiveScene(SceneType type);
+		
+		// Scene and Configuration list's
 		static bool shouldRefreshScenes;
 		static bool shouldRefreshConfigs;
-		// New variables
-		static bool shouldShowViewport;
-		static bool newSceneRequested; // for popup
+
+		// For scene creation
+		static bool newSceneRequested; 
 	private:
 		// Camera stuff
 		void cameraUpdate();
@@ -61,10 +71,9 @@ namespace Fay
 		void createScene(const std::string& path);
 		// ImGui stuff
 		void setupDockspace();
+		void setupTools();
 		void setupFileMenu();
 		void setupViewport();
-		void setupTileMap();
-		void setupTilePalette();
 		void setupRenderMode();
 		void setupEntityPanel() const;
 		void setupWireFrame() const;
@@ -78,7 +87,6 @@ namespace Fay
 		// Misc
 		Camera3D* m_camera3D;
 		TileLayer* m_renderLayer;
-		TileLayer* m_tileRenerLayer;
 		Scene m_Scene;
 		Configuration m_Configuration;
 		TextureManager m_textureManager;
@@ -91,16 +99,9 @@ namespace Fay
 		bool intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t);
 		Ray getRayFromMouse(const ImVec2& mousePos, const ImVec2& viewportPos, const ImVec2& viewportSize, const Mat4& proj, const Mat4& view);
 		// Tile map
-		std::vector<TileInfo> m_tiles;
-		TileInfo getTile(int x, int y) const;
-		std::unordered_map<int, TileInfo*> m_tileLookup;
 		void loadPalette(const std::string& path);
 		void savePalette(const std::string& path);
 		void createPalette(const std::string& path);
 		void saveCurrentPalette();
-		void showPalette();
-		void createTile();
-		TileInfo m_selectedTile;
-		void setTile(int x, int y, const TileInfo& tile);
 	};
 }

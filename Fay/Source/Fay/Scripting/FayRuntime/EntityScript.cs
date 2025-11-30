@@ -10,7 +10,6 @@ namespace FayRuntime
     {
         // Still In progress much to do 
         public static Entity entity = new Entity();
-        static int _lastSelectedEntity = 0;
         static bool rightMousePreviouslyDown = false;
         static SceneType prevScene = SceneType.None;
         public static void OnStart()
@@ -20,7 +19,7 @@ namespace FayRuntime
         }
         public static void OnUpdate()
         {
-            SceneType currentScene = InternalCalls.InternalCalls_GetActiveScene(); // returns if 2d or 3d scene is active 
+            SceneType currentScene = InternalCalls.InternalCalls_Scene_GetActive(); // returns if 2d or 3d scene is active 
 
             if(currentScene != prevScene)
             {
@@ -33,7 +32,13 @@ namespace FayRuntime
             if (currentScene == SceneType.Scene2D)
             {
                 Entity entity = Entity.GetSelected();
-                entity.Move(1.0f, false);
+                entity.Move(entity.GetSpeed(), false);
+                if (entity.CheckCollision())
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Entity: " + entity.GetId() + " has collided with an object ");
+                    Console.ResetColor();
+                }
                 bool rightMouseCurrentlyDown = Input.GetMouse(MouseButton.Right);
 
                 if (rightMouseCurrentlyDown && !rightMousePreviouslyDown)
@@ -62,7 +67,7 @@ namespace FayRuntime
             else
             {
                 Entity entity = Entity.GetSelected();
-                entity.Move(1.0f, true);
+                entity.Move(entity.GetSpeed(), true);
 
                 bool rightMouseCurrentlyDown = Input.GetMouse(MouseButton.Right);
 

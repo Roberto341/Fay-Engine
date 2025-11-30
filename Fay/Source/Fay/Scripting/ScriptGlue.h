@@ -33,11 +33,12 @@ namespace Fay
         static bool InternalCalls_Entity_HasComponent(MonoObject* object, MonoReflectionType* componentType);
         static int InternalCalls_Entity_GetID(MonoObject* object);
         static void InternalCalls_Entity_SetID(MonoObject* object, uint32_t id);
+        static bool InternalCalls_Entity_CheckCollision(MonoObject* object);
 
         static uint32_t InternalCalls_Entity_GetSelected();
         static void InternalCalls_Entity_SetPosition(MonoObject* object, float x, float y, float z);
         static Vec3 InternalCalls_Entity_GetPosition(uint32_t entityID);
-
+        static float InternalCalls_Entity_GetSpeed();
 
         // Collsion
         static void InternalCalls_Entity_SetCollision(int entity, bool condition);
@@ -53,8 +54,8 @@ namespace Fay
         static Window& GetWindow();
 
         // Scene
-        static SceneType InternalCalls_GetActiveScene();
-        static void InternalCalls_SetActiveScene(SceneType type);
+        static SceneType InternalCalls_Scene_GetActive();
+        static void InternalCalls_Scene_SetActive(SceneType type);
 	};
 
     template<typename T>

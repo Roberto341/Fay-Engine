@@ -23,14 +23,17 @@ namespace Fay
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetID);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_SetCollision);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetCollision);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_CheckCollision);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetSpeed);
+
 		// Input handling
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_KeyPressed);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_KeyReleased);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_MouseDown);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_MouseUp);
 		// Scene handling
-		FAY_ADD_INTERNAL_CALL(InternalCalls_SetActiveScene);
-		FAY_ADD_INTERNAL_CALL(InternalCalls_GetActiveScene);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_SetActive);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_GetActive);
 	}
 	bool ScriptGlue::InternalCalls_Entity_HasComponent(MonoObject* object, MonoReflectionType* componentType)
 	{
@@ -83,6 +86,66 @@ namespace Fay
 		}
 		mono_field_set_value(object, field, &id);
 	}
+	bool ScriptGlue::InternalCalls_Entity_CheckCollision(MonoObject* object)
+	{
+		// Convert c# pointer -> EntityID
+		EntityID id = GetEntityIDFromMonoObject(object);
+		
+		Renderable* a = nullptr;
+
+		auto* spriteComp = ComponentManager<SpriteComponent>::Get().getComponent(id);
+		if (spriteComp && spriteComp->sprite)
+			a = spriteComp->sprite;
+
+		auto* cubeComp = ComponentManager<CubeComponent>::Get().getComponent(id);
+		if (!a && cubeComp && cubeComp->cube)
+			a = cubeComp->cube;
+
+		if (!a) return false;
+
+		// Loop through every renderable in the scene
+		for (Renderable* obj : Editor::s_Scene->getObjects())
+		{
+			if (!obj) continue;
+
+			if (obj->getId() == id) continue; // skip self
+
+			Renderable* b = nullptr;
+
+			// Try sprite first
+			if (auto* otherSpriteComp =
+				ComponentManager<SpriteComponent>::Get().getComponent(obj->getId()))
+			{
+				if (otherSpriteComp->sprite)
+					b = otherSpriteComp->sprite;
+			}
+
+			// Try cube second
+			if (!b)
+			{
+				if (auto* otherCubeComp =
+					ComponentManager<CubeComponent>::Get().getComponent(obj->getId()))
+				{
+					if (otherCubeComp->cube)
+						b = otherCubeComp->cube;
+				}
+			}
+
+			if (!b) continue;
+
+			bool useZ = true;
+
+			// If both a and b are 2D (size.z == 0), ignore Z
+			if (a->getSize().z == 0 && b->getSize().z == 0)
+				useZ = false;
+
+			// Perform collision check
+			if (a->checkCollision(b, useZ))
+				return true;
+		}
+		
+		return false;
+	}
 	void ScriptGlue::InternalCalls_Entity_SetPosition(MonoObject* object, float x, float y, float z)
 	{
 		EntityID entityID = GetEntityIDFromMonoObject(object);
@@ -94,20 +157,27 @@ namespace Fay
 
 		Entity entity{ entityID };
 
-		if (entity.GetComponent<TransformComponent>())
+		// Check each type safely
+		if (auto* sprite = entity.GetComponent<SpriteComponent>())
 		{
-			auto& transform = *entity.GetComponent<TransformComponent>();
-			transform.translation = { x, y, z };
+			sprite->setPosition(Vec3(x, y, z));
+			return;
 		}
-		if (entity.GetComponent<SpriteComponent>())
+
+		if (auto* cube = entity.GetComponent<CubeComponent>())
 		{
-			auto& sprite = *entity.GetComponent<SpriteComponent>();
-			sprite.setPosition(Vec3(x, y, z));
+			cube->setPosition(Vec3(x, y, z));
+			return;
 		}
-		if (entity.GetComponent<CubeComponent>())
+
+		if (auto* transform = entity.GetComponent<TransformComponent>())
 		{
-			auto& cube = *entity.GetComponent<CubeComponent>();
-			cube.setPosition(Vec3(x, y, z));
+			transform->translation = { x, y, z };
+			return;
+		}
+		else
+		{
+			FAY_LOG_WARN("Entity %u has no known position component!" << entityID);
 		}
 	}
 	Vec3 ScriptGlue::InternalCalls_Entity_GetPosition(uint32_t entityID)
@@ -126,6 +196,10 @@ namespace Fay
 		}
 		// otherwise return fallback
 		return { 0, 0, 0 };
+	}
+	float ScriptGlue::InternalCalls_Entity_GetSpeed()
+	{
+		return Editor::GetEntitySpeed();
 	}
 	bool ScriptGlue::InternalCalls_Entity_GetCollision(int entity)
 	{
@@ -201,11 +275,11 @@ namespace Fay
 		return *s_Window;
 	}
 	// Scene handling
-	SceneType ScriptGlue::InternalCalls_GetActiveScene()
+	SceneType ScriptGlue::InternalCalls_Scene_GetActive()
 	{
 		return Editor::GetCurrentScene();
 	}
-	void ScriptGlue::InternalCalls_SetActiveScene(SceneType type)
+	void ScriptGlue::InternalCalls_Scene_SetActive(SceneType type)
 	{
 		Editor::SetActiveScene(type);
 	}

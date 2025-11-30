@@ -98,12 +98,10 @@ namespace Fay
 					Vec3 pos = sprite->getPosition();
 					Vec3 size = sprite->getSize();
 					Vec4 color = sprite->getColor();
-					bool hasCol = sprite->getCollision();
 
 					out.write(reinterpret_cast<const char*>(&pos), sizeof(Vec3));
 					out.write(reinterpret_cast<const char*>(&size), sizeof(Vec3));
 					out.write(reinterpret_cast<const char*>(&color), sizeof(Vec4));
-					out.write(reinterpret_cast<const char*>(&hasCol), sizeof(bool));
 					std::string texName = sprite->getTexture() ? sprite->getTexture()->getName() : "";
 					writeString(out, texName);
 				}
@@ -195,12 +193,12 @@ namespace Fay
 					Vec3 pos;
 					Vec3 size;
 					Vec4 color;
-					bool hasCol;
 					std::string texName;
 
 					in.read(reinterpret_cast<char*>(&pos), sizeof(Vec3));
 					in.read(reinterpret_cast<char*>(&size), sizeof(Vec3));
 					in.read(reinterpret_cast<char*>(&color), sizeof(Vec4));
+
 					std::cout << "EntityID: " << entity << std::endl;
 					std::cout << "Color: " << color.x << "," << color.y << "," << color.z << "," << color.w << std::endl;
 					std::cout << "Position: "  << pos.x << ", " << pos.y << ", " << pos.z << std::endl;

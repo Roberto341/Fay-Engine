@@ -3,11 +3,12 @@
 namespace Fay
 {
 	EntityID Editor::s_SelectedEntity = 0;
-	SceneType Editor::s_ActiveScene = SceneType::None; // set this back to none
+	SceneType Editor::s_ActiveScene = SceneType::Scene2D; // set this back to none
 	bool Editor::shouldRefreshScenes = false;
 	bool Editor::shouldRefreshConfigs = false;
-	bool Editor::shouldShowViewport = true; // show viewport as default
 	bool Editor::newSceneRequested = false;
+	Scene* Editor::s_Scene = nullptr;
+	float Editor::s_EntitySpeed = 0.0f;
 	Editor::Editor(Window& window) : m_window(window), m_framebuffer(window.getWidth(), window.getHeight())
 	{
 		// Init ImGui
@@ -29,12 +30,9 @@ namespace Fay
 		m_batchRenderer = new BatchRenderer();
 		m_renderLayer = new TileLayer(m_batchRenderer);
 		m_renderLayer->setShader(m_shader);
-		m_tileRenerLayer = new TileLayer(m_batchRenderer);
 		m_Scene.setSceneType(SceneType::Scene2D);
 		m_lastTime = glfwGetTime();
 		selectedEntityID = -1;
-		m_selectedTile = TileInfo();
-		m_tiles.resize(m_window.getWidth() / 32 * m_window.getHeight() / 32, TileInfo());
 	}
 
 	Editor::~Editor()
@@ -99,25 +97,17 @@ namespace Fay
 
 			// new render mode
 			m_Scene.render(m_renderLayer);
-			//m_framebuffer.unbind(m_window.getWidth(), m_window.getHeight()); // produces garbage value for tile map 
-			m_framebuffer.unbind(); // try this instead
+			m_framebuffer.unbind();
 
 			// Dockspace
+			
 			setupDockspace();
-			// Toggle between pages
-			if (shouldShowViewport)
-			{
-				// Viewport window
-				setupViewport();   // Shows 2D/3D viewport + entity editor
-				setupEntityPanel();
-			}
-			else
-			{
-				setupTileMap();    // Shows tilemap or palette editor
-				setupTilePalette();
-			}
+			setupTools();
+			setupViewport();
+			setupEntityPanel();
 			setupFileMenu();
 			setupWireFrame();
+			
 			// Rendering ImGui
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -134,31 +124,6 @@ namespace Fay
 
 			m_window.update();
 		}
-	}
-
-	void Editor::SetSelectedEntity(EntityID id)
-	{
-		s_SelectedEntity = id;
-	}
-
-	void Editor::SetActiveScene(SceneType type)
-	{
-		s_ActiveScene = type;
-	}
-
-	EntityID Editor::GetSelEntity()
-	{
-		return s_SelectedEntity;
-	}
-
-	bool Editor::IsSceneActive()
-	{
-		return s_ActiveScene == SceneType::Scene2D || s_ActiveScene == SceneType::Scene3D;
-	}
-
-	SceneType Editor::GetCurrentScene()
-	{
-		return s_ActiveScene;
 	}
 
 	void Editor::setupDockspace()
@@ -209,19 +174,6 @@ namespace Fay
 				ImGui::MenuItem("Redo", "Ctrl+Y");
 				ImGui::EndMenu();
 			}
-			if (ImGui::BeginMenu("View"))
-			{
-				if (ImGui::MenuItem("Show Viewport"))
-				{
-					shouldShowViewport = true;
-
-				}
-				if (ImGui::MenuItem("Show Tile Map"))
-				{
-					shouldShowViewport = false;
-				}
-				ImGui::EndMenu();
-			}
 			ImGui::EndMenuBar();
 		}
 
@@ -259,6 +211,17 @@ namespace Fay
 			ImGui::EndPopup();
 		}
 	}
+	void Editor::setupTools()
+	{
+		ImGui::Begin("Tools");
+
+		if(ImGui::SliderFloat("Entity Speed", &s_EntitySpeed, 0, 10))
+		{
+			SetEntitySpeed(s_EntitySpeed);
+		}
+		ImGui::End();
+	}
+
 	void Editor::loadScene(const std::string& path)
 	{
 		if (path.ends_with(".fayScene"))
@@ -272,6 +235,7 @@ namespace Fay
 				{
 					SetActiveScene(SceneType::Scene2D);
 					m_Scene.setSceneType(SceneType::Scene2D);
+					SetScene();
 				}
 				else if (m_renderMode == RenderMode::MODE_3D)
 				{
@@ -338,18 +302,12 @@ namespace Fay
 		FAY_LOG_INFO("New Scene Created: " << path);
 		shouldRefreshScenes = true;
 	}
-
 	void Editor::setupFileMenu()
 	{
 		ImGui::Begin("File");
-		// configuration file load and save 
-		if (!shouldShowViewport)
-			setConfigBox();
-		else
-		{
-			setupRenderMode();
-			setSceneBox();
-		}
+		//setConfigBox(); // disabled for now
+		setupRenderMode();
+		setSceneBox();
 		ImGui::End();
 	}
 	void Editor::setupViewport()
@@ -573,6 +531,7 @@ namespace Fay
 				auto sprite = new Sprite(entity, 0, 0, 0, 100, 100, 0, Vec4(1, 0, 0, 1));
 				ComponentManager<SpriteComponent>::Get().addComponent(entity, SpriteComponent(sprite));
 				m_Scene.addObject(sprite);
+				SetScene();
 			}
 
 			if (ImGui::Button("Delete Sprite") && selectedEntityID != -1)
@@ -595,6 +554,7 @@ namespace Fay
 				auto* cube = new Cube(entity, 0, 0, 0, 1, 1, 1, Vec4(1, 0, 0, 1));
 				ComponentManager<CubeComponent>::Get().addComponent(entity, CubeComponent(cube));
 				m_Scene.addObject(cube);
+				SetScene();
 			}
 
 			if (ImGui::Button("Delete Cube") && selectedEntityID != -1)
@@ -610,101 +570,6 @@ namespace Fay
 			}
 		}
 
-		ImGui::End();
-	}
-
-	void Editor::setupTileMap()
-	{
-		ImGui::Begin("Tile map", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-		// --- Get viewport and mouse info ---
-
-		const int tileSize = 32;
-		ImVec2 contentSize = ImGui::GetContentRegionAvail();
-		int visibleTilesX = static_cast<int>(contentSize.x / tileSize);
-		int visibleTilesY = static_cast<int>(contentSize.y / tileSize);
-		ImVec2 canvasSize(visibleTilesX * tileSize, visibleTilesY * tileSize);
-
-		ImVec2 canvas_p0 = ImGui::GetCursorScreenPos();
-		ImVec2 canvas_p1(canvas_p0.x + canvasSize.x, canvas_p0.y + canvasSize.y);
-
-		ImGui::InvisibleButton("canvas", canvasSize, ImGuiButtonFlags_MouseButtonLeft);
-		ImDrawList* drawList = ImGui::GetWindowDrawList();
-		drawList->AddRectFilled(canvas_p0, canvas_p1, IM_COL32(30, 30, 30, 255));
-
-		// Draw grid
-		for (int x = 0; x < visibleTilesX; x++)
-			drawList->AddLine(ImVec2(canvas_p0.x + x * tileSize, canvas_p0.y),
-				ImVec2(canvas_p0.x + x * tileSize, canvas_p1.y), IM_COL32(100, 100, 100, 255));
-		for (int y = 0; y < visibleTilesY; y++)
-			drawList->AddLine(ImVec2(canvas_p0.x, canvas_p0.y + y * tileSize),
-				ImVec2(canvas_p1.x, canvas_p0.y + y * tileSize), IM_COL32(100, 100, 100, 255));
-
-		// Draw tiles
-		for (int y = 0; y < visibleTilesY; y++)
-		{
-			for (int x = 0; x < visibleTilesX; x++)
-			{
-				TileInfo tile = getTile(x, y);
-				if (tile.id == 0) continue;
-
-				ImVec2 min(canvas_p0.x + x * tileSize, canvas_p0.y + y * tileSize);
-				ImVec2 max(min.x + tileSize, min.y + tileSize);
-
-				if (tile.isTexture && tile.texture)
-					drawList->AddImage((ImTextureID)(intptr_t)tile.texture->getId(), min, max, ImVec2(0, 1), ImVec2(1, 0));
-				else
-				{
-					Vec4 c = tile.color;
-					drawList->AddRectFilled(min, max,
-						IM_COL32((int)(c.x * 255), (int)(c.y * 255), (int)(c.z * 255), (int)(c.w * 255)));
-				}
-			}
-		}
-
-		// Mouse paint
-		if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-		{
-			ImVec2 mousePos = ImGui::GetMousePos();
-			ImVec2 local(mousePos.x - canvas_p0.x, mousePos.y - canvas_p0.y);
-			int tileX = static_cast<int>(local.x / tileSize);
-			int tileY = static_cast<int>(local.y / tileSize);
-
-			if (tileX >= 0 && tileX < visibleTilesX && tileY >= 0 && tileY < visibleTilesY)
-			{
-				TileInfo tile = m_selectedTile;
-				float halfW = m_framebuffer.getWidth() / 2.0f;
-				float halfH = m_framebuffer.getHeight() / 2.0f;
-				tile.position = Vec3(-halfW + tileX * tileSize, halfH - tileY * tileSize, 0);
-				tile.size = Vec3(tileSize, tileSize, 1);
-				setTile(tileX, tileY, tile);
-			}
-		}
-
-		// Hover highlight
-		ImVec2 mousePos = ImGui::GetMousePos();
-		ImVec2 hover(mousePos.x - canvas_p0.x, mousePos.y - canvas_p0.y);
-		int hoverX = static_cast<int>(hover.x / tileSize);
-		int hoverY = static_cast<int>(hover.y / tileSize);
-		if (hoverX >= 0 && hoverX < visibleTilesX && hoverY >= 0 && hoverY < visibleTilesY)
-		{
-			ImVec2 min(canvas_p0.x + hoverX * tileSize, canvas_p0.y + hoverY * tileSize);
-			ImVec2 max(min.x + tileSize, min.y + tileSize);
-			drawList->AddRect(min, max, IM_COL32(255, 255, 0, 200), 0.0f, 0, 2.0f);
-		}
-
-		ImGui::End();
-	}
-	void Editor::setupTilePalette()
-	{
-		ImGui::Begin("Tile palette", nullptr, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-		if (!m_currentConfigPath.empty())
-		{
-			showPalette();
-			createTile();
-		}
-		else {
-			ImGui::Text("No Configuration is loaded please load one");
-		}
 		ImGui::End();
 	}
 	void Editor::setupRenderMode()
@@ -958,12 +823,13 @@ namespace Fay
 	void Editor::setSceneBox()
 	{
 		static std::string sceneDir = "Res\\Assets\\Scenes\\";
-		// 2d
 		static std::vector<std::string> scenes;
-		shouldRefreshScenes = true;
+		static bool shouldRefreshScenes = true;
 		static int selectedSceneIndex = -1;
-		if (shouldRefreshScenes) {
 
+		if (shouldRefreshScenes) 
+		{
+			//FAY_LOG_DEBUG("REFRESHING SCENES — wiping selection!");
 			scenes = m_Scene.listScenesDir(sceneDir);
 			selectedSceneIndex = -1;
 			shouldRefreshScenes = false;
@@ -985,6 +851,7 @@ namespace Fay
 			}
 			ImGui::EndListBox();
 		}
+
 		if (selectedSceneIndex >= 0)
 		{
 			std::string fullPath = sceneDir + scenes[selectedSceneIndex];
@@ -1025,7 +892,7 @@ namespace Fay
 			if (ImGui::Button("Create"))
 			{
 				std::string filename = std::string(sceneName) + ".fayScene";
-				std::string fullPath = "Res/Scenes/" + filename;
+				std::string fullPath = "Res/Assets/Scenes/" + filename;
 				createScene(fullPath);
 				ImGui::CloseCurrentPopup();
 			}
@@ -1117,6 +984,7 @@ namespace Fay
 			ImGui::EndPopup();
 		}
 	}
+
 	bool Editor::intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t)
 	{
 		float t1 = (aabbMin.x - rayOrigin.x) / rayDir.x;
@@ -1135,6 +1003,7 @@ namespace Fay
 		t = (tmin < 0.0f) ? tmax : tmin;
 		return true;
 	}
+
 	Ray Editor::getRayFromMouse(const ImVec2& mousePos, const ImVec2& viewportPos, const ImVec2& viewportSize, const Mat4& proj, const Mat4& view)
 	{
 		 // 1. Convert mouse position to normalized device coordinates (-1 to 1)
@@ -1169,14 +1038,6 @@ namespace Fay
 		return { origin, direction };
 	}
 
-	TileInfo Editor::getTile(int x, int y) const
-	{
-		int tilesX = m_window.getWidth() / 32;
-		int tilesY = m_window.getHeight() / 32;
-		if (x < 0 || x >= tilesX || y < 0 || y >= tilesY)
-			return TileInfo();
-		return m_tiles[y * tilesX + x];
-	}
 	void Editor::loadPalette(const std::string& path)
 	{
 		if (path.ends_with(".config"))
@@ -1231,168 +1092,46 @@ namespace Fay
 			FAY_LOG_WARN("Failed to save, Unkown Configuration type: " << m_currentConfigPath);
 		}
 	}
-	void Editor::showPalette()
+	
+	void Editor::SetSelectedEntity(EntityID id)
 	{
-		static int selectedTileIndex = -1; // no selected tile yet
-
-		float thumbnailSize = 48.0f;
-		int itemsPerRow = 8;
-
-		ImGui::Text("Tile Palette");
-
-		for (int i = 0; i < m_Configuration.getSize(); i++)
-		{
-			//auto& tile = m_Configuration.m_tiles[i]; // Correct data source
-			auto& tile = m_Configuration.getTiles()[i];
-			ImGui::PushID(i);
-
-			// Clickable area
-			if (ImGui::InvisibleButton("tileBtn", ImVec2(thumbnailSize, thumbnailSize)))
-			{
-				selectedTileIndex = i;
-			}
-
-			ImVec2 pos = ImGui::GetItemRectMin();
-			ImVec2 size = ImGui::GetItemRectSize();
-
-			// Draw texture or color
-			if (tile.isTexture && tile.texture && tile.texture->getId() != 0)
-			{
-				ImGui::GetWindowDrawList()->AddImage(
-					(void*)(intptr_t)tile.texture->getId(),
-					pos,
-					ImVec2(pos.x + size.x, pos.y + size.y),
-					ImVec2(0, 1),
-					ImVec2(1, 0)
-				);
-			}
-			else
-			{
-				ImU32 col = IM_COL32(
-					(int)(tile.color.x * 255),
-					(int)(tile.color.y * 255),
-					(int)(tile.color.z * 255),
-					(int)(tile.color.w * 255)
-				);
-				ImGui::GetWindowDrawList()->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y), col);
-			}
-
-			// Selection border
-			if (i == selectedTileIndex)
-			{
-				ImGui::GetWindowDrawList()->AddRect(
-					pos,
-					ImVec2(pos.x + size.x, pos.y + size.y),
-					IM_COL32(255, 255, 0, 255),
-					0.0f, 0, 2.0f
-				);
-			}
-
-			// Tooltip
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip(tile.name.c_str());
-
-			ImGui::PopID();
-
-			if ((i + 1) % itemsPerRow != 0)
-				ImGui::SameLine();
-		}
-
-		// Make sure we select from the same source
-		if (selectedTileIndex >= 0 && selectedTileIndex < m_Configuration.getSize())
-		{
-			m_selectedTile = m_Configuration.getTiles()[selectedTileIndex];
-		}
+		s_SelectedEntity = id;
 	}
-	void Editor::createTile()
+
+	void Editor::SetActiveScene(SceneType type)
 	{
-		ImGui::NewLine();
-		ImGui::Separator();
-		
-		static int tileType = 0; // 0 = Color, 1 = Texture
-		static char newTileName[128] = "";
-		static char newTexturePath[256] = "";
-		static Vec4 newTileColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-
-		ImGui::Text("Add New Tile");
-
-		// Tile type selector
-		ImGui::RadioButton("Color Tile", &tileType, 0);
-		ImGui::SameLine();
-		ImGui::RadioButton("Texture Tile", &tileType, 1);
-
-		ImGui::InputText("Tile Name", newTileName, IM_ARRAYSIZE(newTileName));
-
-		if (tileType == 0)
-		{
-			ImGui::ColorEdit4("Tile Color", (float*)&newTileColor);
-		}
-		else
-		{
-			ImGui::InputText("Texture Path", newTexturePath, IM_ARRAYSIZE(newTexturePath));
-		}
-		if (ImGui::Button("Add Tile"))
-		{
-			int nextId = 0;
-			if (!m_Configuration.isEmpty())
-				nextId = m_Configuration.getNextId();
-
-			if (tileType == 0)
-			{
-				// Add color tile
-				TileInfo tile = TileInfo(nextId, newTileName, newTileColor);
-				m_Configuration.addTile(tile);
-			}
-			else 
-			{
-				// Add texture tile
-				std::string texPath = newTexturePath;
-				TileInfo tile = TileInfo(nextId, newTileName, texPath);
-				m_Configuration.addTile(tile);
-				TextureManager::add(new Texture(newTileName, texPath));
-				m_Configuration.getBack().texture = TextureManager::getTexture(newTileName);
-			}
-			// Reset input fields
-			newTileName[0] = '\0';
-			newTexturePath[0] = '\0';
-			newTileColor = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		}
-		if (ImGui::Button("Delete Tile"))
-		{
-			if (m_Configuration.getSize() >= 0)
-			{
-				// Delete the tile 
-				FAY_LOG_DEBUG("Deleting tile: " << m_selectedTile.id);
-				m_Configuration.removeTile(m_selectedTile);
-			}
-		}
-		ImGui::Separator();
-
+		s_ActiveScene = type;
 	}
-	void Editor::setTile(int x, int y, const TileInfo& tile)
+
+	EntityID Editor::GetSelEntity()
 	{
-		int tilesX = m_window.getWidth() / 32;
-		int tilesY = m_window.getHeight() / 32;
-		m_tiles[y * tilesX + x] = tile;
-		// Create a sprite for this tile
-		EntityID entity = m_Scene.getNextId();
-		Sprite* sprite = nullptr;
+		return s_SelectedEntity;
+	}
 
-		if (tile.isTexture && tile.texture)
-			sprite = new Sprite(entity, tile.position.x, tile.position.y, tile.position.z,
-				tile.size.x, tile.size.y, tile.size.z, tile.texture);
-		else
-			sprite = new Sprite(entity, tile.position.x, tile.position.y, tile.position.z,
-				tile.size.x, tile.size.y, tile.size.z, tile.color);
+	bool Editor::IsSceneActive()
+	{
+		return s_ActiveScene == SceneType::Scene2D || s_ActiveScene == SceneType::Scene3D;
+	}
 
-		// Add to your scene immediately
-		ComponentManager<SpriteComponent>::Get().addComponent(entity, SpriteComponent(sprite));
-		m_Scene.addObject(sprite);
+	SceneType Editor::GetCurrentScene()
+	{
+		return s_ActiveScene;
+	}
 
-		// Store the tile in the array
-
-		FAY_LOG_DEBUG("Added tile at (" << x << "," << y << ") pos="
-			<< tile.position.x << "," << tile.position.y << "," << tile.position.z
-			<< " sprite=" << sprite);
+	void Editor::SetScene()
+	{
+		s_Scene = &m_Scene;
+	}
+	size_t Editor::GetSceneObjects()
+	{
+		return s_Scene->getObjects().size();
+	}
+	void Editor::SetEntitySpeed(float speed)
+	{
+		s_EntitySpeed = speed;
+	}
+	float Editor::GetEntitySpeed()
+	{
+		return s_EntitySpeed;
 	}
 }

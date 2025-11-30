@@ -14,8 +14,5 @@ namespace Fay {
 			Sprite(uint32_t& id, float x, float y, float z, float width, float height, float depth, const Vec4& color);
 			Sprite(uint32_t& id, float x, float y, float z, float width, float height, float depth, Texture* texture);
 
-			void setCollision(bool hasCollision);
-			bool checkCollision(bool hasCollision, Sprite* obj1, Sprite* obj2);
-			Sprite* getSprite();
 		};
 }

@@ -12,12 +12,11 @@ namespace FayRuntime
         // Component
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern TransformComponent InternalCalls_Entity_GetTransformComponent(Entity entity);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool InternalCalls_Entity_HasComponent(object entity, Type componentType);
         // Entity 
         [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool InternalCalls_Entity_HasComponent(object entity, Type componentType);
+        [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void InternalCalls_Entity_SetPosition(object entity, float x, float y, float z);
-
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Vector3 InternalCalls_Entity_GetPosition(uint entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -30,6 +29,10 @@ namespace FayRuntime
         internal static extern int InternalCalls_Entity_SetID(object entity, uint id);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern uint InternalCalls_Entity_GetSelected();
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool InternalCalls_Entity_CheckCollision(object entity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float InternalCalls_Entity_GetSpeed();
         // Input handling
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool InternalCalls_Window_KeyPressed(int keyCode);
@@ -41,9 +44,8 @@ namespace FayRuntime
         internal static extern bool InternalCalls_Window_MouseUp(int mouseButton);
         // Scene handling
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern SceneType InternalCalls_GetActiveScene(); // returns true if scene is currently loaded otherwise false
+        internal static extern SceneType InternalCalls_Scene_GetActive();
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void InternalCalls_SetActiveScene(); // Set's the current scene that has been loaded
-        
+        internal static extern void InternalCalls_Scene_SetActive();
     }
 }

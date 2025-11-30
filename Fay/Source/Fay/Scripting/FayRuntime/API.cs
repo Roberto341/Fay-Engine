@@ -34,6 +34,14 @@ namespace FayRuntime
         {
             return InternalCalls.InternalCalls_Entity_GetID(this);
         }
+        public float GetSpeed()
+        {
+            return InternalCalls.InternalCalls_Entity_GetSpeed();
+        }
+        public bool CheckCollision()
+        {
+            return InternalCalls.InternalCalls_Entity_CheckCollision(this);
+        }
         public static Entity GetSelected()
         {
             var entity = new Entity();
@@ -46,43 +54,72 @@ namespace FayRuntime
         }
         public void Move(float speed, bool useZ)
         {
-            if (this.HasComponent(typeof(FayRuntime.TransformComponent)) && Input.GetKey(KeyCode.W))
+            Vector3 pos = this.GetPosition();
+            Vector3 delta = Vector3.Zero;
+
+            if (Input.GetKey(KeyCode.W))
+                delta.Y += speed;
+            if (Input.GetKey(KeyCode.S))
+                delta.Y -= speed;
+            if (Input.GetKey(KeyCode.A))
+                delta.X -= speed;
+            if (Input.GetKey(KeyCode.D))
+                delta.X += speed;
+            if(useZ)
             {
-                Vector3 currentPos = this.GetPosition();
-                float newY = currentPos.Y + speed;
-                this.SetPosition(new Vector3(currentPos.X, newY, currentPos.Z));
-            }
-            if (this.HasComponent(typeof(FayRuntime.TransformComponent)) && Input.GetKey(KeyCode.S))
-            {
-                Vector3 currentPos = this.GetPosition();
-                float newY = currentPos.Y - speed;
-                this.SetPosition(new Vector3(currentPos.X, newY, currentPos.Z));
-            }
-            if (this.HasComponent(typeof(FayRuntime.TransformComponent)) && Input.GetKey(KeyCode.A))
-            {
-                Vector3 currentPos = this.GetPosition();
-                float newX = currentPos.X - speed;
-                this.SetPosition(new Vector3(newX, currentPos.Y, currentPos.Z));
+                if (Input.GetKey(KeyCode.Up))
+                    delta.Z += speed;
+                if (Input.GetKey(KeyCode.Down))
+                    delta.Z -= speed;
             }
 
-            if (this.HasComponent(typeof(FayRuntime.TransformComponent)) && Input.GetKey(KeyCode.D))
+            // Try X movement
+            if(delta.X != 0f)
             {
-                Vector3 currentPos = this.GetPosition();
-                float newX = currentPos.X + speed;
-                this.SetPosition(new Vector3(newX, currentPos.Y, currentPos.Z));
-            }
-            if (this.HasComponent(typeof(FayRuntime.TransformComponent)) && Input.GetKey(KeyCode.Up) && useZ)
-            {
-                Vector3 currentPos = this.GetPosition();
-                float newZ = currentPos.Z + speed;
-                this.SetPosition(new Vector3(currentPos.X, currentPos.Y, newZ));
-            }
+                Vector3 attemptX = new Vector3(pos.X + delta.X, pos.Y, pos.Z);
+                this.SetPosition(attemptX);
 
-            if (this.HasComponent(typeof(FayRuntime.TransformComponent)) && Input.GetKey(KeyCode.Down) && useZ)
+                if(CheckCollision())
+                {
+                    // Block X movement only
+                    this.SetPosition(pos);
+                }
+                else
+                {
+                    pos = attemptX;
+                }
+            }
+            // Try Y movement
+            if (delta.Y != 0f)
             {
-                Vector3 currentPos = this.GetPosition();
-                float newZ = currentPos.Z - speed;
-                this.SetPosition(new Vector3(currentPos.X, currentPos.Y, newZ));
+                Vector3 attemptY = new Vector3(pos.X, pos.Y + delta.Y, pos.Z);
+                this.SetPosition(attemptY);
+
+                if (CheckCollision())
+                {
+                    // Block Y movement only
+                    this.SetPosition(pos);
+                }
+                else
+                {
+                    pos = attemptY;
+                }
+            }
+            // Try Z movement
+            if (delta.Z != 0f)
+            {
+                Vector3 attemptZ = new Vector3(pos.X, pos.Y, pos.Z + delta.Z);
+                this.SetPosition(attemptZ);
+
+                if (CheckCollision())
+                {
+                    // Block Z movement only
+                    this.SetPosition(pos);
+                }
+                else
+                {
+                    pos = attemptZ;
+                }
             }
         }
         public Entity() { }
