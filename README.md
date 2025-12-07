@@ -1,8 +1,9 @@
 # Fay Engine
 
 ### Current Release
- - [Alpha 2.1 Bug Fix](https://github.com/Roberto341/Fay-Engine/tree/a.2.1)
+ - [Alpha 3.0](https://github.com/Roberto341/Fay-Engine/releases/tag/alpha.3)
 ### Previous Releaes
+- [Alpha 2.1 Bug Fix](https://github.com/Roberto341/Fay-Engine/tree/a.2.1)
 - [Alpha 2.0](https://github.com/Roberto341/Fay-Engine/tree/a.2.0)
 - [Alpha 1.0](https://github.com/Roberto341/Fay-Engine/tree/a.1.0)
 ## Installing Mono (Windows)
@@ -26,7 +27,7 @@ This project requires **Mono** to run the C# scripting backend.
 mono --version
 ```
 ## Setup
-- Download the Fay-Engine-<current_version>.zip folder ex: (Alpha 2.1)
+- Download the Fay-Engine-<current_version>.zip folder ex: (Alpha 3.0)
 - Navigate to the Fay-Engine-<current_version>.zip and go into the Fay-Engine-<current_version> folder inside you'll see
     - Bin folder
     - Deps folder
