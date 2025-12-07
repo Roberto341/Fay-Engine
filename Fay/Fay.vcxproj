@@ -73,26 +73,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Deps\FreeImage\include;$(SolutionDir)Fay\Ext\Freetype\include;$(SolutionDir)Fay\Source\Fay;$(SolutionDir)Deps\GLEW\include\GL;$(SolutionDir)Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Deps\FreeImage\lib;$(SolutionDir)Deps\GLEW\lib;$(SolutionDir)Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Deps\FreeImage\include;$(SolutionDir)Fay\Ext\Freetype\include;$(SolutionDir)Fay\Source\Fay;$(SolutionDir)Deps\GLEW\include\GL;$(SolutionDir)Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Deps\FreeImage\lib;$(SolutionDir)Deps\GLEW\lib;$(SolutionDir)Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Deps\FreeImage\include;$(SolutionDir)Fay\Ext\Freetype\include;$(SolutionDir)Fay\Source\Fay;$(SolutionDir)Deps\GLEW\include\GL;$(SolutionDir)Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Deps\FreeImage\lib;$(SolutionDir)Deps\GLEW\lib;$(SolutionDir)Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Bin\$(Platform)\$(Configuration)\intermediate\</IntDir>
-    <IncludePath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\include;C:\Users\will6\source\repos\Fay\Fay\Ext\Freetype\include;C:\Users\will6\source\repos\Fay\Fay\Source\Game;C:\Users\will6\source\repos\Fay\Fay\Source\Fay;C:\Users\will6\source\repos\Fay\Deps\GLEW\include\GL;C:\Users\will6\source\repos\Fay\Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\will6\source\repos\Fay\Deps\FreeImage\lib;C:\Users\will6\source\repos\Fay\Deps\GLEW\lib;C:\Users\will6\source\repos\Fay\Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Deps\FreeImage\include;$(SolutionDir)Fay\Ext\Freetype\include;$(SolutionDir)Fay\Source\Fay;$(SolutionDir)Deps\GLEW\include\GL;$(SolutionDir)Deps\GLFW\include\GLFW;C:\Program Files\Mono\include\mono-2.0;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Deps\FreeImage\lib;$(SolutionDir)Deps\GLEW\lib;$(SolutionDir)Deps\GLFW\lib;C:\Program Files\Mono\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
