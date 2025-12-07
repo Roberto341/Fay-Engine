@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <set>
 #include <Renderer/Sprite.h>
-#include <Renderer/3DRenderer/Cube.h>
+#include <Renderer/Cube.h>
 #include <Math/Math.h>
 #include <Graphics/Texture.h>
 #include <Graphics/TextureManager.h>
@@ -10,14 +10,16 @@
 #include <Entity/Entity.h>
 #include <Entity/ComponentManager.h>
 #include <Entity/Components.h>
+#include <Graphics/Layers/TileLayer.h>
 namespace Fay
 {
 	class Scene
 	{
 	public:
-		void addObject(Renderable* object); // Entity is a single standalone entity that takes either a Sprite* or Cube* and has an id and can be multiple
+		void addObject(Renderable* object);
 		void removeObject(Renderable* object);
 		void clear();
+		void render(TileLayer* renderingLayer) const;
 
 		const std::vector<Renderable*>& getObjects() const { return m_objects; }
 
@@ -30,10 +32,10 @@ namespace Fay
 		void setSceneType(SceneType type);
 		SceneType getSceneType() { return m_ActiveScene; }
 		bool canSwitchScene() const;
-		EntityID generateEntityID() { return m_nextEntityID++; }
-	private:
+		EntityID getNextId();
 		bool has2DEntities() const;
 		bool has3DEntities() const;
+	private:
 		SceneType m_ActiveScene;
 		void writeString(std::ofstream& out, const std::string& str) const;
 		std::string readString(std::ifstream& in) const;

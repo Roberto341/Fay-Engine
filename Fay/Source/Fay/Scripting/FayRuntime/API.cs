@@ -7,44 +7,18 @@ using System.Threading.Tasks;
 
 namespace FayRuntime
 {
-    public struct Vector2
-    {
-        public float X, Y;
-
-        public Vector2(float x, float y)
-        {
-            X = x;
-            Y = y;
-        }
-    }
-    public struct Vector3
-    {
-        public float X, Y, Z;
-
-        public Vector3(float x, float y, float z)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-        }
-    }
-    public struct Vector4
-    {
-        public float X, Y, Z, W;
-
-        public Vector4(float x, float y, float z, float w)
-        {
-            X = x;
-            Y = y;
-            Z = z;
-            W = w;
-        }
-    }
     public enum SceneType
     {
         None = 0,
         Scene2D = 1,
         Scene3D = 2
+    }
+    public static class API
+    {
+        public static uint GetScriptEntId()
+        {
+            return InternalCalls.InternalCalls_ScriptComp_GetEntityId();
+        }
     }
     public class Entity
     {
@@ -52,63 +26,117 @@ namespace FayRuntime
 
         public void SetPosition(Vector3 position)
         {
-            InternalCalls.InternalCalls_SetEntityPosition(this, position.X, position.Y, position.Z);
+            InternalCalls.InternalCalls_Entity_SetPosition(this, position.X, position.Y, position.Z);
         }
 
         public Vector3 GetPosition()
         {
-            return InternalCalls.InternalCalls_GetEntityPosition((uint)_entityID);
+            return InternalCalls.InternalCalls_Entity_GetPosition((uint)_entityID);
         }
-        public void SetEntityId(uint id)
+        public void SetId(uint id)
         {
-            InternalCalls.InternalCalls_SetEntityId(this, id);
+            InternalCalls.InternalCalls_Entity_SetID(this, id);
         }
-        public int GetEnityId()
+        public int GetId()
         {
-            return InternalCalls.InternalCalls_GetEntityId(this);
+            return InternalCalls.InternalCalls_Entity_GetID(this);
+        }
+        public bool HasCollisionComp()
+        {
+            return InternalCalls.InternalCalls_Entity_HasComponent(this, typeof(FayRuntime.CollisionComponent));
+        }
+        public float GetSpeed()
+        {
+            return InternalCalls.InternalCalls_Entity_GetSpeed();
+        }
+        public bool CheckCollision()
+        {
+            return InternalCalls.InternalCalls_Entity_CheckCollision(this);
         }
         public static Entity GetSelected()
         {
             var entity = new Entity();
-            entity.SetEntityId(InternalCalls.InternalCalls_GetSelectedEntity());
+            entity.SetId(InternalCalls.InternalCalls_Entity_GetSelected());
+            return entity;
+        }
+        public static Entity GetSel()
+        {
+            var entity = new Entity();
+            entity.SetId(InternalCalls.InternalCalls_ScriptComp_GetEntityId());
             return entity;
         }
         public bool HasComponent(Type componentType)
         {
-            //bool hasTransform = InternalCalls.InternalCalls_Entity_HasComponent(entity, typeof(FayRuntime.TransformComponent));
             return InternalCalls.InternalCalls_Entity_HasComponent(this, componentType);
         }
-        public void Move(float speed)
+        public void Move(float speed, bool useZ)
         {
-            //if (Input.GetKey(KeyCode.W) && entity.HasComponent(typeof(FayRuntime.TransformComponent)))
-            //{
-            //    Vector3 currentPos = entity.GetPosition();      // Get current position
-            //    float newY = currentPos.Y + 1.0f;               // Increase Y by 1
-            //    entity.SetPosition(new Vector3(currentPos.X, newY, currentPos.Z));  // Set new position
-            //}
-            if(Input.GetKey(KeyCode.W) && this.HasComponent(typeof(FayRuntime.TransformComponent)))
+            Vector3 pos = this.GetPosition();
+            Vector3 delta = Vector3.Zero;
+
+            if (Input.GetKey(KeyCode.W))
+                delta.Y += speed;
+            if (Input.GetKey(KeyCode.S))
+                delta.Y -= speed;
+            if (Input.GetKey(KeyCode.A))
+                delta.X -= speed;
+            if (Input.GetKey(KeyCode.D))
+                delta.X += speed;
+            if(useZ)
             {
-                Vector3 currentPos = this.GetPosition();
-                float newY = currentPos.Y + speed;
-                this.SetPosition(new Vector3(currentPos.X, newY, currentPos.Z));
+                if (Input.GetKey(KeyCode.Up))
+                    delta.Z += speed;
+                if (Input.GetKey(KeyCode.Down))
+                    delta.Z -= speed;
             }
-            if (Input.GetKey(KeyCode.S) && this.HasComponent(typeof(FayRuntime.TransformComponent)))
+
+            // Try X movement
+            if(delta.X != 0f)
             {
-                Vector3 currentPos = this.GetPosition();
-                float newY = currentPos.Y - speed;
-                this.SetPosition(new Vector3(currentPos.X, newY, currentPos.Z));
+                Vector3 attemptX = new Vector3(pos.X + delta.X, pos.Y, pos.Z);
+                this.SetPosition(attemptX);
+
+                if(CheckCollision())
+                {
+                    // Block X movement only
+                    this.SetPosition(pos);
+                }
+                else
+                {
+                    pos = attemptX;
+                }
             }
-            if (Input.GetKey(KeyCode.A) && this.HasComponent(typeof(FayRuntime.TransformComponent)))
+            // Try Y movement
+            if (delta.Y != 0f)
             {
-                Vector3 currentPos = this.GetPosition();
-                float newX = currentPos.X - speed;
-                this.SetPosition(new Vector3(newX, currentPos.Y, currentPos.Z));
+                Vector3 attemptY = new Vector3(pos.X, pos.Y + delta.Y, pos.Z);
+                this.SetPosition(attemptY);
+
+                if (CheckCollision())
+                {
+                    // Block Y movement only
+                    this.SetPosition(pos);
+                }
+                else
+                {
+                    pos = attemptY;
+                }
             }
-            if (Input.GetKey(KeyCode.D) && this.HasComponent(typeof(FayRuntime.TransformComponent)))
+            // Try Z movement
+            if (delta.Z != 0f)
             {
-                Vector3 currentPos = this.GetPosition();
-                float newX = currentPos.X + speed;
-                this.SetPosition(new Vector3(newX, currentPos.Y, currentPos.Z));
+                Vector3 attemptZ = new Vector3(pos.X, pos.Y, pos.Z + delta.Z);
+                this.SetPosition(attemptZ);
+
+                if (CheckCollision())
+                {
+                    // Block Z movement only
+                    this.SetPosition(pos);
+                }
+                else
+                {
+                    pos = attemptZ;
+                }
             }
         }
         public Entity() { }
@@ -117,6 +145,7 @@ namespace FayRuntime
             _entityID = id;
         }
     }
+    // Components
     public class TransformComponent
     {
         public Vector3 position;
@@ -124,52 +153,13 @@ namespace FayRuntime
         public Vector3 rotation;
         public Vector3 scale;
     }
-    public class Sprite
-    {
-        private IntPtr nativePtr; // Holds the native Sprite* pointer
-        private bool hasColision;
-        public Sprite(IntPtr ptr)
-        {
-            nativePtr = ptr;
-        }
-
-        public Vector3 GetPosition()
-        {
-            return InternalCalls.InternalCalls_Sprite_GetPosition(nativePtr);
-        }
-
-        public void SetPosition(Vector3 position)
-        {
-            InternalCalls.InternalCalls_Sprite_SetPosition(nativePtr, position);
-        }
-
-        //public void SetCollision(IntPtr entity, bool condition)
-        //{
-
-        //}
-    }
-
-    public class Cube
-    {
-        private IntPtr nativePtr; // Native pointer that points to the actual Cube* pointer must be void* in c++
-
-        public Cube(IntPtr ptr)
-        {
-            nativePtr = ptr;
-        }
-
-        public Vector3 GetPosition()
-        {
-            return InternalCalls.InternalCalls_Cube_GetPosition(nativePtr);
-        }
-
-        public void SetPosition(Vector3 position)
-        {
-            InternalCalls.InternalCalls_Cube_SetPosition(nativePtr, position);
-        }
-    }
-
+   
     public class SpriteComponent
+    {
+        public Vector3 position;
+        public Vector3 scale;
+    }
+    public class CubeComponent
     {
         public Vector3 position;
         public Vector3 scale;
@@ -180,9 +170,13 @@ namespace FayRuntime
         public Vector3 rotation;
         public Vector3 scale;
     }
-    public class CollisionSpriteComponent
+    public class CollisionComponent
     {
         public Vector3 position;
-        public Vector2 size;
+        public Vector3 size;
+    }
+    public class ScriptComponent
+    {
+
     }
 }

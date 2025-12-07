@@ -1,0 +1,86 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETFramework,Version=v4.8": {
+      "FayRuntime/1.0.0": {
+        "type": "project",
+        "framework": ".NETFramework,Version=v4.8",
+        "compile": {
+          "bin/placeholder/FayRuntime.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/FayRuntime.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "FayRuntime/1.0.0": {
+      "type": "project",
+      "path": "../FayRuntime/FayRuntime.csproj",
+      "msbuildProject": "../FayRuntime/FayRuntime.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETFramework,Version=v4.8": [
+      "FayRuntime >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\will6\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\will6\\source\\repos\\Fay\\Fay\\Source\\Fay\\Scripting\\FayCore\\FayCore.csproj",
+      "projectName": "FayCore",
+      "projectPath": "C:\\Users\\will6\\source\\repos\\Fay\\Fay\\Source\\Fay\\Scripting\\FayCore\\FayCore.csproj",
+      "packagesPath": "C:\\Users\\will6\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\will6\\source\\repos\\Fay\\Fay\\Source\\Fay\\Scripting\\FayCore\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\will6\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net48"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net48": {
+          "targetAlias": "net48",
+          "projectReferences": {
+            "C:\\Users\\will6\\source\\repos\\Fay\\Fay\\Source\\Fay\\Scripting\\FayRuntime\\FayRuntime.csproj": {
+              "projectPath": "C:\\Users\\will6\\source\\repos\\Fay\\Fay\\Source\\Fay\\Scripting\\FayRuntime\\FayRuntime.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "9.0.300"
+    },
+    "frameworks": {
+      "net48": {
+        "targetAlias": "net48",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308\\RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

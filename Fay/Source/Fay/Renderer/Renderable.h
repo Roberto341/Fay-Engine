@@ -21,6 +21,7 @@ namespace Fay
 	class Renderable
 	{
 	protected:
+		uint32_t m_id;
 		Vec3 m_position;
 		Vec3 m_size;
 		Vec4 m_color;
@@ -31,8 +32,8 @@ namespace Fay
 	protected:
 		Renderable() : m_texture(nullptr) { setUVDefaults(); }
 	public:
-		Renderable(Vec3 position, Vec3 size, Vec4 color, RenderDimension dimension = RenderDimension::D2)
-			: m_position(position), m_size(size), m_color(color), m_texture(nullptr), m_dimension(dimension)
+		Renderable(uint32_t id, Vec3 position, Vec3 size, Vec4 color, RenderDimension dimension = RenderDimension::D2)
+			:m_id(id), m_position(position), m_size(size), m_color(color), m_texture(nullptr), m_dimension(dimension)
 		{
 			setUVDefaults();
 		}
@@ -45,6 +46,7 @@ namespace Fay
 		{
 			m_collision = cond;
 		}
+		inline const uint32_t& getId() const { return m_id; }
 		inline const Vec3& getPosition() const { return m_position; }
 		inline const Vec3& getSize() const { return m_size; }
 		inline const Vec4& getColor() const { return m_color; }
@@ -58,6 +60,10 @@ namespace Fay
 		{
 			m_size = size;
 		}
+		void setTexture(Texture* texture)
+		{
+			m_texture = texture;
+		}
 		void setColor(Vec4 color)
 		{
 			m_color = color;
@@ -65,6 +71,24 @@ namespace Fay
 		Texture* getTexture() const { return m_texture; }
 
 		RenderDimension getDimension() const { return m_dimension; }
+
+		bool checkCollision(const Renderable* other, bool useZ = false)
+		{
+			bool collision =
+				m_position.x < other->m_position.x + other->m_size.x &&
+				other->m_position.x < m_position.x + m_size.x &&
+				m_position.y < other->m_position.y + other->m_size.y &&
+				other->m_position.y < m_position.y + m_size.y;
+
+			if (useZ)
+			{
+				collision = collision &&
+					m_position.z < other->m_position.z + other->m_size.z &&
+					other->m_position.z < m_position.z + m_size.z;
+			}
+
+			return collision;
+		}
 
 	private:
 		void setUVDefaults()

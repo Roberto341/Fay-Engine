@@ -13,61 +13,35 @@
 #include <Entity/Components.h>
 #include <Scripting/ScriptEngine.h>
 #include <Scripting/ScriptGlue.h>
-#include <Scripting/ScriptSystem.h>
 #include <Renderer/Scene.h>
-#define TEST 0
+#include <Math/Math.h>
+#include <EngineEditor/EditorCore.h>
+#include <EngineEditor/EditorUI.h>
+#include <EngineEditor/EditorViewport.h>
 namespace Fay
 {
-	enum class RenderMode
-	{
-		MODE_2D,
-		MODE_3D
-	};
-	struct Ray
-	{
-		Vec3 origin;
-		Vec3 dir;
-	};
 	class Editor
 	{
+	private:
+	public:
 	public:
 		Editor(Window& window);
-		void loadScene(const std::string& path);
-		void saveScene(const std::string& path);
 		~Editor();
 
 		void run();
-		void SetSelectedEntity(EntityID id);
-		static EntityID GetSelEntity();
-		static EntityID s_SelectedEntity;
-		static SceneType s_ActiveScene;
-		static bool IsSceneActive();
-		static SceneType GetCurrentScene();
-		static void SetActiveScene(SceneType type);
-		static bool shouldRefreshScenes;
 	private:
-		// Camera stuff
-		void cameraUpdate();
-		// Shader stuff
+		std::unique_ptr<EditorViewport> m_viewport;
+		std::unique_ptr<EditorCore> m_core;
+		std::unique_ptr<EditorUI> m_ui;
+		std::unique_ptr<EditorUtils> m_utils;
+		// Shader
 		Shader* m_shader;
-		Shader* m_shader3d;
-		void setShader(Fay::Shader* shader);
-		void setShader3D(Fay::Shader* shader);
+		// RenderMode
 		RenderMode m_renderMode = RenderMode::MODE_2D;
-		// File
-		void saveCurrentScene();
-		void createNewScene(const std::string& path);
-		bool showSaveDialog = false;
-		bool showLoadDialog = false;
-		void setupDockspace();
-		void setupFileMenu();
-		EntityID selectedEntityID;
-		float m_lastTime;
-		std::string m_currentScenePath;
+		// Current path
 		// Misc
 		Camera3D* m_camera3D;
 		TileLayer* m_renderLayer;
-		//TileLayer* m_renderLayer3D;
 		Scene m_Scene;
 		TextureManager m_textureManager;
 		Window& m_window;
@@ -75,8 +49,5 @@ namespace Fay
 		BatchRenderer* m_batchRenderer;
 		// Scene Management
 		SceneType m_activeScene = SceneType::None;
-		// private methods
-		bool intersectRayAABB(const Vec3& rayOrigin, const Vec3& rayDir, const Vec3& aabbMin, const Vec3& aabbMax, float& t);
-		Ray getRayFromMouse(const ImVec2& mousePos, const ImVec2& viewportPos, const ImVec2& viewportSize, const Mat4& proj, const Mat4& view);
 	};
 }

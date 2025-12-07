@@ -8,14 +8,12 @@ int main()
 	// Create and load scripting engine
 	Fay::ScriptGlue::SetWindow(window);
 	Fay::ScriptEngine::Init();
-	Fay::ScriptEngine::LoadAssembly("Source/Fay/Scripting/FayRuntime/bin/Debug/FayRuntime.dll");
-
+	Fay::ScriptEngine::LoadAssembly("Source/Fay/Scripting/FayRuntime/bin/Debug/net48/FayRuntime.dll", Fay::ScriptEngine::GetRootDomain());
 	Fay::ScriptGlue::RegisterFunctions();
 	Fay::ScriptGlue::RegisterComponents();
-	Fay::ScriptEngine::InvokeStatic("MyScript", "OnStart");
-	Fay::ScriptEngine::InvokeStatic("MyScript", "OnUpdate");
-	Fay::ScriptEngine::InvokeStatic("EntityScript", "OnStart");
-	//Fay::ScriptEngine::InvokeStatic("PlayerController", "OnStart"); // Still a work in progress
+	Fay::ScriptEngine::InvokeRootStatic("EntityScript", "OnStart");
+	
 	editor.run();
+
 	return 0;
 }

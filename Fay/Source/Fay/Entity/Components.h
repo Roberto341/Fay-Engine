@@ -1,7 +1,7 @@
 #pragma once
 #include <Scripting/ScriptEngine.h>
 #include <Renderer/Sprite.h>
-#include <Renderer/3DRenderer/Cube.h>
+#include <Renderer/Cube.h>
 #include <Entity/ComponentManager.h>
 #include <functional>
 #include <Core/Logger.h>
@@ -24,16 +24,17 @@ namespace Fay
 
 		TransformComponent() = default;
 		TransformComponent(const Vec3& pos, const Vec3& rot, const Vec3& translation, const Vec3& scale) : position(pos),
-			rotation(rot), translation(translation), scale(scale){}
+			rotation(rot), translation(translation), scale(scale) {
+		}
 	};
 
-	struct CollisionSpriteComponent
+	struct CollisionComponent
 	{
 		Vec3 pos;
 		Vec3 size;
-
-		CollisionSpriteComponent() = default;
-		CollisionSpriteComponent(const Vec3& pos, const Vec3& size) : pos(pos), size(size) {}
+		
+		CollisionComponent() = default;
+		CollisionComponent(const Vec3& pos, const Vec3& size) : pos(pos), size(size) {}
 	};
 	template<typename... Components>
 	struct ComponentGroup
@@ -69,6 +70,7 @@ namespace Fay
 		{
 			sprite->setSize(size);
 		}
+
 		Texture* getTexture() const
 		{
 			return sprite->getTexture();
@@ -88,63 +90,62 @@ namespace Fay
 		Vec4 getColor() const {
 			return sprite->getColor();
 		}
-
+		uint32_t getId() const{
+			return sprite->getId();
+		}
 	};
 
 	struct CubeComponent
 	{
 		Renderable* cube = nullptr; 
-		Vec3 position = Vec3(0, 0, 0);
-		Vec3 size = Vec3(0, 0, 0);
-		Vec4 color = Vec4(0, 0, 0, 0);
-		bool hasCol = false;
 		//Mat4 modelMatrix;
 		CubeComponent() = default;
-		CubeComponent(Renderable* c) : cube(c) 
+		CubeComponent(Renderable* c) : cube(c) {}
+		void setCollision(bool cond)
 		{
-			//modelMatrix = Mat4::translation(c->getPosition()) * Mat4::scale(c->getSize());
-			if (cube)
-			{
-				position = cube->getPosition();
-				size = cube->getSize();
-				color = cube->getColor();
-			}
+			//sprite->setColision(cond);
+			cube->setCollision(cond);
+		}
+		void setColor(Vec4 color)
+		{
+			cube->setColor(color);
+		}
+		void setPosition(Vec3 position)
+		{
+			cube->setPosition(position);
+		}
+		void setSize(Vec3 size)
+		{
+			cube->setSize(size);
+		}
+		bool getCollision() const
+		{
+			return cube->getCollision();
+		}
+		Vec3 getPosition() const
+		{
+			return cube->getPosition();
+		}
+		Vec3 getSize() const {
+			return cube->getSize();
+		}
+		Vec4 getColor() const {
+			return cube->getColor();
 		}
 	};
-	/*
-	struct MeshComponent
-	{
-		Mesh* mesh;
-		Material* material;
-	}
-	*/
 	// this will be what carries the c# script
 	struct ScriptComponent
 	{
 		std::string className;
-		MonoObject* instance = nullptr;
-		MonoMethod* onUpdateMethod = nullptr;
-		MonoMethod* onStartMethod = nullptr;
+		uint32_t entityId = 0;
+		bool hasStarted = false;
 
-		void Bind()
+		ScriptComponent() = default;
+		ScriptComponent(const std::string& path, uint32_t entId) : className(path), entityId(entId) {}
+
+		bool checkId(uint32_t checkId) const
 		{
-			auto* klass = mono_class_from_name(ScriptEngine::GetImage(), "FayRuntime", className.c_str());
-			if (!klass)
-			{
-				FAY_LOG_ERROR("[ScriptComponent] Class not found: " << className);
-				return;
-			}
-
-			instance = mono_object_new(ScriptEngine::GetDomain(), klass);
-			if (!instance)
-			{
-				FAY_LOG_ERROR("[ScriptComponent] Failed to create instance of: " << className);
-				return;
-			}
-			mono_runtime_object_init(instance);
-
-			onStartMethod = mono_class_get_method_from_name(klass, "OnStart", 0);
-			onUpdateMethod = mono_class_get_method_from_name(klass, "OnUpdate", 0);
+			return checkId == entityId;
 		}
 	};
 	using AllComponents = ComponentGroup<
@@ -153,7 +154,7 @@ namespace Fay
 		SpriteComponent, 
 		CubeComponent, 
 		ScriptComponent,
-		CollisionSpriteComponent
+		CollisionComponent
 	>;
 
 }

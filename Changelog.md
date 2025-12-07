@@ -101,3 +101,148 @@
       - Cube not being selected and deleted
       - Replaced old selection code with the actual EntityID 
       - Auto generate next id when creating a entity
+- ### Update October 30th 2025
+  - #### Notes
+    - This update is a dev branch update as features are still in progress
+    - This update is also a small bug fix
+  - #### New Features
+    - TileMap editor
+  - #### Updates
+    - The TileMap editor has once again made a comeback with a bit of a refurbishment as well the Editor class is getting pretty big with over 1,000 lines of code as of this update I've moved some things around and am in the process of making each function for each imgui display that way it's easier to edit
+    - Tile is a header only file that stores the Tile struct and TileInfo struct for the tilemap editor it allows both colored tiles and texture tiles
+    - As with the previous version of the tile map editor it loads a configuration file for the tiles I updated it so that it works hand in hand with both tile formats it will also save the config as well
+    - TileLayer class has recived a much needed update after finally discovering that the layer was logging a error on construction but didnt crash because it set proper so I moved it to the layer class and added a 2d default overide it also works in 3d I made sure to thoroughly test everything 
+    - The tile map editor is part of the main editor so you can switch between the 2 at any time it will save as a standard scene file with sprite components however there will be no transform component on them as they are essentially static sprites 
+- ### Update November 2nd 2025
+  - #### Notes
+    - First of all I would like to welcome everyone to a brand new month of the year getting closer to christmas time
+  - #### Updates
+    - **Core Improvements**
+      - Some improvements have been made to the new Configuration class and will also be added to other classes like scene to help manage the vector stack when you delete a tile for example tile with id 5 when you add a new tile it will carry id 5 with it instead of jumping over to 6 I will be overhauling the scene class and scene stuff to acomadate it as well and entitys will no longer start at 0 and instead start at 1 I've learned quite a bit with the Configuration Class that we should use id 1 instead of 0 for a better system.
+      - Also some folders have been moved and deleted we now have a **Assets** folder that holds subfolders of Textures, Configurations, and Scenes
+    - **Configuration Class**
+      - This new class is responsible for the tile palette in the tile editor. What it does is the same as the scene class, you can add new tiles and remove them you can load, save, delete, and create configuration files **.config**
+      - Some helper functions have been added and will be introduced in other classes as time progresses: 
+        - **getSize** returns the m_tiles.size()
+        - **isEmpty** returns m_tiles.empty() 
+        - **getBack** returns m_tiles.back()
+        - **getNextId** returns the next id from m_tiles
+    - **Editor Class** 
+      - In the Editor class you can now make new tiles either color or texture and it automatically add's it
+      - I also refurbished the display a little so when your working with the tile editor you dont see everything from the **Viewport** and added a combo to toggle between the 2
+      - There is also a configurations box
+      - **m_tilePalette** has been removed from Editor
+      - **showSaveDialog** and **showLoadDialog** has been removed from Editor
+      - Some functions have been **removed/renamed** and some new functions have been **added**:
+        - **createNewScene** is now **createScene**
+        - **loadTilePalette** is now **loadPalette**
+        - **saveTilePalette** is now **savePalette**
+        - **showTilePalette** is now **showPalette**
+        - **createPalette** has been added
+        - **createNewTile** is now **createTile**
+- ### Update November 19th 2025
+  - #### Notes
+    - Moving forward with refurbishment the Editor class no longer has 2 shaders simply because with the new rendering system only 1 shader is needed so I cut back on all the other code and deleted a few functions below 
+    - The Scene class got updated as well to use the new id format and other fixes
+    - Finished adding tile map functionallity to the scene
+    - The InternalCalls.cs class has been updated I removed sprite and cube calls as they are no longer needed. With the ECS system in place the entity has everything so all functions are named InternalCalls_Entity_**MethodName** instead and takes the Entity object instead of indivisual sprites or cubes
+  - #### Known bug updates
+    - [Fix framebuffer issue when switching from viewport to tile map #7](https://github.com/Roberto341/Fay-Engine/issues/7)
+  - #### Updates
+    - **Renderable**, **Sprite**, and **Cube** have a new parameter uint32_t id 
+    - **Scene** has gotten a small update as previously discused in the last update the new id generator has been implemented:
+      - **render** has been added 
+      - **generateEntityID** has been renamed **getNextId**
+      - It now starts at 1 instead of 0 
+    - **Renderable Class**:
+      - **setTexture** has been added
+    - **Editor Class** has received a few updates: 
+      - **setShader**   has been removed
+      - **setShader3D** has been removed
+      - **m_shader3D** has been removed
+      - **setupRenderMode** has been added
+      - **setupDockspace** has been refactored to include a main menu bar
+    - **Components**:
+      - **CollisionSpriteComponent** renamed to **CollisionComponent**
+    - **C# FayRuntime**:
+      - **FayMath.cs** class has been added 
+      - **InternalCalls.cs** has been updated 
+      - **EntityScript.cs** has been updated
+- ### Update Novemeber 30th 2025
+  - #### Notes
+    - Alot more refurbishment going on in this update getting most of the C# scripting added in adding new pages for tools and cleaning alot of stuff up.
+    - Tile map has been removed
+    - For right now the configurations will remain
+  - #### Known bug updates
+    - [Scene save and load not working correctly](https://github.com/Roberto341/Fay-Engine/issues/8) has been resolved with this commit
+    - [Fix framebuffer issue when switching from viewport to tile map #7](https://github.com/Roberto341/Fay-Engine/issues/7) has been removed
+  - #### Updates
+    - C# Scripting:
+      - **InternalCalls_Entity_CheckCollision** added
+      - **InternalCalls_SetActiveScene** renamed to ***InternalCalls_Scene_SetActive***
+      - **InternalCalls_GetActiveScene** renamed to ***InternalCalls_Scene_GetActive***
+      - **InternalCalls_Entity_GetSpeed** added
+    - Renderable.h: 
+      - **checkCollision** added checks both 2d and 3d
+    - Editor.h:
+      - **static bool** added to shouldRefreshConfigs
+      - **s_Scene** added
+      - **SetScene** added
+      - **GetSceneObjects()** added
+      - **s_EntitySpeed** added
+      - **SetEntitySpeed** added
+      - **GetEntitySpeed** added
+      - **setupTools** added
+    - Sprite.h:
+      - **checkCollision** removed moved to Renderable.h
+      - **getSprite** removed no longer needed
+- ### Update December 6th 2025
+  - #### Notes
+    - With update **Alpha 3.0** just around the corner more refactoring and cleanup has been going on
+
+    - I've reworked the entire Editor class into subclasses, EditorUI, EditorViewport, EditorCore, EditorUtils
+
+    - Some key improvements have been added such as the **loadScene** method has been refactored to automatically change the rendering mode upon loading it's also been updated a little bit just for easier reading and safer usage
+
+    - A new method **applyPendingRenderMode** has been added that checks if there is a pending switch if there is it switches it over and changes depending on the new render mode also if you try to switch rendering mode with entities in the viewport already it will not switch or log that you cannot switch it simply stays in the current rendering mode which is nicer and cleaner
+
+    - The **setupRenderMode** method has recivied a update to accomodate the new pending system it also has a **currentMode = (int)m_renderMode;** which helps with changing the mode in the imgui ui part that way it's not just stuck saying 2d when it's actually 3d 
+
+    - After a few days of work and a major rework of the ScriptEngine class it now loads 2 seperate c# librarys it now has a **ReloadAssembly** for the new FayCore.dll which hot reloads during Editor run 
+    - I'm still working on much of the EditorCore::Init() that way we can remove the rest of the initilization code out of edtior and hold it in core instead
+  - #### C# Scripting
+    - With the new system in place for entity specific scripts there are 2 dll's **FayRuntime.dll** and the new **FayCore.dll** the Core is for scripting entities nothing more it's linked together with the FayRuntime so you can still access Input and API and other stuff to come  
+  - #### Updates
+    - Components
+      - **ScriptComment** updated and tied in
+    - Logger
+      - **FAY_LOG_THROW_ERROR** added
+    - ScriptEngine
+      - **std::cout & std::cerr** removed replace with **FAY_LOG**
+      - **s_domain** renamed to **s_rootDomain** 
+      - **s_scriptDomain** added
+      - **s_oldDomains** added 
+      - **GetDomain** renamed to **GetRootDomain**
+      - **GetScriptDomain** added
+      - **s_coreImage** added
+      - **s_coreAssembly** added
+      - **InvokeCoreStatic** added
+      - **InvokeCoreMethod** added
+      - **CreateObject** removed
+      - **InvokeStatic** renamed to **InvokeRootStatic**
+      - **InvokeMethod** renmaed to **InvokeRootMethod**
+      - **CreateScriptDomain** added
+      - **GetMonoClass** added
+      - **ReloadAssembly** added
+      - **UnloadScriptDomain** added
+      - **createScriptTemplate** added
+    - Scene
+      - **setSceneType()** line 306 **if(m_ActiveScene == type)return** added
+      - **has2DEntities** and **has3DEntities** made public
+    - README
+      - Updated
+- ### Update December 7th 2025
+  - #### Updates
+    - Just a pre release update removed old files and folders
+    - Fixed a issue where there was a semicolon at the end of a if block don't know how it got there but it's been removed everything works in release and debug x64 mode
+    - Added the delete scene button in the main menu bar it deletes whichever scene is currently loaded also added clear method in deleteScene in the scene class to not render deleted entities 

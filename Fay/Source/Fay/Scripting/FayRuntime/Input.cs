@@ -138,12 +138,6 @@ namespace FayRuntime
     }
     public class Input
     {
-        //public static bool GetKey(KeyCode key)
-        //{
-        //    bool result = InternalCalls.InternalCalls_Window_KeyPressed((int)key);
-        //    Console.WriteLine($"[C#] GetKey({key}) = {result}");
-        //    return result;
-        //}
         public static bool GetKey(KeyCode key) => InternalCalls.InternalCalls_Window_KeyPressed((int)key);
         public static bool GetKeyUp(KeyCode key) => InternalCalls.InternalCalls_Window_KeyReleased((int)key);
         public static bool GetMouse(MouseButton button) => InternalCalls.InternalCalls_Window_MouseDown((int)button);

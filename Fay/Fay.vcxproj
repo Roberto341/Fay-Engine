@@ -212,6 +212,10 @@
     <ClCompile Include="Ext\Freetype\src\winfonts\winfnt.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\Fay\EngineEditor\Editor.cpp" />
+    <ClCompile Include="Source\Fay\EngineEditor\EditorCore.cpp" />
+    <ClCompile Include="Source\Fay\EngineEditor\EditorUI.cpp" />
+    <ClCompile Include="Source\Fay\EngineEditor\EditorUtils.cpp" />
+    <ClCompile Include="Source\Fay\EngineEditor\EditorViewport.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Buffers\Buffer.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Buffers\FrameBuffer.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Buffers\IndexBuffer.cpp" />
@@ -245,13 +249,12 @@
     <ClCompile Include="Source\Fay\Math\Vec2.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec3.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec4.cpp" />
-    <ClCompile Include="Source\Fay\Renderer\3DRenderer\Cube.cpp" />
     <ClCompile Include="Source\Fay\Renderer\BatchRenderer.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\Cube.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Scene.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Sprite.cpp" />
     <ClCompile Include="Source\Fay\Scripting\ScriptEngine.cpp" />
     <ClCompile Include="Source\Fay\Scripting\ScriptGlue.cpp" />
-    <ClCompile Include="Source\Fay\Scripting\ScriptSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ext\Freetype-gl\common.h" />
@@ -270,6 +273,10 @@
     <ClInclude Include="Ext\Freetype\include\ft2build.h" />
     <ClInclude Include="Source\Fay\Core\Logger.h" />
     <ClInclude Include="Source\Fay\EngineEditor\Editor.h" />
+    <ClInclude Include="Source\Fay\EngineEditor\EditorCore.h" />
+    <ClInclude Include="Source\Fay\EngineEditor\EditorUI.h" />
+    <ClInclude Include="Source\Fay\EngineEditor\EditorUtils.h" />
+    <ClInclude Include="Source\Fay\EngineEditor\EditorViewport.h" />
     <ClInclude Include="Source\Fay\Entity\ComponentManager.h" />
     <ClInclude Include="Source\Fay\Entity\Components.h" />
     <ClInclude Include="Source\Fay\Entity\Entity.h" />
@@ -313,33 +320,29 @@
     <ClInclude Include="Source\Fay\Math\Vec2.h" />
     <ClInclude Include="Source\Fay\Math\Vec3.h" />
     <ClInclude Include="Source\Fay\Math\Vec4.h" />
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Cube.h" />
     <ClInclude Include="Source\Fay\Renderer\BatchRenderer.h" />
+    <ClInclude Include="Source\Fay\Renderer\Cube.h" />
     <ClInclude Include="Source\Fay\Renderer\Renderable.h" />
     <ClInclude Include="Source\Fay\Renderer\Renderer.h" />
     <ClInclude Include="Source\Fay\Renderer\Scene.h" />
     <ClInclude Include="Source\Fay\Renderer\Sprite.h" />
     <ClInclude Include="Source\Fay\Scripting\ScriptEngine.h" />
     <ClInclude Include="Source\Fay\Scripting\ScriptGlue.h" />
-    <ClInclude Include="Source\Fay\Scripting\ScriptSystem.h" />
     <ClInclude Include="Source\Fay\Utils\FileUtils.h" />
     <ClInclude Include="Source\Fay\Utils\ImageLoad.h" />
     <ClInclude Include="Source\Fay\Utils\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Changelog.md" />
+    <None Include="Res\Assets\Configurations\default.config" />
     <None Include="Res\Fonts\cambria.ttc" />
     <None Include="Res\Shaders\basic.frag" />
     <None Include="Res\Shaders\basic.vert" />
-    <None Include="Res\Shaders\basic_3d.frag" />
-    <None Include="Res\Shaders\basic_3d.vert" />
     <None Include="Res\Shaders\light.frag" />
     <None Include="Res\Shaders\light.vert" />
-    <None Include="Res\Worlds\custom.world" />
-    <None Include="Res\Worlds\level0.world" />
-    <None Include="Res\Worlds\level1.world" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Res\Assets\Textures\Sand.png" />
     <Image Include="Res\Textures\b.png" />
     <Image Include="Res\Textures\tc.png" />
   </ItemGroup>

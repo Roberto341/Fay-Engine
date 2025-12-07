@@ -73,9 +73,6 @@
     <Filter Include="Source\Engine\ImGui\backends">
       <UniqueIdentifier>{04f139e0-9593-4510-9f46-b49a7fb35fc2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Res\Worlds">
-      <UniqueIdentifier>{8dfb6359-b2bd-4181-9713-fc215396ee42}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\ImGui\dirent">
       <UniqueIdentifier>{1a66d776-1551-4f0c-96c5-8dfb746ae898}</UniqueIdentifier>
     </Filter>
@@ -85,14 +82,26 @@
     <Filter Include="Source\Engine\ImGuizmo">
       <UniqueIdentifier>{63ff57b0-4b12-4d18-9d28-45f084353d5b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\renderer\3drenderer">
-      <UniqueIdentifier>{74aca9dd-d74f-4f0d-8ba9-9e4845bd6ac1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\scripting">
       <UniqueIdentifier>{b10459e3-0971-4a2d-8e66-581f89d6d66c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Engine\entity">
       <UniqueIdentifier>{5938ac06-955f-498d-ae55-2764c1dabbe5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Res\Editor">
+      <UniqueIdentifier>{bbe35d27-2e3a-4a2f-ad47-8881486c0fc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Res\Assets">
+      <UniqueIdentifier>{3bdf4c02-1570-4ef5-9cf8-58b5bd7e3012}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Res\Assets\Config">
+      <UniqueIdentifier>{7aa74504-bdba-47aa-bc64-166fee55a1fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Res\Assets\Textures">
+      <UniqueIdentifier>{0854594e-1001-4901-b6db-56e4916df7cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Res\Assets\Scenes">
+      <UniqueIdentifier>{866b1df5-303b-4954-a07a-c42090f5acb1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -328,16 +337,10 @@
     <ClCompile Include="Source\Fay\ImGuizmo\ImSequencer.cpp">
       <Filter>Source\Engine\ImGuizmo</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\3DRenderer\Cube.cpp">
-      <Filter>Source\Engine\renderer\3drenderer</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\Camera3D.cpp">
       <Filter>Source\Engine\graphics</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\Scripting\ScriptEngine.cpp">
-      <Filter>Source\Engine\scripting</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Fay\Scripting\ScriptSystem.cpp">
       <Filter>Source\Engine\scripting</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\Scripting\ScriptGlue.cpp">
@@ -348,6 +351,21 @@
     </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\Layers\Group.cpp">
       <Filter>Source\Engine\graphics\layers</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\EditorCore.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\EditorUI.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\EditorViewport.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\EditorUtils.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\Cube.cpp">
+      <Filter>Source\Engine\renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -525,9 +543,6 @@
     <ClInclude Include="Source\Fay\ImGuizmo\ImZoomSlider.h">
       <Filter>Source\Engine\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Cube.h">
-      <Filter>Source\Engine\renderer\3drenderer</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\Graphics\Camera3D.h">
       <Filter>Source\Engine\graphics</Filter>
     </ClInclude>
@@ -542,9 +557,6 @@
     </ClInclude>
     <ClInclude Include="Source\Fay\Entity\Components.h">
       <Filter>Source\Engine\entity</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\Scripting\ScriptSystem.h">
-      <Filter>Source\Engine\scripting</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\Scripting\ScriptGlue.h">
       <Filter>Source\Engine\scripting</Filter>
@@ -564,6 +576,21 @@
     <ClInclude Include="Source\Fay\Graphics\Layers\Group.h">
       <Filter>Source\Engine\graphics\layers</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\EditorCore.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\EditorUI.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\EditorViewport.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\EditorUtils.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\Cube.h">
+      <Filter>Source\Engine\renderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Res\Shaders\basic.frag">
@@ -582,20 +609,8 @@
       <Filter>Res\Shaders</Filter>
     </None>
     <None Include="Changelog.md" />
-    <None Include="Res\Worlds\level0.world">
-      <Filter>Res\Worlds</Filter>
-    </None>
-    <None Include="Res\Worlds\custom.world">
-      <Filter>Res\Worlds</Filter>
-    </None>
-    <None Include="Res\Worlds\level1.world">
-      <Filter>Res\Worlds</Filter>
-    </None>
-    <None Include="Res\Shaders\basic_3d.frag">
-      <Filter>Res\Shaders</Filter>
-    </None>
-    <None Include="Res\Shaders\basic_3d.vert">
-      <Filter>Res\Shaders</Filter>
+    <None Include="Res\Assets\Configurations\default.config">
+      <Filter>Res\Editor</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -604,6 +619,9 @@
     </Image>
     <Image Include="Res\Textures\tc.png">
       <Filter>Res\Textures</Filter>
+    </Image>
+    <Image Include="Res\Assets\Textures\Sand.png">
+      <Filter>Res\Assets\Textures</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

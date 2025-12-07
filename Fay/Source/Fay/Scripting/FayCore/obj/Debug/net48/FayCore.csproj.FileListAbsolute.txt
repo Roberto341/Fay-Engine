@@ -1,0 +1,12 @@
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\obj\Debug\net48\FayCore.csproj.AssemblyReference.cache
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\obj\Debug\net48\FayCore.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\obj\Debug\net48\FayCore.AssemblyInfoInputs.cache
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\obj\Debug\net48\FayCore.AssemblyInfo.cs
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\obj\Debug\net48\FayCore.csproj.CoreCompileInputs.cache
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\bin\Debug\net48\FayCore.dll
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\bin\Debug\net48\FayCore.pdb
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\obj\Debug\net48\FayCore.dll
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\obj\Debug\net48\FayCore.pdb
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\bin\Debug\net48\FayRuntime.dll
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\bin\Debug\net48\FayRuntime.pdb
+C:\Users\will6\source\repos\Fay\Fay\Source\Fay\Scripting\FayCore\obj\Debug\net48\FayCore.csproj.Up2Date
