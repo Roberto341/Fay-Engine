@@ -349,9 +349,6 @@
     <ClCompile Include="Source\Fay\Scripting\ScriptEngine.cpp">
       <Filter>Source\Engine\scripting</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Fay\Scripting\ScriptSystem.cpp">
-      <Filter>Source\Engine\scripting</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\Scripting\ScriptGlue.cpp">
       <Filter>Source\Engine\scripting</Filter>
     </ClCompile>
@@ -362,6 +359,18 @@
       <Filter>Source\Engine\graphics\layers</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\EngineEditor\Configuration.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\EditorCore.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\EditorUI.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\EditorViewport.cpp">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\EditorUtils.cpp">
       <Filter>Source\Engine\EngineEditor</Filter>
     </ClCompile>
   </ItemGroup>
@@ -558,9 +567,6 @@
     <ClInclude Include="Source\Fay\Entity\Components.h">
       <Filter>Source\Engine\entity</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Scripting\ScriptSystem.h">
-      <Filter>Source\Engine\scripting</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\Scripting\ScriptGlue.h">
       <Filter>Source\Engine\scripting</Filter>
     </ClInclude>
@@ -583,6 +589,18 @@
       <Filter>Source\Engine\entity</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\EngineEditor\Configuration.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\EditorCore.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\EditorUI.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\EditorViewport.h">
+      <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\EditorUtils.h">
       <Filter>Source\Engine\EngineEditor</Filter>
     </ClInclude>
   </ItemGroup>

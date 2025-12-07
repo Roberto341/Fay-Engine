@@ -16,12 +16,8 @@ namespace Fay {
 		bool m_keys[MAX_KEYS];
 		bool m_mouseButtons[MAX_BUTTONS];
 		bool m_keyState[MAX_KEYS];
+		
 		double mx, my;
-
-		// Framebuffer
-		GLuint m_fbo = 0;
-		GLuint m_renderTexture = 0;
-		//GLuint m_rbo = 0; // optional for depth stencil
 	public:
 		Window(const char* title, int width, int height);
 		~Window();

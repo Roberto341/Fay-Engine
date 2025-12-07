@@ -13,6 +13,13 @@ namespace FayRuntime
         Scene2D = 1,
         Scene3D = 2
     }
+    public static class API
+    {
+        public static uint GetScriptEntId()
+        {
+            return InternalCalls.InternalCalls_ScriptComp_GetEntityId();
+        }
+    }
     public class Entity
     {
         internal uint _entityID;
@@ -34,6 +41,10 @@ namespace FayRuntime
         {
             return InternalCalls.InternalCalls_Entity_GetID(this);
         }
+        public bool HasCollisionComp()
+        {
+            return InternalCalls.InternalCalls_Entity_HasComponent(this, typeof(FayRuntime.CollisionComponent));
+        }
         public float GetSpeed()
         {
             return InternalCalls.InternalCalls_Entity_GetSpeed();
@@ -46,6 +57,12 @@ namespace FayRuntime
         {
             var entity = new Entity();
             entity.SetId(InternalCalls.InternalCalls_Entity_GetSelected());
+            return entity;
+        }
+        public static Entity GetSel()
+        {
+            var entity = new Entity();
+            entity.SetId(InternalCalls.InternalCalls_ScriptComp_GetEntityId());
             return entity;
         }
         public bool HasComponent(Type componentType)
@@ -157,5 +174,9 @@ namespace FayRuntime
     {
         public Vector3 position;
         public Vector3 size;
+    }
+    public class ScriptComponent
+    {
+
     }
 }

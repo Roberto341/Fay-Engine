@@ -1,14 +1,18 @@
 #pragma once
 
 #define _USE_MATH_DEFINES
-#include <Math/Math.h>
+#include <Math/Vec3.h>
+#include <Math/Vec4.h>
+#include <math.h>
 #include <sstream>
 #include <iomanip>
 
 namespace Fay
 {
-	float toRadians(float degres);
-
+	inline float toRadians(float degrees)
+	{
+		return degrees * (M_PI / 180.0f);
+	}
 	struct Mat4
 	{
 		union

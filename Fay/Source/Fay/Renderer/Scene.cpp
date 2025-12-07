@@ -20,7 +20,9 @@ namespace Fay
 	{
 		ComponentManager<SpriteComponent>::Get().clear();
 		ComponentManager<CubeComponent>::Get().clear();
+		ComponentManager<CollisionComponent>::Get().clear();
 		ComponentManager<TransformComponent>::Get().clear();
+		ComponentManager<ScriptComponent>::Get().clear();
 		m_objects.clear();
 	}
 	void Scene::render(TileLayer* renderingLayer) const
@@ -29,9 +31,7 @@ namespace Fay
 		{
 			renderingLayer->clear();
 			for (auto* sp : getObjects())
-			{
 				renderingLayer->add(sp);
-			}
 			renderingLayer->render();
 		}
 	}
@@ -72,6 +72,8 @@ namespace Fay
 			bool hasCamera = ComponentManager<CameraComponent>::Get().hasComponent(entity);
 			bool hasHitBox = ComponentManager<CollisionComponent>::Get().hasComponent(entity);
 			bool hasCube = ComponentManager<CubeComponent>::Get().hasComponent(entity);
+			bool hasScript = ComponentManager<ScriptComponent>::Get().hasComponent(entity);
+
 			uint32_t componentCount = 0;
 
 			if (hasSprite && m_ActiveScene == SceneType::Scene2D) componentCount++;
@@ -79,7 +81,7 @@ namespace Fay
 			if (hasCamera) componentCount++;
 			if (hasHitBox) componentCount++;
 			if (hasCube && m_ActiveScene == SceneType::Scene3D) componentCount++;
-
+			if (hasScript) componentCount++;
 			// Write component count
 			out.write(reinterpret_cast<const char*>(&componentCount), sizeof(uint32_t));
 
@@ -138,6 +140,21 @@ namespace Fay
 
 				}
 			}
+			if (hasScript)
+			{
+				std::string compName = "ScriptComponent";
+				uint32_t nameLen = static_cast<uint32_t>(compName.size());
+				out.write(reinterpret_cast<const char*>(&nameLen), sizeof(uint32_t));
+				out.write(compName.c_str(), nameLen);
+
+				const ScriptComponent* scriptComp = ComponentManager<ScriptComponent>::Get().getComponent(entity);
+
+				if (scriptComp)
+				{
+					writeString(out, scriptComp->className);
+					out.write(reinterpret_cast<const char*>(&scriptComp->entityId), sizeof(uint32_t));
+				}
+			}
 			if (hasCube && m_ActiveScene == SceneType::Scene3D)
 			{
 				std::string compName = "CubeComponent";
@@ -156,7 +173,6 @@ namespace Fay
 				out.write(reinterpret_cast<const char*>(&pos), sizeof(Vec3));
 				out.write(reinterpret_cast<const char*>(&size), sizeof(Vec3));
 				out.write(reinterpret_cast<const char*>(&color), sizeof(Vec4));
-				out.write(reinterpret_cast<const char*>(&hasCol), sizeof(bool));
 			}
 			// add camera later
 		}
@@ -239,17 +255,24 @@ namespace Fay
 
 					ComponentManager<CollisionComponent>::Get().addComponent(entity, CollisionComponent(pos, size));
 				}
+				else if (compName == "ScriptComponent")
+				{
+					std::string className;
+					uint32_t entityID;
+					className = readString(in);
+					in.read(reinterpret_cast<char*>(&entityID), sizeof(uint32_t));
+
+					ComponentManager<ScriptComponent>::Get().addComponent(entity, ScriptComponent(className, entityID));
+				}
 				else if (compName == "CubeComponent")
 				{
 					Vec3 pos;
 					Vec3 size;
 					Vec4 color;
-					bool hasCol;
 
 					in.read(reinterpret_cast<char*>(&pos), sizeof(Vec3));
 					in.read(reinterpret_cast<char*>(&size), sizeof(Vec3));
 					in.read(reinterpret_cast<char*>(&color), sizeof(Vec4));
-					in.read(reinterpret_cast<char*>(&hasCol), sizeof(bool));
 
 					Cube* cube = nullptr;
 
@@ -305,6 +328,9 @@ namespace Fay
 	}
 	void Scene::setSceneType(SceneType type)
 	{
+		if (m_ActiveScene == type)
+			return;
+
 		if ((m_ActiveScene == SceneType::Scene2D && has2DEntities()) ||
 			(m_ActiveScene == SceneType::Scene3D && has3DEntities()))
 		{

@@ -49,6 +49,10 @@ namespace Fay
         static bool InternalCalls_Window_KeyReleased(int keyCode);
         static bool InternalCalls_Window_MouseDown(int button);
         static bool InternalCalls_Window_MouseUp(int button);
+
+        // Script Component
+        static uint32_t InternalCalls_ScriptComp_GetEntityId();
+
         // Window stuff 
         static void SetWindow(Window& window);
         static Window& GetWindow();
@@ -67,7 +71,7 @@ namespace Fay
 
         std::string managedTypename = "FayRuntime." + std::string(structName);
 
-        MonoType* managedType = mono_reflection_type_from_name(const_cast<char*>(managedTypename.c_str()), ScriptEngine::GetImage());
+        MonoType* managedType = mono_reflection_type_from_name(const_cast<char*>(managedTypename.c_str()), ScriptEngine::GetRootImage());
         if (!managedType)
         {
             FAY_LOG_ERROR("Could not find component type: " << managedTypename);

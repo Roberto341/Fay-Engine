@@ -33,7 +33,7 @@ namespace FayRuntime
             {
                 Entity entity = Entity.GetSelected();
                 entity.Move(entity.GetSpeed(), false);
-                if (entity.CheckCollision())
+                if (entity.HasCollisionComp() && entity.CheckCollision())
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("Entity: " + entity.GetId() + " has collided with an object ");

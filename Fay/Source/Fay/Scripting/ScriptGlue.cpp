@@ -10,7 +10,7 @@ namespace Fay
 	void ScriptGlue::RegisterComponents()
 	{
         s_EntityHasComponentFuncs.clear();
-		RegisterComponent<TransformComponent, SpriteComponent, CameraComponent, CubeComponent, CollisionComponent>();
+		RegisterComponent<TransformComponent, SpriteComponent, CameraComponent, CubeComponent, CollisionComponent, ScriptComponent>();
 	}
 	void ScriptGlue::RegisterFunctions()
 	{
@@ -34,6 +34,8 @@ namespace Fay
 		// Scene handling
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_SetActive);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_GetActive);
+		// Script Component
+		FAY_ADD_INTERNAL_CALL(InternalCalls_ScriptComp_GetEntityId);
 	}
 	bool ScriptGlue::InternalCalls_Entity_HasComponent(MonoObject* object, MonoReflectionType* componentType)
 	{
@@ -71,7 +73,7 @@ namespace Fay
 	}
 	uint32_t ScriptGlue::InternalCalls_Entity_GetSelected()
 	{
-		return Editor::GetSelEntity();
+		return EditorUtils::GetSelectedEntity();
 	}
 	void ScriptGlue::InternalCalls_Entity_SetID(MonoObject* object, uint32_t id)
 	{
@@ -104,7 +106,7 @@ namespace Fay
 		if (!a) return false;
 
 		// Loop through every renderable in the scene
-		for (Renderable* obj : Editor::s_Scene->getObjects())
+		for (Renderable* obj : EditorUtils::s_Scene->getObjects())
 		{
 			if (!obj) continue;
 
@@ -199,7 +201,7 @@ namespace Fay
 	}
 	float ScriptGlue::InternalCalls_Entity_GetSpeed()
 	{
-		return Editor::GetEntitySpeed();
+		return EditorUtils::GetEntitySpeed();
 	}
 	bool ScriptGlue::InternalCalls_Entity_GetCollision(int entity)
 	{
@@ -224,11 +226,6 @@ namespace Fay
 		auto* cube = ComponentManager<CubeComponent>::Get().getComponent(id);
 		if (sprite)
 		{
-			//// Optionally add CollisionSpriteComponent if it's not already present
-			//if (!ComponentManager<CollisionComponent>::Get().hasComponent(id))
-			//{
-			//	ComponentManager<CollisionComponent>::Get().addComponent(id, CollisionComponent{});
-			//}
 			sprite->setCollision(condition);
 		}
 		else if (cube)
@@ -257,9 +254,14 @@ namespace Fay
 		auto& window = Fay::ScriptGlue::GetWindow();
 		return window.isMouseButtonReleased(button);
 	}
+
+	uint32_t ScriptGlue::InternalCalls_ScriptComp_GetEntityId()
+	{
+		return EditorUtils::s_currentSpriteComponent->getId();
+	}
+	
 	void ScriptGlue::SetWindow(Window& window)
 	{
-		//std::cout << "[ScriptGlue] SetWindow called: " << &window << std::endl;
 		s_Window = &window;
 	}
 
@@ -267,20 +269,17 @@ namespace Fay
 	{
 		if (!s_Window)
 		{
-			std::cerr << "[ScriptGlue] ERROR: Window is not set!" << std::endl;
-			throw std::runtime_error("ScriptGlue::GetWindow: Window is null!");
+			FAY_LOG_THROW_ERROR("ScriptGlue::GetWindow: Window is null!");
 		}
-
-		//std::cout << "[ScriptGlue] GetWindow called: " << s_Window << std::endl;
 		return *s_Window;
 	}
 	// Scene handling
 	SceneType ScriptGlue::InternalCalls_Scene_GetActive()
 	{
-		return Editor::GetCurrentScene();
+		return EditorUtils::GetCurrentScene();
 	}
 	void ScriptGlue::InternalCalls_Scene_SetActive(SceneType type)
 	{
-		Editor::SetActiveScene(type);
+		EditorUtils::SetActiveScene(type);
 	}
 }

@@ -46,6 +46,7 @@ namespace Fay {
 			m_Components.clear();
 			m_entites.clear();
 		}
+		std::unordered_map<EntityID, T>& getAllComponents() { return m_Components; }
 		const std::vector<EntityID>& getEntities() const { return m_entites; }
 	private:
 		std::unordered_map<EntityID, T> m_Components;

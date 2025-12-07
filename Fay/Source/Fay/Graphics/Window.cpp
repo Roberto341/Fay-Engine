@@ -4,7 +4,6 @@ namespace Fay {
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 	void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
-
 	Window::Window(const char* title, int width, int height)
 	{
 		m_title = title;
@@ -86,7 +85,6 @@ namespace Fay {
 		if (error != GL_NO_ERROR)
 			std::cout << "OpenGL Error: " << error << std::endl;
 		glfwPollEvents();
-
 		glfwSwapBuffers(m_window);
 	}
 	bool Window::closed() const

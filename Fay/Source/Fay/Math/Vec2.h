@@ -21,7 +21,6 @@ namespace Fay
 		friend Vec2 operator-(Vec2 left, const Vec2& right);
 		friend Vec2 operator*(Vec2 left, const Vec2& right);
 		friend Vec2 operator/(Vec2 left, const Vec2& right);
-
 		bool operator==(const Vec2& other);
 		bool operator!=(const Vec2& other);
 

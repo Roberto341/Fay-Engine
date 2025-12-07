@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36717.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FayCore", "FayCore.csproj", "{C3988402-25A0-416A-98BF-5CFB5386630F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FayRuntime", "..\FayRuntime\FayRuntime.csproj", "{3AF20A0A-23E6-E98E-B0B1-DD973BB920B5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C3988402-25A0-416A-98BF-5CFB5386630F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3988402-25A0-416A-98BF-5CFB5386630F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3988402-25A0-416A-98BF-5CFB5386630F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3988402-25A0-416A-98BF-5CFB5386630F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AF20A0A-23E6-E98E-B0B1-DD973BB920B5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AF20A0A-23E6-E98E-B0B1-DD973BB920B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AF20A0A-23E6-E98E-B0B1-DD973BB920B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AF20A0A-23E6-E98E-B0B1-DD973BB920B5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {867EBF9D-D1EB-44EA-B480-F6E8DF4C7531}
+	EndGlobalSection
+EndGlobal

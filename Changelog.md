@@ -196,3 +196,48 @@
     - Sprite.h:
       - **checkCollision** removed moved to Renderable.h
       - **getSprite** removed no longer needed
+- ### Update December 6th 2025
+  - #### Notes
+    - With update **Alpha 3.0** just around the corner more refactoring and cleanup has been going on
+
+    - I've reworked the entire Editor class into subclasses, EditorUI, EditorViewport, EditorCore, EditorUtils
+
+    - Some key improvements have been added such as the **loadScene** method has been refactored to automatically change the rendering mode upon loading it's also been updated a little bit just for easier reading and safer usage
+
+    - A new method **applyPendingRenderMode** has been added that checks if there is a pending switch if there is it switches it over and changes depending on the new render mode also if you try to switch rendering mode with entities in the viewport already it will not switch or log that you cannot switch it simply stays in the current rendering mode which is nicer and cleaner
+
+    - The **setupRenderMode** method has recivied a update to accomodate the new pending system it also has a **currentMode = (int)m_renderMode;** which helps with changing the mode in the imgui ui part that way it's not just stuck saying 2d when it's actually 3d 
+
+    - After a few days of work and a major rework of the ScriptEngine class it now loads 2 seperate c# librarys it now has a **ReloadAssembly** for the new FayCore.dll which hot reloads during Editor run 
+    - I'm still working on much of the EditorCore::Init() that way we can remove the rest of the initilization code out of edtior and hold it in core instead
+  - #### C# Scripting
+    - With the new system in place for entity specific scripts there are 2 dll's **FayRuntime.dll** and the new **FayCore.dll** the Core is for scripting entities nothing more it's linked together with the FayRuntime so you can still access Input and API and other stuff to come  
+  - #### Updates
+    - Components
+      - **ScriptComment** updated and tied in
+    - Logger
+      - **FAY_LOG_THROW_ERROR** added
+    - ScriptEngine
+      - **std::cout & std::cerr** removed replace with **FAY_LOG**
+      - **s_domain** renamed to **s_rootDomain** 
+      - **s_scriptDomain** added
+      - **s_oldDomains** added 
+      - **GetDomain** renamed to **GetRootDomain**
+      - **GetScriptDomain** added
+      - **s_coreImage** added
+      - **s_coreAssembly** added
+      - **InvokeCoreStatic** added
+      - **InvokeCoreMethod** added
+      - **CreateObject** removed
+      - **InvokeStatic** renamed to **InvokeRootStatic**
+      - **InvokeMethod** renmaed to **InvokeRootMethod**
+      - **CreateScriptDomain** added
+      - **GetMonoClass** added
+      - **ReloadAssembly** added
+      - **UnloadScriptDomain** added
+      - **createScriptTemplate** added
+    - Scene
+      - **setSceneType()** line 306 **if(m_ActiveScene == type)return** added
+      - **has2DEntities** and **has3DEntities** made public
+    - README
+      - Updated

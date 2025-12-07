@@ -70,6 +70,7 @@ namespace Fay
 		{
 			sprite->setSize(size);
 		}
+
 		Texture* getTexture() const
 		{
 			return sprite->getTexture();
@@ -89,7 +90,9 @@ namespace Fay
 		Vec4 getColor() const {
 			return sprite->getColor();
 		}
-
+		uint32_t getId() const{
+			return sprite->getId();
+		}
 	};
 
 	struct CubeComponent
@@ -130,40 +133,19 @@ namespace Fay
 			return cube->getColor();
 		}
 	};
-	/*
-	struct MeshComponent
-	{
-		Mesh* mesh;
-		Material* material;
-	}
-	*/
 	// this will be what carries the c# script
 	struct ScriptComponent
 	{
 		std::string className;
-		MonoObject* instance = nullptr;
-		MonoMethod* onUpdateMethod = nullptr;
-		MonoMethod* onStartMethod = nullptr;
+		uint32_t entityId = 0;
+		bool hasStarted = false;
 
-		void Bind()
+		ScriptComponent() = default;
+		ScriptComponent(const std::string& path, uint32_t entId) : className(path), entityId(entId) {}
+
+		bool checkId(uint32_t checkId) const
 		{
-			auto* klass = mono_class_from_name(ScriptEngine::GetImage(), "FayRuntime", className.c_str());
-			if (!klass)
-			{
-				FAY_LOG_ERROR("[ScriptComponent] Class not found: " << className);
-				return;
-			}
-
-			instance = mono_object_new(ScriptEngine::GetDomain(), klass);
-			if (!instance)
-			{
-				FAY_LOG_ERROR("[ScriptComponent] Failed to create instance of: " << className);
-				return;
-			}
-			mono_runtime_object_init(instance);
-
-			onStartMethod = mono_class_get_method_from_name(klass, "OnStart", 0);
-			onUpdateMethod = mono_class_get_method_from_name(klass, "OnUpdate", 0);
+			return checkId == entityId;
 		}
 	};
 	using AllComponents = ComponentGroup<

@@ -20,6 +20,7 @@ namespace Fay
 		void removeObject(Renderable* object);
 		void clear();
 		void render(TileLayer* renderingLayer) const;
+
 		const std::vector<Renderable*>& getObjects() const { return m_objects; }
 
 		bool saveScene(const std::string& filepath) const;
@@ -32,9 +33,9 @@ namespace Fay
 		SceneType getSceneType() { return m_ActiveScene; }
 		bool canSwitchScene() const;
 		EntityID getNextId();
-	private:
 		bool has2DEntities() const;
 		bool has3DEntities() const;
+	private:
 		SceneType m_ActiveScene;
 		void writeString(std::ofstream& out, const std::string& str) const;
 		std::string readString(std::ifstream& in) const;

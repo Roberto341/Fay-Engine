@@ -213,6 +213,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\Fay\EngineEditor\Configuration.cpp" />
     <ClCompile Include="Source\Fay\EngineEditor\Editor.cpp" />
+    <ClCompile Include="Source\Fay\EngineEditor\EditorCore.cpp" />
+    <ClCompile Include="Source\Fay\EngineEditor\EditorUI.cpp" />
+    <ClCompile Include="Source\Fay\EngineEditor\EditorUtils.cpp" />
+    <ClCompile Include="Source\Fay\EngineEditor\EditorViewport.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Buffers\Buffer.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Buffers\FrameBuffer.cpp" />
     <ClCompile Include="Source\Fay\Graphics\Buffers\IndexBuffer.cpp" />
@@ -252,7 +256,6 @@
     <ClCompile Include="Source\Fay\Renderer\Sprite.cpp" />
     <ClCompile Include="Source\Fay\Scripting\ScriptEngine.cpp" />
     <ClCompile Include="Source\Fay\Scripting\ScriptGlue.cpp" />
-    <ClCompile Include="Source\Fay\Scripting\ScriptSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ext\Freetype-gl\common.h" />
@@ -272,6 +275,10 @@
     <ClInclude Include="Source\Fay\Core\Logger.h" />
     <ClInclude Include="Source\Fay\EngineEditor\Configuration.h" />
     <ClInclude Include="Source\Fay\EngineEditor\Editor.h" />
+    <ClInclude Include="Source\Fay\EngineEditor\EditorCore.h" />
+    <ClInclude Include="Source\Fay\EngineEditor\EditorUI.h" />
+    <ClInclude Include="Source\Fay\EngineEditor\EditorUtils.h" />
+    <ClInclude Include="Source\Fay\EngineEditor\EditorViewport.h" />
     <ClInclude Include="Source\Fay\Entity\ComponentManager.h" />
     <ClInclude Include="Source\Fay\Entity\Components.h" />
     <ClInclude Include="Source\Fay\Entity\Entity.h" />
@@ -324,7 +331,6 @@
     <ClInclude Include="Source\Fay\Renderer\Sprite.h" />
     <ClInclude Include="Source\Fay\Scripting\ScriptEngine.h" />
     <ClInclude Include="Source\Fay\Scripting\ScriptGlue.h" />
-    <ClInclude Include="Source\Fay\Scripting\ScriptSystem.h" />
     <ClInclude Include="Source\Fay\Utils\FileUtils.h" />
     <ClInclude Include="Source\Fay\Utils\ImageLoad.h" />
     <ClInclude Include="Source\Fay\Utils\Timer.h" />
