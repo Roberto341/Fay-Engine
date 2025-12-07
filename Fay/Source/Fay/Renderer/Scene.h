@@ -2,7 +2,7 @@
 #include <filesystem>
 #include <set>
 #include <Renderer/Sprite.h>
-#include <Renderer/3DRenderer/Cube.h>
+#include <Renderer/Cube.h>
 #include <Math/Math.h>
 #include <Graphics/Texture.h>
 #include <Graphics/TextureManager.h>

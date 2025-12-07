@@ -64,11 +64,12 @@ namespace Fay
 		void SetNewSceneReq(bool yn) { m_newSceneRequested = yn; }
 		void SetLoadSceneReq(bool yn) { m_loadSceneRequested = yn; }
 		void SetEntitySpeed(float speed) { s_entitySpeed = speed; }
-		void applyPendingMode();
 
 		void SaveScene();
 		void CreateScene(const std::string& path);
 		void LoadScene(const std::string& path);
+		void DeleteScene();
+		void applyPendingMode();
 
 		template<typename TComponent, typename TObject>
 		void drawEntityColorUI(EntityID entity, TObject* object, TComponent* comp)
@@ -100,7 +101,7 @@ namespace Fay
 		BatchRenderer* m_batchRenderer = nullptr;
 		// RenderMode
 		RenderMode m_renderMode = RenderMode::MODE_2D;
-		RenderMode m_pendingMode;
+		RenderMode m_pendingMode = RenderMode::MODE_2D;
 		// Scene
 		SceneType m_activeScene = SceneType::None;
 		bool m_pendingModeUpdate = false;

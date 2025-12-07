@@ -14,7 +14,6 @@
 #include <Scripting/ScriptEngine.h>
 #include <Scripting/ScriptGlue.h>
 #include <Renderer/Scene.h>
-#include <EngineEditor/Configuration.h>
 #include <Math/Math.h>
 #include <EngineEditor/EditorCore.h>
 #include <EngineEditor/EditorUI.h>

@@ -1,4 +1,4 @@
-#include <Renderer/3DRenderer/Cube.h>
+#include <Renderer/Cube.h>
 namespace Fay
 {
 		//RenderDimension dimension = RenderDimension::D2

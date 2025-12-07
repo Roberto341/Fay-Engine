@@ -241,3 +241,8 @@
       - **has2DEntities** and **has3DEntities** made public
     - README
       - Updated
+- ### Update December 7th 2025
+  - #### Updates
+    - Just a pre release update removed old files and folders
+    - Fixed a issue where there was a semicolon at the end of a if block don't know how it got there but it's been removed everything works in release and debug x64 mode
+    - Added the delete scene button in the main menu bar it deletes whichever scene is currently loaded also added clear method in deleteScene in the scene class to not render deleted entities 

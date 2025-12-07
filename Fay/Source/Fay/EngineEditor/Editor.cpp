@@ -15,7 +15,6 @@ namespace Fay
 		ImGui_ImplOpenGL3_Init("#version 330 core");
 
 		m_camera3D = new Camera3D(Vec3(0, 0, 5), Vec3(0, 0, -1), Vec3(0, 1.0f, 0));
-		//camera(Fay::Vec3(0, 0, 5), Fay::Vec3(0, 0, -1), Fay::Vec3(0, 1.0f, 0));
 		m_shader = new Shader("res/shaders/basic.vert", "res/shaders/basic.frag");
 		Shader& shader = *m_shader;
 
@@ -72,7 +71,8 @@ namespace Fay
 			// new render mode
 			if (!m_utils->GetSkipNextFrame())
 			{
-				m_Scene.render(m_renderLayer);
+				//m_Scene.render(m_renderLayer);
+				m_utils->GetScene()->render(m_utils->GetRenderLayer());
 			}
 			else
 			{

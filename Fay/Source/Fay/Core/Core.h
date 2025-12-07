@@ -4,7 +4,7 @@
 #include <Renderer/BatchRenderer.h>
 #include <Renderer/Renderable.h>
 #include <Renderer/Sprite.h>
-#include <Renderer/3DRenderer/Cube.h>
+#include <Renderer/Cube.h>
 #include <Renderer/Scene.h>
 
 #include <Graphics/Window.h>

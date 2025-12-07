@@ -299,6 +299,10 @@ namespace Fay
 				{
 					m_utils->SaveScene();
 				}
+				if (ImGui::MenuItem("Delete Scene"))
+				{
+					m_utils->DeleteScene();
+				}
 				ImGui::Separator();
 				if (ImGui::MenuItem("Exit")) {}
 				ImGui::EndMenu();

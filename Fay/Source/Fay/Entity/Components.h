@@ -1,7 +1,7 @@
 #pragma once
 #include <Scripting/ScriptEngine.h>
 #include <Renderer/Sprite.h>
-#include <Renderer/3DRenderer/Cube.h>
+#include <Renderer/Cube.h>
 #include <Entity/ComponentManager.h>
 #include <functional>
 #include <Core/Logger.h>

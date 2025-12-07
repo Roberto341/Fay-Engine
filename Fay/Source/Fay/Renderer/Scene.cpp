@@ -215,9 +215,6 @@ namespace Fay
 					in.read(reinterpret_cast<char*>(&size), sizeof(Vec3));
 					in.read(reinterpret_cast<char*>(&color), sizeof(Vec4));
 
-					std::cout << "EntityID: " << entity << std::endl;
-					std::cout << "Color: " << color.x << "," << color.y << "," << color.z << "," << color.w << std::endl;
-					std::cout << "Position: "  << pos.x << ", " << pos.y << ", " << pos.z << std::endl;
 					texName = readString(in);
 
 					Sprite* sprite = nullptr;
@@ -232,7 +229,6 @@ namespace Fay
 						sprite = new Sprite(entity, pos.x, pos.y, pos.z, size.x, size.y, size.z, color);
 					}
 					m_objects.push_back(sprite);
-					std::cout << "Sprite ID: " << entity << ", Sprite color " << sprite->getColor() << std::endl;
 					SpriteComponent spriteComp(sprite);
 
 					ComponentManager<SpriteComponent>::Get().addComponent(entity, spriteComp);
@@ -290,6 +286,7 @@ namespace Fay
 	}
 	bool Scene::deleteSceneFile(const std::string& filepath)
 	{
+		clear();
 		try {
 			return std::filesystem::remove(filepath);
 		}

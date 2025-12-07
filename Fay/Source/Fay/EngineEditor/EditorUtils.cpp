@@ -87,8 +87,7 @@ namespace Fay
 		}
 
 		FAY_LOG_INFO("FayScene Loaded: " << path);
-		FAY_LOG_INFO("Object count: " << m_scene->getObjects().size());
-
+		
 		if (m_scene->has2DEntities())
 			m_pendingMode = RenderMode::MODE_2D;
 		else
@@ -99,6 +98,24 @@ namespace Fay
 		SetStaticScene();
 
 		m_currentScene = path;
+		m_selectedEntity = -1;
+	}
+	void EditorUtils::DeleteScene()
+	{
+		if(!m_currentScene.ends_with(".fayScene"))
+		{
+			FAY_LOG_ERROR("Failed to delete FayScene: " << m_currentScene);
+			return;
+		}
+
+		if (!m_scene->deleteSceneFile(m_currentScene))
+		{
+			FAY_LOG_ERROR("Failed to delete FayScene: " << m_currentScene);
+			return;
+		}
+		FAY_LOG_INFO("FayScene Deleted: " << m_currentScene);
+
+		m_currentScene = "";
 		m_selectedEntity = -1;
 	}
 }

@@ -82,9 +82,6 @@
     <Filter Include="Source\Engine\ImGuizmo">
       <UniqueIdentifier>{63ff57b0-4b12-4d18-9d28-45f084353d5b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Engine\renderer\3drenderer">
-      <UniqueIdentifier>{74aca9dd-d74f-4f0d-8ba9-9e4845bd6ac1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Engine\scripting">
       <UniqueIdentifier>{b10459e3-0971-4a2d-8e66-581f89d6d66c}</UniqueIdentifier>
     </Filter>
@@ -340,9 +337,6 @@
     <ClCompile Include="Source\Fay\ImGuizmo\ImSequencer.cpp">
       <Filter>Source\Engine\ImGuizmo</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Fay\Renderer\3DRenderer\Cube.cpp">
-      <Filter>Source\Engine\renderer\3drenderer</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\Graphics\Camera3D.cpp">
       <Filter>Source\Engine\graphics</Filter>
     </ClCompile>
@@ -358,9 +352,6 @@
     <ClCompile Include="Source\Fay\Graphics\Layers\Group.cpp">
       <Filter>Source\Engine\graphics\layers</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Fay\EngineEditor\Configuration.cpp">
-      <Filter>Source\Engine\EngineEditor</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Fay\EngineEditor\EditorCore.cpp">
       <Filter>Source\Engine\EngineEditor</Filter>
     </ClCompile>
@@ -372,6 +363,9 @@
     </ClCompile>
     <ClCompile Include="Source\Fay\EngineEditor\EditorUtils.cpp">
       <Filter>Source\Engine\EngineEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Renderer\Cube.cpp">
+      <Filter>Source\Engine\renderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -549,9 +543,6 @@
     <ClInclude Include="Source\Fay\ImGuizmo\ImZoomSlider.h">
       <Filter>Source\Engine\ImGuizmo</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Cube.h">
-      <Filter>Source\Engine\renderer\3drenderer</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\Graphics\Camera3D.h">
       <Filter>Source\Engine\graphics</Filter>
     </ClInclude>
@@ -585,12 +576,6 @@
     <ClInclude Include="Source\Fay\Graphics\Layers\Group.h">
       <Filter>Source\Engine\graphics\layers</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Entity\Tile.h">
-      <Filter>Source\Engine\entity</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Fay\EngineEditor\Configuration.h">
-      <Filter>Source\Engine\EngineEditor</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Fay\EngineEditor\EditorCore.h">
       <Filter>Source\Engine\EngineEditor</Filter>
     </ClInclude>
@@ -602,6 +587,9 @@
     </ClInclude>
     <ClInclude Include="Source\Fay\EngineEditor\EditorUtils.h">
       <Filter>Source\Engine\EngineEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Renderer\Cube.h">
+      <Filter>Source\Engine\renderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

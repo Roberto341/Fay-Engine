@@ -211,7 +211,6 @@
     <ClCompile Include="Ext\Freetype\src\type42\type42.c" />
     <ClCompile Include="Ext\Freetype\src\winfonts\winfnt.c" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Source\Fay\EngineEditor\Configuration.cpp" />
     <ClCompile Include="Source\Fay\EngineEditor\Editor.cpp" />
     <ClCompile Include="Source\Fay\EngineEditor\EditorCore.cpp" />
     <ClCompile Include="Source\Fay\EngineEditor\EditorUI.cpp" />
@@ -250,8 +249,8 @@
     <ClCompile Include="Source\Fay\Math\Vec2.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec3.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec4.cpp" />
-    <ClCompile Include="Source\Fay\Renderer\3DRenderer\Cube.cpp" />
     <ClCompile Include="Source\Fay\Renderer\BatchRenderer.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\Cube.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Scene.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Sprite.cpp" />
     <ClCompile Include="Source\Fay\Scripting\ScriptEngine.cpp" />
@@ -273,7 +272,6 @@
     <ClInclude Include="Ext\Freetype\include\config\ftstdlib.h" />
     <ClInclude Include="Ext\Freetype\include\ft2build.h" />
     <ClInclude Include="Source\Fay\Core\Logger.h" />
-    <ClInclude Include="Source\Fay\EngineEditor\Configuration.h" />
     <ClInclude Include="Source\Fay\EngineEditor\Editor.h" />
     <ClInclude Include="Source\Fay\EngineEditor\EditorCore.h" />
     <ClInclude Include="Source\Fay\EngineEditor\EditorUI.h" />
@@ -282,7 +280,6 @@
     <ClInclude Include="Source\Fay\Entity\ComponentManager.h" />
     <ClInclude Include="Source\Fay\Entity\Components.h" />
     <ClInclude Include="Source\Fay\Entity\Entity.h" />
-    <ClInclude Include="Source\Fay\Entity\Tile.h" />
     <ClInclude Include="Source\Fay\Graphics\Buffers\Buffer.h" />
     <ClInclude Include="Source\Fay\Graphics\Buffers\FrameBuffer.h" />
     <ClInclude Include="Source\Fay\Graphics\Buffers\IndexBuffer.h" />
@@ -323,8 +320,8 @@
     <ClInclude Include="Source\Fay\Math\Vec2.h" />
     <ClInclude Include="Source\Fay\Math\Vec3.h" />
     <ClInclude Include="Source\Fay\Math\Vec4.h" />
-    <ClInclude Include="Source\Fay\Renderer\3DRenderer\Cube.h" />
     <ClInclude Include="Source\Fay\Renderer\BatchRenderer.h" />
+    <ClInclude Include="Source\Fay\Renderer\Cube.h" />
     <ClInclude Include="Source\Fay\Renderer\Renderable.h" />
     <ClInclude Include="Source\Fay\Renderer\Renderer.h" />
     <ClInclude Include="Source\Fay\Renderer\Scene.h" />
