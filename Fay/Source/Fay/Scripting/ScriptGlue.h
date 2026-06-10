@@ -11,11 +11,13 @@ namespace Fay
 {
     class Window;
     enum class SceneType;
+	class EditorUtils;
 	class ScriptGlue
 	{
     private:
         //static Window* s_Window;
         static Window* s_Window;
+        static EditorUtils* s_EditorUtils;
 	public:
 		static void RegisterComponents();
 		static void RegisterFunctions();
@@ -26,7 +28,6 @@ namespace Fay
 		template<typename... Component>
 		static void RegisterComponent();
 
-		//static std::unordered_map<MonoType*, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
         static std::unordered_map<std::string, std::function<bool(Entity)>> s_EntityHasComponentFuncs;
 
         // All C# InternalCalls.cs functions
@@ -39,7 +40,6 @@ namespace Fay
         static void InternalCalls_Entity_SetPosition(MonoObject* object, float x, float y, float z);
         static Vec3 InternalCalls_Entity_GetPosition(uint32_t entityID);
         static float InternalCalls_Entity_GetSpeed();
-
         // Collsion
         static void InternalCalls_Entity_SetCollision(int entity, bool condition);
         static bool InternalCalls_Entity_GetCollision(int entity);
@@ -50,16 +50,20 @@ namespace Fay
         static bool InternalCalls_Window_MouseDown(int button);
         static bool InternalCalls_Window_MouseUp(int button);
 
-        // Script Component
-        static uint32_t InternalCalls_ScriptComp_GetEntityId();
-
         // Window stuff 
         static void SetWindow(Window& window);
         static Window& GetWindow();
 
+        // EditorUtils
+		static void SetEditorUtils(EditorUtils& utils);
+		static EditorUtils& GetEditorUtils();
         // Scene
         static SceneType InternalCalls_Scene_GetActive();
         static void InternalCalls_Scene_SetActive(SceneType type);
+        static void InternalCalls_Scene_CreateScene(MonoString* sceneName);
+        static bool InternalCalls_Scene_SaveScene(MonoString* sceneName);
+        static bool InternalCalls_Scene_LoadScene(MonoString* sceneName);
+
 	};
 
     template<typename T>

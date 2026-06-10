@@ -8,248 +8,216 @@ namespace Fay
 	void EditorUI::DrawEntitiesPanel()
 	{
 		// Implementation for drawing the entities panel in the editor UI
-#pragma region EntitiesAddDelete
-		ImGui::Begin("Entities");
-		if (m_utils->GetRenderMode() == RenderMode::MODE_2D)
+#pragma region Hierarchy
+		ImGui::Begin("Hierarchy");
+
+		auto* scene = m_utils->GetScene();
+		
+		ImGui::Text("Scene %s", "Untitled"); // Replace later
+		ImGui::Separator();
+
+		// Add/Delete buttons inline
+		if(ImGui::Button("+")) 
 		{
-			if (ImGui::Button("Add Sprite"))
+			EntityID id = m_utils->GetFactory()->CreateEntity(m_utils->GetRenderMode());
+			//FAY_LOG_DEBUG("Entity created with ID: " << id);
+			m_utils->SetSelectedEntity(id);
+		}
+		ImGui::SameLine();
+		ImGui::Text("Hierarchy panel alive");
+		if (ImGui::Button("-")) 
+		{
+			EntityID id = m_utils->GetSelectedEntity();
+			if (id != INVALID_ENTITY)
 			{
-				EntityID entity = m_utils->GetScene()->getNextId();
-				auto* sprite = new Sprite(entity, 0, 0, 0, 100, 100, 0, Vec4(1, 0, 0, 1));
-				ComponentManager<SpriteComponent>::Get().addComponent(entity, SpriteComponent(sprite));
-				m_utils->GetScene()->addObject(sprite);
+				FAY_LOG_DEBUG("Destroying entity");
+				m_utils->GetScene()->destroyEntity(id);
+				//m_utils->SetSelectedEntity(INVALID_ENTITY);
 			}
 
-			if (ImGui::Button("Delete Sprite") && m_utils->GetSelectedEntity() != -1)
-			{
-				auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(m_utils->GetSelectedEntity());
-				if(comp && comp->sprite)
-				{
-					m_utils->GetRenderLayer()->remove(comp->sprite);
-					m_utils->GetScene()->removeObject(comp->sprite);
-					ComponentManager<SpriteComponent>::Get().removeComponent(m_utils->GetSelectedEntity());
-					m_utils->SetSelectedEntity(-1);
-				}
-			}
+			/* delete 2d or 3d */ 
 		}
-		else if (m_utils->GetRenderMode() == RenderMode::MODE_3D)
-		{
-			if(ImGui::Button("Add Cube"))
-			{
-				EntityID entity = m_utils->GetScene()->getNextId();
-				auto* cube = new Cube(entity, 0, 0, 0, 1, 1, 1, Vec4(1, 0, 0, 1));
-				ComponentManager<CubeComponent>::Get().addComponent(entity, CubeComponent(cube));
-				m_utils->GetScene()->addObject(cube);
-			}
 
-			if(ImGui::Button("Delete Cube") && m_utils->GetSelectedEntity() != -1)
+		ImGui::Separator();
+
+		if (scene->getObjectCount() > 0)
+		{
+			if(ImGui::BeginListBox("##Hierarchy objects", ImVec2(-FLT_MIN, -FLT_MIN)))
 			{
-				auto* comp = ComponentManager<CubeComponent>::Get().getComponent(m_utils->GetSelectedEntity());
-				if(comp && comp->cube)
+				for (auto* obj : scene->getObjects())
 				{
-					m_utils->GetRenderLayer()->remove(comp->cube);
-					m_utils->GetScene()->removeObject(comp->cube);
-					ComponentManager<CubeComponent>::Get().removeComponent(m_utils->GetSelectedEntity());
-					m_utils->SetSelectedEntity(-1);
+					std::string name = "Object: " + std::to_string(obj->getId());
+
+					if (ImGui::Selectable(name.c_str(),
+						m_utils->GetSelectedEntity() == obj->getId()))
+					{
+						m_utils->SetSelectedEntity(obj->getId());
+					}
 				}
+				ImGui::EndListBox();
 			}
 		}
+		else
+		{
+			ImGui::TextDisabled("Empty Scene.");
+		}
+
 		ImGui::End();
 
 #pragma endregion 
 #pragma region EntityComponents
-		ImGui::Begin("Entity Components");
-		if (m_utils->GetRenderMode() == RenderMode::MODE_2D)
+		ImGui::Begin("Inspector");
+
+		EntityID entity = m_utils->GetSelectedEntity();
+
+		if (entity != INVALID_ENTITY)
 		{
-			if (m_utils->GetSelectedEntity() != -1)
+			ImGui::Text("Entity: %d", entity);
+			ImGui::Separator();
+
+			// -----------------------
+			// Components Section
+			// -----------------------
+
+			if (ImGui::CollapsingHeader("Components", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				EntityID entity = m_utils->GetSelectedEntity();
-				auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
-
-				if (!comp) return;
-
-				auto* sprite = comp->sprite;
-				if (ComponentManager<TransformComponent>::Get().hasComponent(entity))
+				if (m_utils->GetRenderMode() == RenderMode::MODE_3D)
 				{
-					if (ImGui::Button("Remove Transform"))
-					{
-						ComponentManager<TransformComponent>::Get().removeComponent(entity);
-					}
-				}
-				else
-				{
-					if (ImGui::Button("Add Transform"))
-					{
-						TransformComponent transform(sprite->getPosition(), Vec3(0, 0, 0), Vec3(0, 0, 0), Vec3(sprite->getSize()));
-						ComponentManager<TransformComponent>::Get().addComponent(entity, transform);
-					}
-				}
+					auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity);
 
-				if (ComponentManager<CollisionComponent>::Get().hasComponent(entity))
-				{
-					if (ImGui::Button("Remove Collision"))
+					if (comp)
 					{
-						ComponentManager<CollisionComponent>::Get().removeComponent(entity);
-					}
-				}
-				else
-				{
-					if (ImGui::Button("Add Collision"))
-					{
-						CollisionComponent hitBox(sprite->getPosition(), sprite->getSize());
-						ComponentManager<CollisionComponent>::Get().addComponent(entity, hitBox);
-					}
-				}
+						auto* cube = comp->cube;
 
-				if (ComponentManager<ScriptComponent>::Get().hasComponent(entity))
-				{
-					if (ImGui::Button("Remove Script"))
-					{
-						ComponentManager<ScriptComponent>::Get().removeComponent(entity);
-					}
-				}
-				else
-				{
-					if (ImGui::Button("Add Script"))
-					{
-						ImGui::OpenPopup("EntityScriptPop");
-					}
-					if (ImGui::BeginPopup("EntityScriptPop"))
-					{
-						static char scriptName[256] = "Untitled";
-
-						ImGui::InputText("Script Name", scriptName, sizeof(scriptName));
-
-						if (ImGui::Button("Add Existing"))
+						// Transform
+						if (ComponentManager<TransformComponent>::Get().hasComponent(entity))
 						{
-							std::string className = scriptName;
-
-							if (classExists(className))
-							{
-								if (m_utils->GetSelectedEntity() == -1) m_utils->SetCurrentSpriteComponent(nullptr);
-								ComponentManager<ScriptComponent>::Get().addComponent(entity, ScriptComponent(className, entity));
-								auto* comp = ComponentManager<ScriptComponent>::Get().getComponent(entity);
-								m_utils->SetCurrentSpriteComponent(ComponentManager<SpriteComponent>::Get().getComponent(entity));
-								if (comp)
-								{
-									if (!comp->hasStarted)
-									{
-										ScriptEngine::InvokeCoreStatic(comp->className, "OnStart");
-										comp->hasStarted = true;
-									}
-									ScriptEngine::InvokeCoreStatic(comp->className, "OnUpdate");
-								}
-								else
-								{
-									FAY_LOG_ERROR("Failed to get ScriptComponent after adding it!");
-								}
-							}
-							else
-							{
-								FAY_LOG_ERROR("Script class not found in DLL: " << className);
-							}
-							ImGui::CloseCurrentPopup();
+							if(ImGui::Button("Remove Transform"))
+								ComponentManager<TransformComponent>::Get().removeComponent(entity);
 						}
-						if (ImGui::Button("Create"))
+						else if (ImGui::Button("Add Transform"))
 						{
-							std::string fileName = std::string(scriptName) + ".cs";
-							std::string fullPath = "Source/Fay/Scripting/FayCore/" + fileName;
-
-							ScriptEngine::createScriptTemplate(fullPath, entity);
-
-							//rebuildRuntime();
-							m_core->rebuildRuntime();
-							std::string dllPath = "Source/Fay/Scripting/FayCore/bin/Debug/net48/FayCore.dll";
-
-							// Reload in Mono[
-							ScriptEngine::ReloadAssembly(dllPath);
-							ScriptEngine::InvokeCoreStatic(scriptName, "OnStart");
-							ImGui::CloseCurrentPopup();
+							TransformComponent transform(
+								cube->getPosition(),
+								Vec3(0, 0, 0),
+								Vec3(0, 0, 0),
+								Vec3(cube->getSize())
+							);
+							ComponentManager<TransformComponent>::Get().addComponent(entity, transform);
 						}
-						if (ImGui::Button("Close"))
+						if (ComponentManager<CollisionComponent>::Get().hasComponent(entity))
 						{
-							ImGui::CloseCurrentPopup();
+							if (ImGui::Button("Remove Collision"))
+								ComponentManager<CollisionComponent>::Get().removeComponent(entity);
 						}
-						ImGui::EndPopup();
+						else if (ImGui::Button("Add Collision"))
+						{
+							CollisionComponent hitBox(
+								cube->getPosition(),
+								cube->getSize()
+							);
+							ComponentManager<CollisionComponent>::Get().addComponent(entity, hitBox);
+						}
+						// Script 
+						if (ComponentManager<ScriptComponent>::Get().hasComponent(entity))
+						{
+							if (ImGui::Button("Remove Script Component"))
+								ComponentManager<ScriptComponent>::Get().removeComponent(entity);
+						}
+						else if (ImGui::Button("Add Script Component"))
+						{
+							ComponentManager<ScriptComponent>::Get().addComponent(entity, ScriptComponent(entity));
+						}
+					}
+				}
+				if (m_utils->GetRenderMode() == RenderMode::MODE_2D)
+				{
+					auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity);
+
+					if (comp)
+					{
+						auto* sprite = comp->sprite;
+
+						// Transform
+						if (ComponentManager<TransformComponent>::Get().hasComponent(entity))
+						{
+							if (ImGui::Button("Remove Transform"))
+								ComponentManager<TransformComponent>::Get().removeComponent(entity);
+						}
+						else if (ImGui::Button("Add Transform"))
+						{
+							TransformComponent transform(
+								sprite->getPosition(),
+								Vec3(0, 0, 0),
+								Vec3(0, 0, 0),
+								Vec3(sprite->getSize())
+							);
+							ComponentManager<TransformComponent>::Get().addComponent(entity, transform);
+						}
+						// Collision
+						if (ComponentManager<CollisionComponent>::Get().hasComponent(entity))
+						{
+							if (ImGui::Button("Remove Collision"))
+								ComponentManager<CollisionComponent>::Get().removeComponent(entity);
+						}
+						else if (ImGui::Button("Add Collision"))
+						{
+							CollisionComponent hitBox(
+								sprite->getPosition(),
+								sprite->getSize()
+							);
+							ComponentManager<CollisionComponent>::Get().addComponent(entity, hitBox);
+						}
+						// Script 
+						if (ComponentManager<ScriptComponent>::Get().hasComponent(entity))
+						{
+							if (ImGui::Button("Remove Script Component"))
+								ComponentManager<ScriptComponent>::Get().removeComponent(entity);
+						}
+						else if (ImGui::Button("Add Script Component"))
+						{
+							ComponentManager<ScriptComponent>::Get().addComponent(entity, ScriptComponent(entity));
+						}
 					}
 				}
 			}
-		}
-		else if (m_utils->GetRenderMode() == RenderMode::MODE_3D)
-		{
-			if (m_utils->GetSelectedEntity() != -1)
+			ImGui::Separator();
+
+			// -----------------------
+			// Properties Section
+			// -----------------------
+			if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				EntityID entity = m_utils->GetSelectedEntity();
-				auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity);
-
-				if (!comp)
-					return;
-				auto* cube = comp->cube;
-
-				if (ComponentManager<TransformComponent>::Get().hasComponent(entity))
+				if (auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(entity))
 				{
-					if (ImGui::Button("Remove Transform"))
-					{
-						ComponentManager<TransformComponent>::Get().removeComponent(entity);
-					}
+					m_utils->drawEntityColorUI(entity, comp->sprite, comp);
 				}
-				else
+				else if (auto* comp = ComponentManager<CubeComponent>::Get().getComponent(entity))
 				{
-					if (ImGui::Button("Add Transform"))
-					{
-						TransformComponent transform(cube->getPosition(), Vec3(0, 0, 0), Vec3(0, 0, 0), Vec3(cube->getSize()));
-						ComponentManager<TransformComponent>::Get().addComponent(entity, transform);
-					}
+					m_utils->drawEntityColorUI(entity, comp->cube, comp);
 				}
-
-				if (ComponentManager<CollisionComponent>::Get().hasComponent(entity))
-				{
-					if (ImGui::Button("Remove Collision"))
-					{
-						ComponentManager<CollisionComponent>::Get().removeComponent(entity);
-					}
-				}
-				else
-				{
-					if (ImGui::Button("Add Collision"))
-					{
-						CollisionComponent hitBox(cube->getPosition(), cube->getSize());
-						ComponentManager<CollisionComponent>::Get().addComponent(entity, hitBox);
-					}
-				}
+				m_utils->drawEntityScriptList(entity);
 			}
 		}
 		ImGui::End();
+}
 #pragma endregion
-#pragma region EntityProperties
-		ImGui::Begin("Entity Properties");
-
-		if (m_utils->GetSelectedEntity() != -1)
-		{
-			if (auto* comp = ComponentManager<SpriteComponent>::Get().getComponent(m_utils->GetSelectedEntity()))
-			{
-				m_utils->drawEntityColorUI(m_utils->GetSelectedEntity(), comp->sprite, comp);
-			}
-			else if (auto* comp = ComponentManager<CubeComponent>::Get().getComponent(m_utils->GetSelectedEntity()))
-			{
-				m_utils->drawEntityColorUI(m_utils->GetSelectedEntity(), comp->cube, comp);
-			}
-		}
-		ImGui::End();
-#pragma endregion
-	}
 #pragma region DrawFileMenu
 	void EditorUI::DrawFileMenu()
 	{
 		ImGui::Begin("File");
+		
 		const char* modes[] = { "2D", "3D" };
 		static int currentMode = 0;
+		
 		currentMode = (int)m_utils->GetRenderMode();
+		
 		if (ImGui::Combo("Render Mode", &currentMode, modes, IM_ARRAYSIZE(modes)))
 		{
 			if (m_utils->GetScene()->canSwitchScene())
 			{
-				m_utils->SetPendingMode((RenderMode)currentMode);
+				RenderMode newMode = (RenderMode)currentMode;
+				m_utils->SetPendingMode(newMode);
 				m_utils->SetModeUpdate(true);
 			}
 		}
@@ -336,12 +304,12 @@ namespace Fay
 			static char sceneName[256] = "UntitledScene";
 			
 			ImGui::InputText("Scene Name", sceneName, sizeof(sceneName));
-			
+
 			if (ImGui::Button("Create"))
 			{
-				std::string filename = std::string(sceneName) + ".fayScene";
-				std::string fullPath = "Res/Assets/Scenes/" + filename;
-				m_utils->CreateScene(fullPath);
+				MonoDomain* domain = mono_domain_get();
+				MonoString* monoSceneName = mono_string_new(domain, sceneName);
+				ScriptGlue::InternalCalls_Scene_CreateScene(monoSceneName);
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();

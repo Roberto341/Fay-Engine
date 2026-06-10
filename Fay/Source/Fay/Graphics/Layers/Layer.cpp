@@ -5,17 +5,9 @@ namespace Fay
 	Layer::Layer(Renderer* renderer, Shader* shader, Mat4 projectionMatrix, Mat4 viewMatrix)
 		: m_Renderer(renderer), m_shader(shader), m_projectionMatrix(projectionMatrix), m_viewMatrix(viewMatrix)
 	{
-		setShader(new Shader("Res/Shaders/basic.vert", "Res/Shaders/basic.frag")); // default to 2d
-		//m_shader = getShader();
-		if (m_shader) {
-			m_shader->enable();
-			m_shader->setUniformMat4("pr_matrix", m_projectionMatrix);
-			m_shader->setUniformMat4("vw_matrix", m_viewMatrix);
-			m_shader->disable();
-		}
-		else {
-			std::cerr << "[Layer] Warning: Shader is null in constructor.\n";
-		}
+		setShader(new Shader("Res/Shaders/basic.vert", "Res/Shaders/basic.frag"));
+		if (!m_shader)
+			FAY_LOG_ERROR("[Layer] Warning: Shader is null in constructor");
 	}
 	Layer::~Layer()
 	{
@@ -27,7 +19,6 @@ namespace Fay
 
 	void Layer::add(Renderable* renderable)
 	{
-		//std::cout << "Adding sprite with ID: " << dynamic_cast<Sprite*>(renderable)->getEntityId() << std::endl;
 		m_Renderables.push_back(renderable);
 	}
 	void Layer::remove(Renderable* renderable)

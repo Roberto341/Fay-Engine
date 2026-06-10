@@ -48,6 +48,10 @@ namespace FayRuntime
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void InternalCalls_Scene_SetActive();
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern uint InternalCalls_ScriptComp_GetEntityId();
+        internal static extern void InternalCalls_Scene_CreateScene(string sceneName);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool InternalCalls_Scene_SaveScene(string sceneName);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool InternalCalls_Scene_LoadScene(string sceneName);
     }
 }

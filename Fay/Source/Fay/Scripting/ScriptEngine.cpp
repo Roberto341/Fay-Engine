@@ -1,5 +1,4 @@
 #include <Scripting/ScriptEngine.h>
-
 namespace Fay
 {
 		MonoDomain* ScriptEngine::s_rootDomain = nullptr;
@@ -12,8 +11,13 @@ namespace Fay
         MonoImage* ScriptEngine::s_coreImage = nullptr;
 
 		std::vector<MonoDomain*> ScriptEngine::s_oldDomains;
-        void ScriptEngine::Init()
+        static std::filesystem::path s_exeDir;
+        void ScriptEngine::Init(const char* argv0)
         {
+            if (!argv0)
+                throw std::runtime_error("argv[0] is null");
+
+            s_exeDir = std::filesystem::absolute(argv0).parent_path();
             mono_set_dirs("C:/Program Files/Mono/lib", "C:/Program Files/Mono/etc");
             mono_config_parse(nullptr);
 
@@ -22,6 +26,72 @@ namespace Fay
                 FAY_LOG_ERROR("[Mono] Failed to initialize Mono JIT.");
 
             s_scriptDomain = s_rootDomain; // default to root domain initially
+        }
+        const std::filesystem::path& ScriptEngine::ExeDir()
+        {
+            return s_exeDir;
+        }
+        std::string ScriptEngine::GetRuntimeDll()
+        {
+            namespace fs = std::filesystem;
+
+            if (s_exeDir.empty())
+                FAY_LOG_THROW_ERROR("ScriptEngine not initialized");
+
+            // EXE is in Fay/Bin -> go up to Fay root
+            fs::path fayRoot = s_exeDir
+                .parent_path()
+                .parent_path()
+                .parent_path();
+
+            fs::path dllPath = fayRoot / "Fay/Source/Fay/Scripting/FayRuntime/bin/Debug/net48/FayRuntime.dll"; // Change to release after completion
+
+            if (!fs::exists(dllPath))
+                FAY_LOG_THROW_ERROR("FayRuntime.dll not found at" + dllPath.string());
+
+            return dllPath.string();
+        }
+        std::string ScriptEngine::GetCoreDll()
+        {
+            namespace fs = std::filesystem;
+
+            if (s_exeDir.empty())
+                FAY_LOG_THROW_ERROR("ScriptEngine not initialized");
+
+            // EXE is in Fay/Bin -> go up to Fay root
+            fs::path fayRoot = s_exeDir
+                .parent_path()
+                .parent_path()
+                .parent_path();
+
+            fs::path dllPath = fayRoot / "Fay/Source/Fay/Scripting/FayCore/bin/Debug/net48/FayCore.dll"; // Change to release after completion
+
+            if (!fs::exists(dllPath))
+                FAY_LOG_THROW_ERROR("FayCore.dll not found at" + dllPath.string());
+
+
+
+            return dllPath.string();
+        }
+        std::string ScriptEngine::GetCoreCsProj()
+        {
+            namespace fs = std::filesystem;
+
+            if (s_exeDir.empty())
+                FAY_LOG_THROW_ERROR("ScriptEngine not initialized");
+
+            fs::path fayRoot = s_exeDir
+                .parent_path()
+                .parent_path()
+                .parent_path();
+            
+            fs::path csPath = fayRoot / "Fay/Source/Fay/Scripting/FayCore/FayCore.csproj";
+          
+            if (!fs::exists(csPath))
+                FAY_LOG_THROW_ERROR("FayCore.csproj not found at" + csPath.string());
+
+
+            return csPath.string();
         }
         void ScriptEngine::Shutdown()
         {
@@ -223,8 +293,21 @@ namespace Fay
         void ScriptEngine::createScriptTemplate(const std::string& path, uint32_t entity)
         {
             auto* comp = ComponentManager<ScriptComponent>::Get().getComponent(entity);
-            if (comp && comp->checkId(entity))
-                return; // script already exists for this entity
+
+            std::string fileName = path.substr(path.find_last_of("/\\") + 1);
+            std::string className = fileName.substr(0, fileName.find_last_of('.'));
+
+            if (comp)
+            {
+                for (auto& s : comp->scripts)
+                {
+                    if (s.className == className)
+                    {
+                        FAY_LOG_WARN("Script " << className << " already attached t0 entity " << entity);
+                        return; // script already exists
+                    }
+                }
+            }
 
             std::ofstream out(path);
             if (!out.is_open())
@@ -232,12 +315,6 @@ namespace Fay
                 FAY_LOG_ERROR("Failed to create script at path: " << path);
                 return;
             }
-
-            // Extract class name from file name
-            std::string fileName = path.substr(path.find_last_of("/\\") + 1);
-            // remove extension
-            std::string className = fileName.substr(0, fileName.find_last_of('.'));
-
             // Write template C# class
             out << "using System;\nusing System.Collections.Generic;\nusing System.Linq;\nusing System.Text;\nusing System.Threading.Tasks;\n";
             out << "namespace FayCore\n{\n";
@@ -248,8 +325,27 @@ namespace Fay
             out << "    }\n";
             out << "}\n";
             out.close();
+              
+            // If no ScriptComponent exists, create it
+            if (!comp)
+            {
+                ScriptComponent newComp(entity);
+                newComp.scripts.emplace_back(className);
+                ComponentManager<ScriptComponent>::Get().addComponent(entity, newComp);
+                comp = ComponentManager<ScriptComponent>::Get().getComponent(entity);
+            }
+            else {
+                // Otherwise, just add the new script to the existing component
+                comp->scripts.emplace_back(className);
+            }
 
-            // Add ScriptComponent with fully qualified class name
-            ComponentManager<ScriptComponent>::Get().addComponent(entity, ScriptComponent(className, entity));
+            // Auto-inialize the new script
+            auto& newScript = comp->scripts.back();
+            if (!newScript.hasStarted)
+            {
+                ScriptEngine::InvokeCoreStatic(newScript.className, "OnStart");
+                newScript.hasStarted = true;
+            }
+            FAY_LOG_INFO("Script " << className << " created and attatched to entity " << entity);
         }
 }

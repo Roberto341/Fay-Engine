@@ -6,6 +6,7 @@ namespace Fay
 {
 	Window* ScriptGlue::s_Window = nullptr;
     std::unordered_map<std::string, std::function<bool(Entity)>> ScriptGlue::s_EntityHasComponentFuncs;
+	EditorUtils* ScriptGlue::s_EditorUtils = nullptr;
 
 	void ScriptGlue::RegisterComponents()
 	{
@@ -31,18 +32,21 @@ namespace Fay
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_KeyReleased);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_MouseDown);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_MouseUp);
+
 		// Scene handling
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_SetActive);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_GetActive);
-		// Script Component
-		FAY_ADD_INTERNAL_CALL(InternalCalls_ScriptComp_GetEntityId);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_CreateScene);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_SaveScene);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_LoadScene);
+
 	}
 	bool ScriptGlue::InternalCalls_Entity_HasComponent(MonoObject* object, MonoReflectionType* componentType)
 	{
 		EntityID entityID = GetEntityIDFromMonoObject(object);
 		if (entityID == -1)
 		{
-			FAY_LOG_ERROR("\033[31mEntity_HasComponent: entity ID is -1 (invalid)!\033[0m");
+			FAY_LOG_ERROR("InternalCalls_Entity_HasComponent: entity ID is -1 (invalid)!");
 			return false;
 		}	
 
@@ -51,11 +55,10 @@ namespace Fay
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
 		if (!monoType)
 		{
-			FAY_LOG_ERROR("Entity_HasComponent: monoType is null!");
+			FAY_LOG_ERROR("InternalCalls_Entity_HasComponent: monoType is null!");
 			return false;
 		}
 
-		// Replace this
 		MonoClass* monoClass = mono_class_from_mono_type(monoType);
 		std::string key = std::string(mono_class_get_namespace(monoClass)) + "." + mono_class_get_name(monoClass);
 	
@@ -63,7 +66,7 @@ namespace Fay
 		if (it != s_EntityHasComponentFuncs.end())
 			return it->second(entity);
 
-		FAY_LOG_ERROR("No Match Found for MonoType!");
+		FAY_LOG_ERROR("InternalCalls_Entity_HasComponent: No Match Found for MonoType!");
 		return false;
 	}
 	int ScriptGlue::InternalCalls_Entity_GetID(MonoObject* object)
@@ -83,7 +86,7 @@ namespace Fay
 
 		if (!field)
 		{
-			std::cerr << "SetEnttiyId: could not find field '_entityID'!" << std::endl;
+			std::cerr << "InternalCalls_Entity_SetID: could not find field '_entityID'!" << std::endl;
 			return;
 		}
 		mono_field_set_value(object, field, &id);
@@ -92,13 +95,11 @@ namespace Fay
 	{
 		// Convert c# pointer -> EntityID
 		EntityID id = GetEntityIDFromMonoObject(object);
-		
 		Renderable* a = nullptr;
 
 		auto* spriteComp = ComponentManager<SpriteComponent>::Get().getComponent(id);
 		if (spriteComp && spriteComp->sprite)
 			a = spriteComp->sprite;
-
 		auto* cubeComp = ComponentManager<CubeComponent>::Get().getComponent(id);
 		if (!a && cubeComp && cubeComp->cube)
 			a = cubeComp->cube;
@@ -108,8 +109,11 @@ namespace Fay
 		// Loop through every renderable in the scene
 		for (Renderable* obj : EditorUtils::s_Scene->getObjects())
 		{
-			if (!obj) continue;
-
+			if (!obj)
+			{
+				FAY_LOG_THROW_ERROR("NULL renderable in scene list");
+				continue;
+			}
 			if (obj->getId() == id) continue; // skip self
 
 			Renderable* b = nullptr;
@@ -119,7 +123,9 @@ namespace Fay
 				ComponentManager<SpriteComponent>::Get().getComponent(obj->getId()))
 			{
 				if (otherSpriteComp->sprite)
+				{
 					b = otherSpriteComp->sprite;
+				}
 			}
 
 			// Try cube second
@@ -153,7 +159,7 @@ namespace Fay
 		EntityID entityID = GetEntityIDFromMonoObject(object);
 		if (entityID == -1)
 		{
-			FAY_LOG_ERROR("SetEntityPosition: Invalid entity (ID -1)!");
+			FAY_LOG_ERROR("InternalCalls_Entity_SetPosition: Invalid entity (ID -1)!");
 			return;
 		}
 
@@ -254,12 +260,6 @@ namespace Fay
 		auto& window = Fay::ScriptGlue::GetWindow();
 		return window.isMouseButtonReleased(button);
 	}
-
-	uint32_t ScriptGlue::InternalCalls_ScriptComp_GetEntityId()
-	{
-		return EditorUtils::s_currentSpriteComponent->getId();
-	}
-	
 	void ScriptGlue::SetWindow(Window& window)
 	{
 		s_Window = &window;
@@ -269,9 +269,21 @@ namespace Fay
 	{
 		if (!s_Window)
 		{
-			FAY_LOG_THROW_ERROR("ScriptGlue::GetWindow: Window is null!");
+			FAY_LOG_THROW_ERROR("[ScriptGlue] GetWindow() Window is null!");
 		}
 		return *s_Window;
+	}
+	void ScriptGlue::SetEditorUtils(EditorUtils& utils)
+	{
+		s_EditorUtils = &utils;
+	}
+	EditorUtils& ScriptGlue::GetEditorUtils()
+	{
+		if (!s_EditorUtils)
+		{
+			FAY_LOG_THROW_ERROR("[ScriptGlue] GetEditorUtils() EditorUtils is null!");
+		}
+		return *s_EditorUtils;
 	}
 	// Scene handling
 	SceneType ScriptGlue::InternalCalls_Scene_GetActive()
@@ -281,5 +293,27 @@ namespace Fay
 	void ScriptGlue::InternalCalls_Scene_SetActive(SceneType type)
 	{
 		EditorUtils::SetActiveScene(type);
+	}
+	void ScriptGlue::InternalCalls_Scene_CreateScene(MonoString* sceneName)
+	{
+		char* name = mono_string_to_utf8(sceneName);
+		std::string filename = std::string(name) + ".fayScene";
+		std::string fullPath = "Res/Assets/Scenes/" + filename;
+		if (ScriptGlue::s_EditorUtils)
+			ScriptGlue::s_EditorUtils->CreateScene(fullPath);
+		mono_free(name);
+	}
+	bool ScriptGlue::InternalCalls_Scene_SaveScene(MonoString* sceneName)
+	{
+		/*char* name = mono_string_to_utf8(sceneName);
+		std::string filename = std::string(name) + ".fayScene";
+		std::string fullpath = "Res/Assets/Scenes/" + filename;
+		if (ScriptGlue::s_EditorUtils)
+			ScriptGlue::s_EditorUtils->SaveScene();*/
+		return false;
+	}
+	bool ScriptGlue::InternalCalls_Scene_LoadScene(MonoString* sceneName)
+	{
+		return false;
 	}
 }

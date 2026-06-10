@@ -246,3 +246,43 @@
     - Just a pre release update removed old files and folders
     - Fixed a issue where there was a semicolon at the end of a if block don't know how it got there but it's been removed everything works in release and debug x64 mode
     - Added the delete scene button in the main menu bar it deletes whichever scene is currently loaded also added clear method in deleteScene in the scene class to not render deleted entities 
+- ### Update June 9th 2026
+    - #### Notes
+      First, I’d like to welcome everyone to the first 2026 update for FayEngine. A lot of work has been done behind the scenes, and even more is currently in progress.
+
+
+      Several systems have been refactored, cleaned up, or replaced entirely. This includes the newly refurbished ViewportMode system, which replaces a previously messy and fragile implementation. Alongside this, entity creation and handling have been significantly improved, resulting in better overall readability and maintainability.
+
+
+      A number of C# API classes have also been renamed and refactored for clarity.
+
+
+      The new convention for declaring internal calls is:
+      ``` InternalCalls_{CallType}_{Method} ```
+
+
+      For example:
+      ``` InternalCalls_Entity_HasComponent ```
+
+
+      Additionally I am currently working on a better add script ui handling method that way you dont have to click so many buttons.
+    - #### Updates
+      - #### C# Scripting
+        - Modified script support
+        - Moved scene mangement to be c# invoked
+      - #### Components
+        - Changed ScriptComponent now takes a ScriptInstance
+      - #### EntityFactory (new class)
+        - CreateSprite
+        - CreateCube
+        - CreateEntity(RenderMode)
+      - #### Entities
+        - Entities can now have multiple scripts attached to it
+      - #### ViewportMode (new header only class)
+      - #### ViewportMode2D (new class)
+      - #### ViewportMode3D (new class)
+      - #### EditorUtils
+        - Updated applyPendingMode now takes EditorViewport as a paramater handles the RenderMode just like before but takes the new Rendering mode system and automatically chunks it in
+      - #### EditorUI
+        - Entities panel has became Hierarchy
+        - Entity Properties and Components has merged into Inspector with relative collapse windows with components and properties inside to clean things up a bit

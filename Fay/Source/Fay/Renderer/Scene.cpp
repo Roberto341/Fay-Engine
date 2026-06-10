@@ -12,8 +12,23 @@ namespace Fay
 		auto it = std::find(m_objects.begin(), m_objects.end(), object);
 		if (it != m_objects.end())
 		{
-			delete* it;
+			delete *it;
 			m_objects.erase(it);
+		}
+	}
+	void Scene::destroyEntity(EntityID id)
+	{
+		ComponentManager<SpriteComponent>::Get().removeComponent(id);
+		ComponentManager<CubeComponent>::Get().removeComponent(id);
+		ComponentManager<ScriptComponent>::Get().removeComponent(id);
+
+		// remove renderable reference
+		auto it = std::find_if(m_objects.begin(), m_objects.end(), 
+			[&](Renderable* obj) {return obj->getId() == id; });
+		
+		if (it != m_objects.end())
+		{
+			removeObject(*it);
 		}
 	}
 	void Scene::clear()
@@ -151,8 +166,10 @@ namespace Fay
 
 				if (scriptComp)
 				{
-					writeString(out, scriptComp->className);
-					out.write(reinterpret_cast<const char*>(&scriptComp->entityId), sizeof(uint32_t));
+					uint32_t scriptCount = static_cast<uint32_t>(scriptComp->scripts.size());
+					out.write(reinterpret_cast<const char*>(&scriptCount), sizeof(uint32_t));
+					for (auto& s : scriptComp->scripts)
+						writeString(out, s.className);
 				}
 			}
 			if (hasCube && m_ActiveScene == SceneType::Scene3D)
@@ -253,12 +270,16 @@ namespace Fay
 				}
 				else if (compName == "ScriptComponent")
 				{
-					std::string className;
-					uint32_t entityID;
-					className = readString(in);
-					in.read(reinterpret_cast<char*>(&entityID), sizeof(uint32_t));
+					ScriptComponent sc(entity);
+					uint32_t scriptCount;
+					in.read(reinterpret_cast<char*>(&scriptCount), sizeof(uint32_t));
 
-					ComponentManager<ScriptComponent>::Get().addComponent(entity, ScriptComponent(className, entityID));
+					for (uint32_t i = 0; i < scriptCount; i++)
+					{
+						std::string className = readString(in);
+						sc.scripts.emplace_back(className);
+					}
+					ComponentManager<ScriptComponent>::Get().addComponent(entity, sc);
 				}
 				else if (compName == "CubeComponent")
 				{

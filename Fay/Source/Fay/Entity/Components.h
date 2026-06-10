@@ -50,7 +50,6 @@ namespace Fay
 		// Can take in CameraComponent, TransformComponent and ScriptComponent
 		Renderable* sprite = nullptr;
 
-		//Vec3 position = sprite->getPosition;
 		SpriteComponent() = default;
 		SpriteComponent(Renderable* s) : sprite(s) {}
 		void setCollision(bool cond)
@@ -61,6 +60,10 @@ namespace Fay
 		void setColor(Vec4 color)
 		{
 			sprite->setColor(color);
+		}
+		void setTexture(Texture* texture)
+		{
+			sprite->setTexture(texture);
 		}
 		void setPosition(Vec3 position)
 		{
@@ -132,20 +135,44 @@ namespace Fay
 		Vec4 getColor() const {
 			return cube->getColor();
 		}
+		uint32_t getId() const {
+			return cube->getId();
+		}
 	};
 	// this will be what carries the c# script
-	struct ScriptComponent
+	struct ScriptInstance
 	{
 		std::string className;
-		uint32_t entityId = 0;
 		bool hasStarted = false;
 
-		ScriptComponent() = default;
-		ScriptComponent(const std::string& path, uint32_t entId) : className(path), entityId(entId) {}
+		ScriptInstance() = default;
+		ScriptInstance(const std::string& name) : className(name) {}
+	};
+	struct ScriptComponent
+	{
+		// New method
+		uint32_t entityId = 0;
+		std::vector<ScriptInstance> scripts;
+		std::string tag;
 
-		bool checkId(uint32_t checkId) const
+		ScriptComponent() = default;
+		ScriptComponent(uint32_t _entityId) : entityId(_entityId) {}
+		void setTag(const std::string& _tag)
 		{
-			return checkId == entityId;
+			tag = _tag;
+		}
+		std::string& getTag()
+		{
+			return tag;
+		}
+		void addScript(const std::string& className)
+		{
+			scripts.emplace_back(className);
+		}
+		void removeScript(size_t index)
+		{
+			if (index < scripts.size())
+				scripts.erase(scripts.begin() + index);
 		}
 	};
 	using AllComponents = ComponentGroup<

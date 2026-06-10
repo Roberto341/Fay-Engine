@@ -7,6 +7,7 @@
 namespace Fay
 {
 	using EntityID = uint32_t;
+	constexpr EntityID INVALID_ENTITY = std::numeric_limits<uint32_t>::max();
 	/*template<typename T>
 	class ComponentManager;*/
 

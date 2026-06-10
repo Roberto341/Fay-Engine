@@ -1,19 +1,27 @@
 ﻿#include <EngineEditor/Editor.h>
 namespace Fay
 {
-	Editor::Editor(Window& window) : m_window(window), m_framebuffer(window.getWidth(), window.getHeight())
+	Editor::Editor() 
+		: m_window(std::make_unique<Window>("Fay Editor", 1920, 1080))
+		, m_framebuffer(m_window->getWidth(), m_window->getHeight())
 	{
-		// Init ImGui
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable | ImGuiConfigFlags_DockingEnable;
-		ImGui::StyleColorsDark();
+		initImgui();
+		setupEditor();
+	}
 
-		// Setup Platform/Renderer bindings
-		ImGui_ImplGlfw_InitForOpenGL(m_window.getWindow(), true);
-		ImGui_ImplOpenGL3_Init("#version 330 core");
+	Editor::~Editor()
+	{
+		ScriptEngine::Shutdown();
+		m_viewport->Shutdown();
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+		m_window->shutdown();
+	}
 
+	void Editor::setupEditor()
+	{
+		// Create all needed utilities then pass to the EditorContext
 		m_camera3D = new Camera3D(Vec3(0, 0, 5), Vec3(0, 0, -1), Vec3(0, 1.0f, 0));
 		m_shader = new Shader("res/shaders/basic.vert", "res/shaders/basic.frag");
 		Shader& shader = *m_shader;
@@ -24,54 +32,77 @@ namespace Fay
 		m_Scene.setSceneType(SceneType::Scene2D);
 
 		m_utils = std::make_unique<EditorUtils>();
-		
+
 		m_core = std::make_unique<EditorCore>();
 		m_core->SetUtils(m_utils.get());
-		m_core->Init(&m_Scene, m_camera3D, &shader, m_renderLayer, m_renderMode, m_batchRenderer, m_textureManager);
+
+		EditorContext ctx;
+		ctx.scene = &m_Scene;
+		ctx.batchRenderer = m_batchRenderer;
+		ctx.camera3D = m_camera3D;
+		ctx.shader = &shader;
+		ctx.layer = m_renderLayer;
+		ctx.renderMode = m_renderMode;
+		ctx.batchRenderer = m_batchRenderer;
+		ctx.textureManager = m_textureManager;
+
+		m_core->SetContext(ctx);
+		m_core->Init();
 
 		m_viewport = std::make_unique<EditorViewport>();
 		m_viewport->SetUtils(m_utils.get());
-		m_viewport->Init(window.getWidth(), window.getHeight());
-
+		m_viewport->Init(m_window->getWidth(), m_window->getHeight());
+		m_viewport->SetViewportMode(std::make_unique<ViewportMode2D>());
 		m_ui = std::make_unique<EditorUI>();
 		m_ui->SetCore(m_core.get());
 		m_ui->SetUtils(m_utils.get());
+		m_ui->SetViewport(m_viewport.get());
+	
+		// Entity Factory
+		m_factory = std::make_unique<EntityFactory>(
+			&m_Scene,
+			m_renderLayer, 
+			m_utils.get()
+		);
+		m_utils->SetFactory(m_factory.get());
 	}
 
-	Editor::~Editor()
+	void Editor::initImgui()
 	{
-		ScriptEngine::Shutdown();
-		m_viewport->Shutdown();
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
+		// Init ImGui
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGuiIO& io = ImGui::GetIO();
+		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable | ImGuiConfigFlags_DockingEnable;
+		ImGui::StyleColorsDark();
+
+		// Setup Platform/Renderer bindings
+		ImGui_ImplGlfw_InitForOpenGL(m_window->getWindow(), true);
+		ImGui_ImplOpenGL3_Init("#version 330 core");
 	}
 
-	void Editor::run()
+	void Editor::runEditor()
 	{
-		while (!m_window.closed())
+		while (!m_window->closed())
 		{
 			//m_window.clear();
 			glfwPollEvents();
+			Window& windRef = *m_window;
+			ScriptGlue::SetWindow(windRef); // for input
 
-			ScriptGlue::SetWindow(m_window); // for input
-			// Find a way to invoke this in runtime
-			//ScriptEngine::InvokeRootStatic("EntityScript", "OnUpdate");
-			
 			// Start ImGui frame
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 			ImGuizmo::BeginFrame();
 
-			m_utils->applyPendingMode();
+			m_utils->applyPendingMode(m_viewport.get());
 
 			// Render scene into framebuffer
 			m_viewport->RenderBegin();
 			// new render mode
 			if (!m_utils->GetSkipNextFrame())
 			{
-				//m_Scene.render(m_renderLayer);
 				m_utils->GetScene()->render(m_utils->GetRenderLayer());
 			}
 			else
@@ -100,7 +131,7 @@ namespace Fay
 				ImGui::RenderPlatformWindowsDefault();
 				glfwMakeContextCurrent(backup);
 			}
-			m_window.update();
+			m_window->update();
 		}
 	}
 }

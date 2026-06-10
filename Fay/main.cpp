@@ -1,19 +1,16 @@
 #include <Core/Core.h>
-int main()
+int main(int argc, char** argv)
 {
-	Fay::Window window("Fay Editor", 1920, 1080);
-	if (!window.getWindow()) return -1;
-	Fay::Editor editor(window);
+	Fay::Editor editor;
 
 	// Create and load scripting engine
-	Fay::ScriptGlue::SetWindow(window);
-	Fay::ScriptEngine::Init();
-	Fay::ScriptEngine::LoadAssembly("Source/Fay/Scripting/FayRuntime/bin/Debug/net48/FayRuntime.dll", Fay::ScriptEngine::GetRootDomain());
+	Fay::ScriptGlue::SetWindow(editor.getWindow());
+	Fay::ScriptEngine::Init(argv[0]);
+	Fay::ScriptEngine::LoadAssembly(Fay::ScriptEngine::GetRuntimeDll(), Fay::ScriptEngine::GetRootDomain());
+	Fay::ScriptGlue::SetEditorUtils(editor.getUtils());
 	Fay::ScriptGlue::RegisterFunctions();
 	Fay::ScriptGlue::RegisterComponents();
-	Fay::ScriptEngine::InvokeRootStatic("EntityScript", "OnStart");
 	
-	editor.run();
-
+	editor.runEditor();
 	return 0;
 }

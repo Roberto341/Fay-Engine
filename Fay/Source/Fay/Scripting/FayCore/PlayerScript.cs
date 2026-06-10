@@ -15,7 +15,7 @@ namespace FayCore
 
         public static void OnUpdate()
         {
-            Entity entity = Entity.GetSel(); // get the entity id from the sprite component instead
+            Entity entity = new Entity(1);
             entity.Move(2.0f, false);
             if (Input.GetMouse(MouseButton.Right))
             {

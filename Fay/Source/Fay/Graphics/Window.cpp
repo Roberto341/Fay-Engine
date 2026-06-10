@@ -87,6 +87,10 @@ namespace Fay {
 		glfwPollEvents();
 		glfwSwapBuffers(m_window);
 	}
+	void Window::shutdown()
+	{
+		glfwTerminate();
+	}
 	bool Window::closed() const
 	{
 		return glfwWindowShouldClose(m_window) == 1;

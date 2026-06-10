@@ -1,46 +1,16 @@
 #include <EngineEditor/EditorUtils.h>
-
+#include <EngineEditor/EditorViewport.h>
 namespace Fay
 {
 	EditorUtils::EditorUtils() = default;
 	EditorUtils::~EditorUtils() = default;
 
-	SpriteComponent* EditorUtils::s_currentSpriteComponent = nullptr;
-	EntityID EditorUtils::m_selectedEntity = 0;
+	EntityID EditorUtils::m_selectedEntity = INVALID_ENTITY;
 	SceneType EditorUtils::s_ActiveScene = SceneType::Scene2D;
 	float EditorUtils::s_entitySpeed = 1.0f;
 
 	Scene* EditorUtils::s_Scene = nullptr;
-	void EditorUtils::applyPendingMode()
-	{
-		if (!m_pendingModeUpdate) return;
-
-		m_pendingModeUpdate = false;
-		
-		if (m_renderMode != m_pendingMode)
-		{
-			m_skipNextFrame = true;
-		}
-
-		m_renderMode = m_pendingMode;
-
-		if (m_renderMode == RenderMode::MODE_3D)
-		{
-			m_batchRenderer->setDimension(RenderDimension::D3);
-			m_renderLayer->setProjectionType(ProjectionType::Cube3D);
-			SetActiveScene(SceneType::Scene3D);
-			m_scene->setSceneType(SceneType::Scene3D);
-			m_renderLayer->setShader(m_shader);
-		}
-		else
-		{
-			m_batchRenderer->setDimension(RenderDimension::D2);
-			m_renderLayer->setProjectionType(ProjectionType::Quad2D);
-			SetActiveScene(SceneType::Scene2D);
-			m_scene->setSceneType(SceneType::Scene2D);
-			m_renderLayer->setShader(m_shader);
-		}
-	}
+	
 	void EditorUtils::SaveScene()
 	{
 		if (m_currentScene.empty())
@@ -95,10 +65,10 @@ namespace Fay
 
 		m_pendingModeUpdate = true;
 
-		SetStaticScene();
+		//SetStaticScene();
 
 		m_currentScene = path;
-		m_selectedEntity = -1;
+		m_selectedEntity = INVALID_ENTITY;
 	}
 	void EditorUtils::DeleteScene()
 	{
@@ -116,6 +86,45 @@ namespace Fay
 		FAY_LOG_INFO("FayScene Deleted: " << m_currentScene);
 
 		m_currentScene = "";
-		m_selectedEntity = -1;
+		m_selectedEntity = INVALID_ENTITY;
+	}
+	void EditorUtils::applyPendingMode(EditorViewport* viewport)
+	{
+		if (!m_pendingModeUpdate)
+			return;
+
+		m_pendingModeUpdate = false;
+
+		if(m_renderMode != m_pendingMode)
+			m_skipNextFrame = true;
+
+		m_renderMode = m_pendingMode;
+
+		if (m_renderMode == RenderMode::MODE_3D)
+		{
+			m_batchRenderer->setDimension(RenderDimension::D3);
+			m_renderLayer->setProjectionType(ProjectionType::Cube3D);
+			SetActiveScene(SceneType::Scene3D);
+			m_scene->setSceneType(SceneType::Scene3D);
+			m_renderLayer->setShader(m_shader);
+		}
+		else
+		{
+			m_batchRenderer->setDimension(RenderDimension::D2);
+			m_renderLayer->setProjectionType(ProjectionType::Quad2D);
+			SetActiveScene(SceneType::Scene2D);
+			m_scene->setSceneType(SceneType::Scene2D);
+			m_renderLayer->setShader(m_shader);
+		}
+
+		if (m_renderMode == RenderMode::MODE_2D)
+		{
+			viewport->SetViewportMode(std::make_unique<ViewportMode2D>());
+		}
+		else
+		{
+			viewport->SetViewportMode(std::make_unique<ViewportMode3D>());
+		}
+		m_pendingModeUpdate = false;
 	}
 }

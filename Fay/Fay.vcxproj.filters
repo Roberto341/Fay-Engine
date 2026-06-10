@@ -103,6 +103,9 @@
     <Filter Include="Res\Assets\Scenes">
       <UniqueIdentifier>{866b1df5-303b-4954-a07a-c42090f5acb1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Engine\EngineEditor\Utils">
+      <UniqueIdentifier>{fc63ca16-7875-4568-9a77-078bfcc86205}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Fay\Graphics\Window.cpp">
@@ -307,7 +310,7 @@
       <Filter>Source\Engine\ImGui\backends</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Source\Fay\Graphics\Camera.cpp">
+    <ClCompile Include="Source\Fay\Graphics\Camera2D.cpp">
       <Filter>Source\Engine\graphics</Filter>
     </ClCompile>
     <ClCompile Include="Source\Fay\ImGui\ImGuiFileDialog.cpp">
@@ -366,6 +369,15 @@
     </ClCompile>
     <ClCompile Include="Source\Fay\Renderer\Cube.cpp">
       <Filter>Source\Engine\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\Utils\ViewportMode2D.cpp">
+      <Filter>Source\Engine\EngineEditor\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\EngineEditor\Utils\ViewportMode3D.cpp">
+      <Filter>Source\Engine\EngineEditor\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Fay\Entity\EntityFactory.cpp">
+      <Filter>Source\Engine\entity</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -504,7 +516,7 @@
     <ClInclude Include="Source\Fay\ImGui\imstb_truetype.h">
       <Filter>Source\Engine\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Fay\Graphics\Camera.h">
+    <ClInclude Include="Source\Fay\Graphics\Camera2D.h">
       <Filter>Source\Engine\graphics</Filter>
     </ClInclude>
     <ClInclude Include="Source\Fay\ImGui\ImGuiFileDialog.h">
@@ -590,6 +602,18 @@
     </ClInclude>
     <ClInclude Include="Source\Fay\Renderer\Cube.h">
       <Filter>Source\Engine\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\Utils\ViewportMode.h">
+      <Filter>Source\Engine\EngineEditor\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\Utils\ViewportMode2D.h">
+      <Filter>Source\Engine\EngineEditor\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\EngineEditor\Utils\ViewportMode3D.h">
+      <Filter>Source\Engine\EngineEditor\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Fay\Entity\EntityFactory.h">
+      <Filter>Source\Engine\entity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

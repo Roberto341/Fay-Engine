@@ -15,10 +15,6 @@ namespace FayRuntime
     }
     public static class API
     {
-        public static uint GetScriptEntId()
-        {
-            return InternalCalls.InternalCalls_ScriptComp_GetEntityId();
-        }
     }
     public class Entity
     {
@@ -41,10 +37,6 @@ namespace FayRuntime
         {
             return InternalCalls.InternalCalls_Entity_GetID(this);
         }
-        public bool HasCollisionComp()
-        {
-            return InternalCalls.InternalCalls_Entity_HasComponent(this, typeof(FayRuntime.CollisionComponent));
-        }
         public float GetSpeed()
         {
             return InternalCalls.InternalCalls_Entity_GetSpeed();
@@ -53,16 +45,11 @@ namespace FayRuntime
         {
             return InternalCalls.InternalCalls_Entity_CheckCollision(this);
         }
+        // Used for getting the currently selected entity in the editor
         public static Entity GetSelected()
         {
             var entity = new Entity();
             entity.SetId(InternalCalls.InternalCalls_Entity_GetSelected());
-            return entity;
-        }
-        public static Entity GetSel()
-        {
-            var entity = new Entity();
-            entity.SetId(InternalCalls.InternalCalls_ScriptComp_GetEntityId());
             return entity;
         }
         public bool HasComponent(Type componentType)
@@ -95,8 +82,7 @@ namespace FayRuntime
             {
                 Vector3 attemptX = new Vector3(pos.X + delta.X, pos.Y, pos.Z);
                 this.SetPosition(attemptX);
-
-                if(CheckCollision())
+                if (CheckCollision())
                 {
                     // Block X movement only
                     this.SetPosition(pos);
@@ -177,6 +163,5 @@ namespace FayRuntime
     }
     public class ScriptComponent
     {
-
     }
 }

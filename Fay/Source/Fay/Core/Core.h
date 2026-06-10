@@ -19,7 +19,7 @@
 #include <Graphics/TextureManager.h>
 #include <Graphics/Buffers/FrameBuffer.h>
 #include <Graphics/Camera3D.h>
-#include <Graphics/Camera.h>
+#include <Graphics/Camera2D.h>
 
 #include <EngineEditor/Editor.h>
 #include <EngineEditor/EditorCore.h>

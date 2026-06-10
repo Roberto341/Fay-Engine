@@ -1,6 +1,7 @@
 #pragma once
 #include <Renderer/Renderable.h>
 #include <Renderer/Renderer.h>
+#include <Core/Logger.h>
 namespace Fay
 {
 	enum class ProjectionType { Quad2D, Cube3D };

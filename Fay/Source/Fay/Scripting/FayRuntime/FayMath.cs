@@ -8,7 +8,6 @@ namespace FayRuntime
     public struct Vector2
     {
         public float X, Y;
-
         public Vector2(float x, float y)
         {
             X = x;
@@ -50,6 +49,7 @@ namespace FayRuntime
     {
         public float X, Y, Z;
         public static Vector3 Zero => new Vector3(0, 0, 0);
+        private const float eps = 0.0001f;
         public Vector3(float x, float y, float z)
         {
             X = x;
@@ -112,6 +112,42 @@ namespace FayRuntime
                  Z * other.X - X * other.Z,
                  X * other.Y - Y * other.X
             );
+        }
+
+        public static bool operator ==(Vector3 a, Vector3 b)
+        {
+            return Math.Abs(a.X - b.X) < eps &&
+                Math.Abs(a.Y - b.Y) < eps &&
+                Math.Abs(a.Z - b.Z) < eps;
+        }
+        public static bool operator !=(Vector3 a, Vector3 b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is Vector3))
+                return false;
+
+            return this == (Vector3)obj;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hx = (int)Math.Round(X / eps);
+                int hy = (int)Math.Round(Y / eps);
+                int hz = (int)Math.Round(Z / eps);
+
+                int hash = 17;
+
+                hash = hash * 23 + hx;
+                hash = hash * 23 + hy;
+                hash = hash * 23 + hz;
+                return hash;
+            }
         }
     }
     public struct Vector4

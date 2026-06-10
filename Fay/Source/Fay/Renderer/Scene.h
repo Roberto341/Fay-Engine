@@ -18,11 +18,12 @@ namespace Fay
 	public:
 		void addObject(Renderable* object);
 		void removeObject(Renderable* object);
+		void destroyEntity(EntityID id);
 		void clear();
 		void render(TileLayer* renderingLayer) const;
 
 		const std::vector<Renderable*>& getObjects() const { return m_objects; }
-
+		const size_t getObjectCount() const { return m_objects.size(); }
 		bool saveScene(const std::string& filepath) const;
 		bool loadScene(const std::string& filepath, TextureManager tm);
 		bool deleteSceneFile(const std::string& filepath);

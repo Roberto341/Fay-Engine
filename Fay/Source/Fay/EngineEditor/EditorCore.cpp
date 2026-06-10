@@ -1,26 +1,25 @@
 #include <EngineEditor/EditorCore.h>
-
 namespace Fay
 {
 	EditorCore::EditorCore() = default;
 	EditorCore::~EditorCore() = default;
 
-	void EditorCore::Init(Scene* scene, Camera3D* camera, Shader* shader, TileLayer* layer, RenderMode mode, BatchRenderer* batch, TextureManager texMan)
+	void EditorCore::Init()
 	{
-		m_utils->SetScene(scene);
-		m_utils->SetCamera(camera);
-		m_utils->SetShader(shader);
-		m_utils->SetRenderLayer(layer);
-		m_utils->SetRenderMode(mode);
-		m_utils->SetBatchRenderer(batch);
-		m_utils->SetTextureManager(texMan);
-		m_utils->SetSelectedEntity(-1);
+		m_utils->SetScene(m_context->scene);
+		m_utils->SetCamera3D(m_context->camera3D);
+		m_utils->SetCamera2D(m_context->camera2D);
+		m_utils->SetShader(m_context->shader);
+		m_utils->SetRenderLayer(m_context->layer);
+		m_utils->SetRenderMode(m_context->renderMode);
+		m_utils->SetBatchRenderer(m_context->batchRenderer);
+		m_utils->SetTextureManager(m_context->textureManager);
+		m_utils->SetSelectedEntity(INVALID_ENTITY);
 	}
 
 	void EditorCore::rebuildRuntime() const
 	{
-		std::string command = "dotnet build Source/Fay/Scripting/FayCore/FayCore.csproj /p:Configuration=Debug /t:Rebuild";
-		
+		std::string command = "dotnet build \"" + ScriptEngine::GetCoreCsProj() + "\" -c Debug -t:Rebuild";
 		int result = std::system(command.c_str());
 		
 		if (result != 0) FAY_LOG_ERROR("Failed to rebuld FayCore.dll");
@@ -30,24 +29,32 @@ namespace Fay
 	void EditorCore::handleScriptExecution()
 	{
 		static bool assemblyLoaded = false;
-		if (m_utils->GetSelectedEntity() == -1) m_utils->SetCurrentSpriteComponent(nullptr);
-		auto* comp = ComponentManager<ScriptComponent>::Get().getComponent(m_utils->GetSelectedEntity());
-		m_utils->SetCurrentSpriteComponent(ComponentManager<SpriteComponent>::Get().getComponent(m_utils->GetSelectedEntity()));
-		if (comp)
+		if (!assemblyLoaded)
 		{
-			if (!assemblyLoaded)
-			{
-				std::string dllPath = "Source/Fay/Scripting/FayCore/bin/Debug/net48/FayCore.dll";
-				ScriptEngine::ReloadAssembly(dllPath);
-				assemblyLoaded = true;
-			}
-
-			if (!comp->hasStarted)
-			{
-				ScriptEngine::InvokeCoreStatic(comp->className, "OnStart");
-				comp->hasStarted = true;
-			}
-			ScriptEngine::InvokeCoreStatic(comp->className, "OnUpdate");
+			ScriptEngine::ReloadAssembly(ScriptEngine::GetCoreDll());
+			assemblyLoaded = true;
 		}
+
+		auto& scriptEntities = ComponentManager<ScriptComponent>::Get().getEntities();
+		for (EntityID e : scriptEntities)
+		{
+			ScriptComponent* comp = ComponentManager<ScriptComponent>::Get().getComponent(e);
+			if (!comp)
+				continue; // skip if missing
+
+			for (auto& script : comp->scripts)
+			{
+				if (!script.hasStarted)
+				{
+					ScriptEngine::InvokeCoreStatic(script.className, "OnStart");
+					script.hasStarted = true;
+				}
+				ScriptEngine::InvokeCoreStatic(script.className, "OnUpdate");
+			}
+		}
+	}
+	void EditorCore::SetContext(EditorContext& context)
+	{
+		m_context = &context;
 	}
 }

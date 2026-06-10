@@ -23,6 +23,7 @@ namespace Fay {
 		~Window();
 		void clear() const;
 		void update();
+		void shutdown();
 		bool closed() const;
 		inline int getWidth() const { return m_width; }
 		inline int getHeight() const { return m_height; }
