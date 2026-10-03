@@ -11,7 +11,9 @@ namespace Fay
 {
 	inline float toRadians(float degrees)
 	{
-		return degrees * (M_PI / 180.0f);
+		//return degrees * (M_PI / 180.0f);
+		// Test case
+		return degrees * (static_cast<float>(M_PI) / 180.0f);
 	}
 	struct Mat4
 	{

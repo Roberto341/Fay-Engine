@@ -98,7 +98,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>GLEW_STATIC;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_LIB;FT2_BUILD_LIBRARY;WIN32;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_LIB;FT2_BUILD_LIBRARY;WIN32;IMGUI_DEFINE_MATH_OPERATORS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
@@ -117,7 +117,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>GLEW_STATIC;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_LIB;FT2_BUILD_LIBRARY;WIN32;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_LIB;FT2_BUILD_LIBRARY;WIN32;IMGUI_DEFINE_MATH_OPERATORS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
@@ -134,7 +134,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>GLEW_STATIC;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_LIB;FT2_BUILD_LIBRARY;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_LIB;FT2_BUILD_LIBRARY;WIN32;IMGUI_DEFINE_MATH_OPERATORS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
@@ -153,7 +153,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>GLEW_STATIC;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_LIB;FT2_BUILD_LIBRARY;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_LIB;FT2_BUILD_LIBRARY;WIN32;IMGUI_DEFINE_MATH_OPERATORS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
@@ -253,11 +253,16 @@
     <ClCompile Include="Source\Fay\Math\Vec3.cpp" />
     <ClCompile Include="Source\Fay\Math\Vec4.cpp" />
     <ClCompile Include="Source\Fay\Renderer\BatchRenderer.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\ControlNode.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Cube.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\Mesh.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\MeshObject.cpp" />
+    <ClCompile Include="Source\Fay\Renderer\MeshRenderer.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Scene.cpp" />
     <ClCompile Include="Source\Fay\Renderer\Sprite.cpp" />
     <ClCompile Include="Source\Fay\Scripting\ScriptEngine.cpp" />
     <ClCompile Include="Source\Fay\Scripting\ScriptGlue.cpp" />
+    <ClCompile Include="Source\Fay\Utils\OBJLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ext\Freetype-gl\common.h" />
@@ -328,7 +333,12 @@
     <ClInclude Include="Source\Fay\Math\Vec3.h" />
     <ClInclude Include="Source\Fay\Math\Vec4.h" />
     <ClInclude Include="Source\Fay\Renderer\BatchRenderer.h" />
+    <ClInclude Include="Source\Fay\Renderer\ControlNode.h" />
     <ClInclude Include="Source\Fay\Renderer\Cube.h" />
+    <ClInclude Include="Source\Fay\Renderer\Mesh.h" />
+    <ClInclude Include="Source\Fay\Renderer\MeshObject.h" />
+    <ClInclude Include="Source\Fay\Renderer\MeshRenderer.h" />
+    <ClInclude Include="Source\Fay\Renderer\Node.h" />
     <ClInclude Include="Source\Fay\Renderer\Renderable.h" />
     <ClInclude Include="Source\Fay\Renderer\Renderer.h" />
     <ClInclude Include="Source\Fay\Renderer\Scene.h" />
@@ -337,6 +347,7 @@
     <ClInclude Include="Source\Fay\Scripting\ScriptGlue.h" />
     <ClInclude Include="Source\Fay\Utils\FileUtils.h" />
     <ClInclude Include="Source\Fay\Utils\ImageLoad.h" />
+    <ClInclude Include="Source\Fay\Utils\OBJLoader.h" />
     <ClInclude Include="Source\Fay\Utils\Timer.h" />
   </ItemGroup>
   <ItemGroup>

@@ -25,8 +25,12 @@ namespace Fay
 
 		// --- Static ---
 		// --- Entity ---
+		static NodeID GetSelectedNode() { return m_selectedNode;  }
 		static EntityID GetSelectedEntity() { return m_selectedEntity; }
+		std::string GetSelectedTag() { return m_selectedTag; }
 		static EntityID m_selectedEntity;
+		static NodeID m_selectedNode;
+		std::string m_selectedTag;
 		static float s_entitySpeed;
 
 		// --- Scene Management ---
@@ -53,10 +57,18 @@ namespace Fay
 		bool GetSkipNextFrame() { return m_skipNextFrame; }
 		bool GetNewSceneReq() { return m_newSceneRequested; }
 		bool GetLoadSceneReq() { return m_loadSceneRequested; }
+		bool GetSaveSceneAsReq() { return m_saveSceneAsRequested; }
+		bool GetShowControlNameBox() { return m_showControlNameBox; }
+		bool GetShowTagNameBox() { return m_showTagNameBox; }
+		bool GetIsPlaying() { return m_isPlaying; }
+
 		bool classExists(const std::string& className) const
 		{
 			return ScriptEngine::GetMonoClass(className) != nullptr;
 		}
+
+		std::string GetSceneNameFromPath(const std::string& path);
+		const std::string& GetCurrentSceneName() const;
 		static float GetEntitySpeed() { return s_entitySpeed; }
 		// --- Setters ---
 		void SetCamera3D(Camera3D* camera) { m_camera3D = camera; }
@@ -68,18 +80,27 @@ namespace Fay
 		void SetRenderMode(RenderMode mode) { m_renderMode = mode; }
 		void SetPendingMode(RenderMode penMode) { m_pendingMode = penMode; }
 		void SetSelectedEntity(EntityID id) { m_selectedEntity = id; }
+		void SetSelectedNode(EntityID id) { m_selectedNode = id; }
+		void SetSelectedTag(std::string tagName) { m_selectedTag = tagName; }
 		void SetTextureManager(const TextureManager& texMan) { m_texManager = texMan; }
 		void SetBatchRenderer(BatchRenderer* batch) { m_batchRenderer = batch; }
 		void SetModeUpdate(bool yn) { m_pendingModeUpdate = yn; }
 		void SetSkipNextFrame(bool yn) { m_skipNextFrame = yn; }
 		void SetNewSceneReq(bool yn) { m_newSceneRequested = yn; }
 		void SetLoadSceneReq(bool yn) { m_loadSceneRequested = yn; }
-		void SetEntitySpeed(float speed) { s_entitySpeed = speed; }
+		void SetSaveSceneAsReq(bool yn) { m_saveSceneAsRequested = yn; }
+		void SetShowControlNameBox(bool yn) { m_showControlNameBox = yn; }
+		void SetShowTagNameBox(bool yn) { m_showTagNameBox = yn; }
+		void SetIsPlaying(bool yn) { m_isPlaying = yn; }
 
+		void SetEntitySpeed(float speed) { s_entitySpeed = speed; }
+		
 		void SaveScene();
+		void SaveSceneAs(const std::string& path);
 		void CreateScene(const std::string& path);
 		void LoadScene(const std::string& path);
 		void DeleteScene();
+
 		void applyPendingMode(EditorViewport* viewport);
 
 		// EntityFactory
@@ -89,7 +110,7 @@ namespace Fay
 		template<typename TComponent, typename TObject>
 		void drawEntityColorUI(EntityID entity, TObject* object, TComponent* comp)
 		{
-			if (!object || !comp)
+			if (!object || !comp || entity == INVALID_ENTITY)
 				return;
 
 			char idBuf[32];
@@ -105,7 +126,164 @@ namespace Fay
 				object->setColor(Vec4(color[0], color[1], color[2], color[3]));
 				comp->setColor(object->getColor());
 			}
+			
+			ImGui::Separator();
+			//static int selectedIndex = -1;
+				if (ImGui::Button("Add Tag"))
+				{
+					SetShowTagNameBox(true);
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Remove Tag"))
+				{
+					if (comp->removeTagBool(m_selectedTag))
+					{
+						m_selectedTag.clear();
+					}
+				}
+				if (ImGui::BeginListBox("Tags", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+				{
+					std::string tagsString = comp->getAllTagsAsString();
+
+					std::stringstream ss(tagsString);
+					std::string tag;
+
+					while (std::getline(ss, tag, ','))
+					{
+						if (tag.empty())
+							continue;
+
+						bool selected = (m_selectedTag == tag);
+
+						if (ImGui::Selectable(tag.c_str(), selected))
+							SetSelectedTag(tag);
+
+						if (selected)
+							ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndListBox();
+				}
+
 			// if entity has a texture, show here
+		}
+		void drawNodeScriptList(NodeID node)
+		{
+			if (node == INVALID_NODE)
+				return;
+
+			auto* scriptComp = ComponentManager<ScriptComponent>::Get().getNodeComponent(node);
+			// If no ScriptComponent, allow adding one
+			if (!scriptComp)
+			{
+				ImGui::TextDisabled("ScriptComponent invalid.");
+				return;
+			}
+
+			static NodeID lastEntity = INVALID_ENTITY;
+			static int selectedIndex = -1;
+
+			if (lastEntity != node)
+			{
+				selectedIndex = -1;
+				lastEntity = node;
+			}
+
+			// List attached scripts
+			if (scriptComp->scripts.empty())
+			{
+				ImGui::TextDisabled("No scripts attached.");
+			}
+			else
+			{
+				if (ImGui::BeginListBox("Scripts", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+				{
+					for (int i = 0; i < (int)scriptComp->scripts.size(); i++)
+					{
+						bool selected = (selectedIndex == i);
+						if (ImGui::Selectable(scriptComp->scripts[i].className.c_str(), selected))
+							selectedIndex = i;
+						if (selected)
+							ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndListBox();
+				}
+
+				// Remove selected script
+				if (selectedIndex >= 0 && selectedIndex < (int)scriptComp->scripts.size())
+				{
+					if (ImGui::Button("Remove Script"))
+					{
+						scriptComp->removeScript(selectedIndex);
+						selectedIndex = -1;
+					}
+				}
+			}
+
+			// Add Existing / Add New Script buttons
+			if (ImGui::Button("Add Script"))
+			{
+				ImGui::OpenPopup("AddScriptPopup");
+			}
+
+			if (ImGui::BeginPopup("AddScriptPopup"))
+			{
+				static char scriptName[256] = "Untitled";
+				ImGui::InputText("Script Name", scriptName, sizeof(scriptName));
+
+				if (ImGui::Button("Add Existing"))
+				{
+					std::string className = scriptName;
+
+					if (classExists(className))
+					{
+						if (!scriptComp)
+						{
+							ComponentManager<ScriptComponent>::Get().addNodeComponent(node, ScriptComponent(node));
+							scriptComp = ComponentManager<ScriptComponent>::Get().getNodeComponent(node);
+						}
+
+						// Prevent duplicate scripts
+						bool exists = false;
+						for (auto& s : scriptComp->scripts)
+							if (s.className == className) exists = true;
+
+						if (!exists)
+						{
+							scriptComp->scripts.emplace_back(className);
+							auto& newScript = scriptComp->scripts.back();
+							if (!newScript.hasStarted)
+							{
+								ScriptEngine::InvokeCoreStatic(newScript.className, "OnStart");
+								newScript.hasStarted = true;
+							}
+						}
+						else
+						{
+							FAY_LOG_WARN("Script already attached to entity: " << className);
+						}
+					}
+					else
+					{
+						FAY_LOG_ERROR("Script class not found: " << className);
+					}
+
+					ImGui::CloseCurrentPopup();
+				}
+
+				if (ImGui::Button("Create New"))
+				{
+					//std::string path = "Source/Fay/Scripting/FayCore/" + std::string(scriptName) + ".cs";
+					std::string path = "Res/Assets/Scripts/" + std::string(scriptName) + ".cs";
+					//ScriptEngine::createScriptTemplate(path, node);
+					ScriptEngine::createScriptTemplateNode(path, node);
+					ImGui::CloseCurrentPopup();
+				}
+
+				if (ImGui::Button("Close"))
+					ImGui::CloseCurrentPopup();
+
+				ImGui::EndPopup();
+			}
 		}
 		void drawEntityScriptList(EntityID entity)
 		{
@@ -226,23 +404,34 @@ namespace Fay
 		}
 	private:
 		// All other classes
+		// For scene name
 		std::string m_currentScene;
+		std::string m_sceneName;
 		Scene* m_scene = nullptr;
+
 		Camera3D* m_camera3D = nullptr;
 		Camera2D* m_camera2D = nullptr;
+		
 		Shader* m_shader = nullptr;
 		TileLayer* m_renderLayer = nullptr;
 		TextureManager m_texManager;
 		BatchRenderer* m_batchRenderer = nullptr;
+		
 		// RenderMode
 		RenderMode m_renderMode = RenderMode::MODE_2D;
 		RenderMode m_pendingMode = RenderMode::MODE_2D;
 		EntityFactory* m_factory = nullptr;
+		
 		// Scene
 		SceneType m_activeScene = SceneType::Scene2D;
+		// Booleans for editor state
 		bool m_pendingModeUpdate = false;
 		bool m_skipNextFrame = false;
 		bool m_newSceneRequested = false;
 		bool m_loadSceneRequested = false;
+		bool m_saveSceneAsRequested = false;
+		bool m_showControlNameBox = false;
+		bool m_showTagNameBox = false;
+		bool m_isPlaying = false;
 	};
 }

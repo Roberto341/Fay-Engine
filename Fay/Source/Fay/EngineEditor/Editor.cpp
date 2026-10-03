@@ -7,6 +7,15 @@ namespace Fay
 	{
 		initImgui();
 		setupEditor();
+		TextureManager::add(new Texture("Folder", "Res/Assets/Content-Browser/Icons/Folder_Icon.png"));
+		TextureManager::add(new Texture("Blank", "Res/Assets/Content-Browser/Icons/Blank_Icon.png"));
+		TextureManager::add(new Texture("Json", "Res/Assets/Content-Browser/Icons/Json_Icon.png"));
+		TextureManager::add(new Texture("Script", "Res/Assets/Content-Browser/Icons/Script_Icon.png"));
+		TextureManager::add(new Texture("Txt", "Res/Assets/Content-Browser/Icons/Txt_Icon.png"));
+		TextureManager::add(new Texture("Wav", "Res/Assets/Content-Browser/Icons/WAV_Icon.png"));
+		TextureManager::add(new Texture("Mp3", "Res/Assets/Content-Browser/Icons/MP3_Icon.png"));
+		TextureManager::add(new Texture("Scene", "Res/Assets/Content-Browser/Icons/Scene_Icon.png"));
+
 	}
 
 	Editor::~Editor()
@@ -114,8 +123,12 @@ namespace Fay
 			m_ui->DrawToolsPanel();
 			m_viewport->DrawViewport();
 			m_ui->DrawEntitiesPanel();
-
-			m_core->handleScriptExecution();
+			m_ui->DrawContentBrowser();
+			m_ui->DrawCodeEditor();
+			if (m_utils->GetIsPlaying())
+			{
+				m_core->handleScriptExecution();
+			}
 			m_ui->DrawFileMenu();
 
 			// Rendering ImGui

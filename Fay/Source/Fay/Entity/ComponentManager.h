@@ -4,6 +4,7 @@
 
 namespace Fay {
 	using EntityID = uint32_t;
+	using NodeID = uint32_t;
 
 	template<typename T>
 	class ComponentManager
@@ -16,40 +17,83 @@ namespace Fay {
 		}
 		void addComponent(EntityID entity, const T& component)
 		{
-			m_Components[entity] = component;
-			m_entites.push_back(entity);
+			m_components[entity] = component;
+			m_entities.push_back(entity);
+		}
+		void addNodeComponent(NodeID node, const T& component)
+		{
+			m_nodeComponents[node] = component;
+			m_nodes.push_back(node);
 		}
 		void removeComponent(EntityID entity)
 		{
-			if (m_Components.find(entity) != m_Components.end())
+			if (m_components.find(entity) != m_components.end())
 			{
-				m_Components.erase(entity);
+				m_components.erase(entity);
 
-				auto it = std::find(m_entites.begin(), m_entites.end(), entity);
-				if (it != m_entites.end())
-					m_entites.erase(it);
+				auto it = std::find(m_entities.begin(), m_entities.end(), entity);
+				if (it != m_entities.end())
+					m_entities.erase(it);
+			}
+		}
+		void removeNodeComponent(NodeID node)
+		{
+			if (m_nodeComponents.find(node) != m_nodeComponents.end())
+			{
+				m_nodeComponents.erase(node);
+				auto it = std::find(m_nodes.begin(), m_nodes.end(), node);
+				if (it != m_nodes.end())
+					m_nodes.erase(it);
 			}
 		}
 		bool hasComponent(EntityID entity) const
 		{
-			return m_Components.find(entity) != m_Components.end();
+			return m_components.find(entity) != m_components.end();
+		}
+		bool hasNodeComponent(NodeID node) const
+		{
+			return m_nodeComponents.find(node) != m_nodeComponents.end();
 		}
 		T* getComponent(EntityID entity)
 		{
-			auto it = m_Components.find(entity);
-			if (it != m_Components.end())
+			auto it = m_components.find(entity);
+			if (it != m_components.end())
 				return &it->second;
 			return nullptr;
 		}
+		T* getNodeComponent(NodeID node)
+		{
+			auto it = m_nodeComponents.find(node);
+			if(it != m_nodeComponents.end())
+				return &it->second;
+			return nullptr;
+		}
+		bool getNodeHasEntity(EntityID entity)
+		{
+			auto it = std::find_if(m_entities.begin(), m_entities.end(), entity);
+
+			if (it != m_entities.end())
+				return true;
+			return false;
+		}
 		void clear()
 		{
-			m_Components.clear();
-			m_entites.clear();
+			m_components.clear();
+			m_entities.clear();
 		}
-		std::unordered_map<EntityID, T>& getAllComponents() { return m_Components; }
-		const std::vector<EntityID>& getEntities() const { return m_entites; }
+		void clearNodeComponents()
+		{
+			m_nodeComponents.clear();
+			m_nodes.clear();
+		}
+		std::unordered_map<EntityID, T>& getAllComponents() { return m_components; }
+		std::unordered_map<NodeID, T>& getAllNodeComponents() { return m_nodeComponents; }
+		const std::vector<EntityID>& getEntities() const { return m_entities; }
+		const std::vector<NodeID>& getNodes() const { return m_nodes; }
 	private:
-		std::unordered_map<EntityID, T> m_Components;
-		std::vector<EntityID> m_entites;
+		std::unordered_map<EntityID, T> m_components;
+		std::unordered_map<NodeID, T> m_nodeComponents;
+		std::vector<EntityID> m_entities;
+		std::vector<NodeID> m_nodes;
 	};
 }

@@ -6,11 +6,34 @@ namespace Fay
 	EditorUtils::~EditorUtils() = default;
 
 	EntityID EditorUtils::m_selectedEntity = INVALID_ENTITY;
+	EntityID EditorUtils::m_selectedNode= INVALID_ENTITY;
 	SceneType EditorUtils::s_ActiveScene = SceneType::Scene2D;
 	float EditorUtils::s_entitySpeed = 1.0f;
 
 	Scene* EditorUtils::s_Scene = nullptr;
 	
+	std::string EditorUtils::GetSceneNameFromPath(const std::string& path)
+	{
+		// get filename
+		size_t lastSlash = path.find_last_of("/\\");
+		std::string filename = (lastSlash == std::string::npos)
+			? path
+			: path.substr(lastSlash + 1);
+
+		// remove extension
+		size_t dot = filename.find_last_of('.');
+		if (dot != std::string::npos)
+			filename = filename.substr(0, dot);
+
+		return filename;
+	}
+
+	const std::string& EditorUtils::GetCurrentSceneName() const
+	{
+		static const std::string empty = "Untitled";
+		return m_sceneName.empty() ? empty : m_sceneName;
+	}
+
 	void EditorUtils::SaveScene()
 	{
 		if (m_currentScene.empty())
@@ -21,29 +44,59 @@ namespace Fay
 
 		if (!m_currentScene.ends_with(".fayScene"))
 		{
-			FAY_LOG_ERROR("Failed to save FayScene: " << m_currentScene);
+			FAY_LOG_ERROR("Failed to save FayScene invalid extension:" << m_currentScene);
 			return;
 		}
+		auto entities = m_scene->getAllEntities(); // whatever your API is
 
+		FAY_LOG_INFO("Save entity count: " << entities.size());
 		if (!m_scene->saveScene(m_currentScene))
 		{
 			FAY_LOG_ERROR("Failed to save FayScene: " << m_currentScene);
 			return;
 		}
 		FAY_LOG_INFO("FayScene Saved: " << m_currentScene);
+	}
+	void EditorUtils::SaveSceneAs(const std::string& path)
+	{
+		if (!path.ends_with(".fayScene"))
+		{
+			FAY_LOG_ERROR("Failed to save FayScene invalid extension: " << path);
+			return;
+		}
 
+		if (!m_scene->saveSceneAs(path))
+		{
+			FAY_LOG_ERROR("Failed to save FayScene: " << path);
+			return;
+		}
+
+		FAY_LOG_INFO("FayScene Saved: " << path);
 	}
 	void EditorUtils::CreateScene(const std::string& path)
 	{
+
+		// Add a iterator to check if the file already exists
+		if (std::filesystem::exists(path))
+		{
+			FAY_LOG_WARN("Scene already exists, aborting scene creation");
+			return;
+		}
+
 		m_scene->clear();
 		m_renderLayer->clear();
 		m_scene->saveScene(path);
 		m_scene->setSceneType((m_renderMode == RenderMode::MODE_2D) ? SceneType::Scene2D : SceneType::Scene3D);
 		FAY_LOG_INFO("New Scene Created: " << path);
-		m_currentScene = path;
+		LoadScene(path);
 	}
 	void EditorUtils::LoadScene(const std::string& path)
 	{
+		if (GetCurrentSceneName() == GetSceneNameFromPath(path))
+		{
+			FAY_LOG_WARN("Scene already loaded: " << path << ", aborting load operation");
+			return;
+		}
 		if (!path.ends_with(".fayScene"))
 		{
 			FAY_LOG_ERROR("Failed to load FayScene: " << path);
@@ -56,7 +109,11 @@ namespace Fay
 			return;
 		}
 
-		FAY_LOG_INFO("FayScene Loaded: " << path);
+		FAY_LOG_INFO("Scene loaded");
+
+		auto entities = m_scene->getAllEntities(); // whatever your API is
+
+		FAY_LOG_INFO("Loaded entity count: " << entities.size());
 		
 		if (m_scene->has2DEntities())
 			m_pendingMode = RenderMode::MODE_2D;
@@ -66,10 +123,11 @@ namespace Fay
 		m_pendingModeUpdate = true;
 
 		//SetStaticScene();
-
 		m_currentScene = path;
+		m_sceneName = GetSceneNameFromPath(m_currentScene);
 		m_selectedEntity = INVALID_ENTITY;
 	}
+	
 	void EditorUtils::DeleteScene()
 	{
 		if(!m_currentScene.ends_with(".fayScene"))

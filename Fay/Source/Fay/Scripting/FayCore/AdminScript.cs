@@ -1,3 +1,4 @@
+using FayRuntime;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,12 @@ namespace FayCore
 {
     public class AdminScript
     {
-        public static void OnStart() { } 
-        public static void OnUpdate() { } 
+        public static void OnStart() 
+        {
+        } 
+        public static void OnUpdate() 
+        {
+           
+        } 
     }
 }

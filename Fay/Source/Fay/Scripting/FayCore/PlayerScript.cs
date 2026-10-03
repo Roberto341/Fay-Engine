@@ -8,27 +8,26 @@ namespace FayCore
 {
     public class PlayerScript
     {
-        private static bool waitForMouseUp = false;
+        private static Node node;
+
         public static void OnStart()
         {
+            node = new Node(1);
         }
 
         public static void OnUpdate()
         {
-            Entity entity = new Entity(1);
-            entity.Move(2.0f, false);
-            if (Input.GetMouse(MouseButton.Right))
-            {
-                if (!waitForMouseUp)
-                {
-                    Console.WriteLine($"PlayerScript attached to entity {entity.GetId()}");
-                    waitForMouseUp = true;
-                }
-            }
+            if (node == null)
+                return;
 
-            if (Input.GetMouseUp(MouseButton.Right))
+            foreach(Entity entity in node.GetChildren())
             {
-                waitForMouseUp = false;
+                bool hasPlayerTag = entity.HasTag("Player");
+
+                if(hasPlayerTag)
+                {
+                    entity.Move(0.1f, true);
+                }
             }
         }
     }

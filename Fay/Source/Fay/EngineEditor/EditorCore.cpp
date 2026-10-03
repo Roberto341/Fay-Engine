@@ -28,19 +28,20 @@ namespace Fay
 	}
 	void EditorCore::handleScriptExecution()
 	{
-		static bool assemblyLoaded = false;
-		if (!assemblyLoaded)
-		{
-			ScriptEngine::ReloadAssembly(ScriptEngine::GetCoreDll());
-			assemblyLoaded = true;
-		}
+		if (!m_utils->GetIsPlaying())
+			return;
 
 		auto& scriptEntities = ComponentManager<ScriptComponent>::Get().getEntities();
-		for (EntityID e : scriptEntities)
+
+		auto& scriptNodes = ComponentManager<ScriptComponent>::Get().getNodes();
+
+		// Node scripts
+		for (NodeID n : scriptNodes)
 		{
-			ScriptComponent* comp = ComponentManager<ScriptComponent>::Get().getComponent(e);
+			ScriptComponent* comp = ComponentManager<ScriptComponent>::Get().getNodeComponent(n);
+
 			if (!comp)
-				continue; // skip if missing
+				continue;
 
 			for (auto& script : comp->scripts)
 			{
@@ -50,6 +51,33 @@ namespace Fay
 					script.hasStarted = true;
 				}
 				ScriptEngine::InvokeCoreStatic(script.className, "OnUpdate");
+			}
+		}
+		// Entity scripts
+		for (EntityID e : scriptEntities)
+		{
+			ScriptComponent* comp =
+				ComponentManager<ScriptComponent>::Get().getComponent(e);
+
+			if (!comp)
+				continue;
+
+			for (auto& script : comp->scripts)
+			{
+				if (!script.hasStarted)
+				{
+					ScriptEngine::InvokeCoreStatic(
+						script.className,
+						"OnStart"
+					);
+
+					script.hasStarted = true;
+				}
+
+				ScriptEngine::InvokeCoreStatic(
+					script.className,
+					"OnUpdate"
+				);
 			}
 		}
 	}

@@ -3,7 +3,7 @@
 #include <Renderer/Renderer.h>
 #include <Renderer/Renderable.h>
 #include <Graphics/Buffers/IndexBuffer.h>
-
+#include <Renderer/MeshObject.h>
 namespace Fay
 {
 #define RENDERER_MAX_SPRITES	60000

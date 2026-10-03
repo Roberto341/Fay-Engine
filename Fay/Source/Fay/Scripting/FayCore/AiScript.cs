@@ -10,11 +10,27 @@ namespace FayCore
     public class AiScript
     {
         private static Vector3 dir = Vector3.Zero;
+        private static bool using3D = false;
+        private static Dictionary<int, Vector3> directions = new Dictionary<int, Vector3>();
         private static Random rng = new Random();
-        private static float speed = 0.5f;
-        private static Entity entity;
+        private static float speed = using3D ? 0.01f : 2.0f;
+        private static Node node;
         private static void MoveAi(Entity entity)
         {
+            int id = entity.GetId();
+            if(!directions.TryGetValue(id, out Vector3 dir))
+            {
+                Vector3[] dirs = new Vector3[]
+                {
+                    new Vector3(1, 0, 0),
+                    new Vector3(-1, 0, 0),
+                    new Vector3(0, 1, 0),
+                    new Vector3(0, -1, 0)
+                };
+
+                dir = dirs[rng.Next(dirs.Length)];
+                directions[id] = dir;
+            }
             if(dir.X == 0 && dir.Y == 0)
             {
                 Vector3[] dirs = new Vector3[]
@@ -26,6 +42,8 @@ namespace FayCore
                 };
 
                 dir = dirs[rng.Next(dirs.Length)];
+
+                directions[id] = dir;
             }
 
             Vector3 pos = entity.GetPosition();
@@ -62,24 +80,30 @@ namespace FayCore
                     new Vector3( 0,-1, 0)
                 };
                 dir = dirs[rng.Next(dirs.Length)];
+
+                directions[id] = dir;
             }
 
         }
         public static void OnStart() 
         {
-            entity = new Entity(3);
-            bool hasScript = entity.HasComponent(typeof(FayRuntime.ScriptComponent));
-
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Entity has ScriptComponent? " + hasScript);
-            Console.ResetColor();
+            node = new Node(1);
         }
         public static void OnUpdate() 
         {
-            if (entity == null)
+            if (node == null)
                 return;
 
-            MoveAi(entity); // ccauses the break as well as PlayerScript Move() see API.cs Move method 
+            foreach(Entity entity in node.GetChildren())
+            {
+                bool hasAiTag = entity.HasTag("Ai");
+
+                if (hasAiTag)
+                {
+                    MoveAi(entity);
+                }
+            }
+
         }
     }
 }

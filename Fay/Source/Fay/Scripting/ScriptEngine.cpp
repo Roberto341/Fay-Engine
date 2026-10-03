@@ -20,12 +20,18 @@ namespace Fay
             s_exeDir = std::filesystem::absolute(argv0).parent_path();
             mono_set_dirs("C:/Program Files/Mono/lib", "C:/Program Files/Mono/etc");
             mono_config_parse(nullptr);
+            
+            // Root domain - stays alive for the entire editor lifetime.
 
-            s_rootDomain = mono_jit_init("FayRuntime"); // root domain
+            s_rootDomain = mono_jit_init("FayRuntime");
+
             if (!s_rootDomain)
+            {
                 FAY_LOG_ERROR("[Mono] Failed to initialize Mono JIT.");
-
-            s_scriptDomain = s_rootDomain; // default to root domain initially
+                return;
+            }
+            // FayCore gets its own domain when Play is pressed
+            s_scriptDomain = nullptr; 
         }
         const std::filesystem::path& ScriptEngine::ExeDir()
         {
@@ -64,7 +70,7 @@ namespace Fay
                 .parent_path()
                 .parent_path();
 
-            fs::path dllPath = fayRoot / "Fay/Source/Fay/Scripting/FayCore/bin/Debug/net48/FayCore.dll"; // Change to release after completion
+            fs::path dllPath = fayRoot / "Fay/Source/Fay/Scripting/FayCore/bin/Any CPU/Debug/net48/FayCore.dll"; // Change to release after completion
 
             if (!fs::exists(dllPath))
                 FAY_LOG_THROW_ERROR("FayCore.dll not found at" + dllPath.string());
@@ -122,12 +128,29 @@ namespace Fay
         }
         void ScriptEngine::UnloadScriptDomain()
         {
+            // Do not unload root domain, only script domain
             if (!s_scriptDomain || s_scriptDomain == s_rootDomain)
-                return; // do not unload root domain
+                return; 
 
-            mono_domain_set(s_rootDomain, false); // switch back to root domain
+            // Switch back to root
+            mono_domain_set(s_rootDomain, false);
             mono_domain_unload(s_scriptDomain);
             s_scriptDomain = nullptr;
+        }
+        void ScriptEngine::DestroyScriptDomain()
+        {
+            if (!s_scriptDomain || s_scriptDomain == s_rootDomain)
+                return;
+
+            FAY_LOG_INFO("[Mono] Unloading FayCore script domain...");
+
+            UnloadScriptDomain();
+
+            s_scriptDomain = nullptr;
+            s_coreAssembly = nullptr;
+            s_coreImage = nullptr;
+
+            FAY_LOG_INFO("[Mono] FayCore script domain unloaded.");
         }
         void ScriptEngine::LoadAssembly(const std::string& path, MonoDomain* domain)
         {
@@ -136,7 +159,8 @@ namespace Fay
 
             mono_domain_set(domain, false);
 
-            MonoAssembly* assembly = mono_domain_assembly_open(domain, path.c_str());
+            MonoAssembly* assembly =
+                mono_domain_assembly_open(domain, path.c_str());
 
             if (!assembly)
             {
@@ -148,37 +172,213 @@ namespace Fay
 
             if (domain == s_rootDomain)
             {
-                // Runtime
                 s_rootAssembly = assembly;
                 s_rootImage = image;
             }
-            else {
+            else
+            {
                 s_coreAssembly = assembly;
                 s_coreImage = image;
             }
+
 #if LOG_MONO_DLL_CLASSES
-            // Debug: print loaded classes
-            const MonoTableInfo* typeDefTableConst = mono_image_get_table_info(s_rootImage, MONO_TABLE_TYPEDEF);
-            if (!typeDefTableConst)
+
+            // Always inspect the assembly we JUST loaded.
+            const MonoTableInfo* typeDefTable =
+                mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
+
+            if (!typeDefTable)
             {
                 FAY_LOG_ERROR("[Mono] TypeDef table is null!");
                 return;
             }
 
-            MonoTableInfo* typeDefTable = const_cast<MonoTableInfo*>(typeDefTableConst);
             int numTypes = mono_table_info_get_rows(typeDefTable);
-            FAY_LOG_DEBUG("[Mono] Classes in loaded assembly: " << numTypes);
+
+            FAY_LOG_DEBUG(
+                "[Mono] Classes in loaded assembly: "
+                << numTypes
+            );
 
             for (int i = 0; i < numTypes; i++)
             {
                 uint32_t cols[MONO_TYPEDEF_SIZE];
-                mono_metadata_decode_row(typeDefTable, i, cols, MONO_TYPEDEF_SIZE);
 
-                const char* name = mono_metadata_string_heap(s_rootImage, cols[MONO_TYPEDEF_NAME]);
-                const char* ns = mono_metadata_string_heap(s_rootImage, cols[MONO_TYPEDEF_NAMESPACE]);
-                FAY_LOG_DEBUG(" - " << (ns ? ns : "") << "." << (name ? name : ""));
+                mono_metadata_decode_row(
+                    typeDefTable,
+                    i,
+                    cols,
+                    MONO_TYPEDEF_SIZE
+                );
+
+                const char* name =
+                    mono_metadata_string_heap(
+                        image,
+                        cols[MONO_TYPEDEF_NAME]
+                    );
+
+                const char* ns =
+                    mono_metadata_string_heap(
+                        image,
+                        cols[MONO_TYPEDEF_NAMESPACE]
+                    );
+
+                FAY_LOG_DEBUG(
+                    " - "
+                    << (ns ? ns : "")
+                    << "."
+                    << (name ? name : "")
+                );
             }
+
 #endif
+        }
+
+        bool ScriptEngine::BuildAndLoadCoreAssembly()
+        {
+            if (!s_scriptDomain)
+            {
+                s_scriptDomain = CreateScriptDomain("FayCore");
+
+                if (!s_scriptDomain)
+                {
+                    FAY_LOG_THROW_ERROR("[Mono] Failed to create FayCore script domain.");
+                    return false;
+                }
+            }
+
+            // ======================================
+            // BUILD ONLY IF SCRIPTS CHANGED
+            // ======================================
+
+            if (ScriptsNeedRebuild())
+            {
+                FAY_LOG_INFO("[Mono] Scripts changed. Building FayCore...");
+
+                // Path to the FayCore project
+                const std::string projectPath = GetCoreCsProj();
+
+                // Path where FayCore.dll is produced
+                const std::string coreDllPath = GetCoreDll();
+
+                // MSBuild path
+                const std::string msbuildPath =
+                    "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe";
+
+                std::string systemCommand =
+                    "cmd.exe /C \"\"" + msbuildPath + "\" \"" +
+                    projectPath +
+                    "\" /t:Rebuild /p:Configuration=Debug /p:Platform=\"Any CPU\"\"";
+
+                FAY_LOG_INFO("[Mono] System command:");
+                FAY_LOG_INFO(systemCommand.c_str());
+
+                int result = std::system(systemCommand.c_str());
+
+                if (result != 0)
+                {
+                    FAY_LOG_THROW_ERROR(
+                        "[Mono] Failed to build FayCore. MSBuild returned: " +
+                        std::to_string(result)
+                    );
+
+                    return false;
+                }
+
+                FAY_LOG_INFO("[Mono] FayCore build succeeded.");
+            }
+            else
+            {
+                FAY_LOG_INFO(
+                    "[Mono] No script changes detected. Skipping build."
+                );
+            }
+
+            // ======================================
+            // VERIFY DLL
+            // ======================================
+
+            const std::string coreDllPath = GetCoreDll();
+
+            if (!std::filesystem::exists(coreDllPath))
+            {
+                FAY_LOG_THROW_ERROR(
+                    "[Mono] FayCore.dll was not found: " + coreDllPath
+                );
+
+                return false;
+            }
+
+            // ======================================
+            // LOAD FAYCORE INTO SCRIPT DOMAIN
+            // ======================================
+
+            if (!s_scriptDomain)
+            {
+                FAY_LOG_THROW_ERROR("[Mono] Script domain is null.");
+                return false;
+            }
+
+            FAY_LOG_INFO("[Mono] Loading FayCore from:");
+            FAY_LOG_INFO(coreDllPath.c_str());
+
+            LoadAssembly(coreDllPath, s_scriptDomain);
+
+            // ======================================
+            // VERIFY ASSEMBLY
+            // ======================================
+
+            if (!s_coreAssembly || !s_coreImage)
+            {
+                FAY_LOG_THROW_ERROR(
+                    "[Mono] FayCore assembly failed to load."
+                );
+
+                return false;
+            }
+
+            FAY_LOG_INFO("[Mono] FayCore loaded successfully.");
+
+            return true;
+        }
+
+        bool ScriptEngine::ScriptsNeedRebuild()
+        {
+            namespace fs = std::filesystem;
+
+            if (s_exeDir.empty())
+                FAY_LOG_THROW_ERROR("ScriptEngine not initialized");
+
+            // EXE is in Fay/Bin -> go up to Fay root
+
+            fs::path fayRoot = s_exeDir
+                .parent_path()
+                .parent_path()
+                .parent_path();
+
+            fs::path scriptsPath = fayRoot / "Fay/Res/Assets/Scripts";
+
+            fs::path dllPath = GetCoreDll();
+
+            // No DLL means we have to build it.
+            if (!fs::exists(dllPath))
+                return true;
+
+            // Checl all C# scripts, including subdirs.
+            for (const auto& entry : fs::recursive_directory_iterator(scriptsPath))
+            {
+                if (!entry.is_regular_file())
+                    continue;
+
+                if (entry.path().extension() != ".cs")
+                    continue;
+
+                if (fs::last_write_time(entry.path()) > fs::last_write_time(dllPath))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         void ScriptEngine::ReloadAssembly(const std::string& path)
@@ -303,28 +503,13 @@ namespace Fay
                 {
                     if (s.className == className)
                     {
-                        FAY_LOG_WARN("Script " << className << " already attached t0 entity " << entity);
+                        FAY_LOG_WARN("Script " << className << " already attached to entity " << entity);
                         return; // script already exists
                     }
                 }
             }
-
-            std::ofstream out(path);
-            if (!out.is_open())
-            {
-                FAY_LOG_ERROR("Failed to create script at path: " << path);
-                return;
-            }
-            // Write template C# class
-            out << "using System;\nusing System.Collections.Generic;\nusing System.Linq;\nusing System.Text;\nusing System.Threading.Tasks;\n";
-            out << "namespace FayCore\n{\n";
-            out << "    public class " << className << "\n";
-            out << "    {\n";
-            out << "        public static void OnStart() { } \n";
-            out << "        public static void OnUpdate() { } \n";
-            out << "    }\n";
-            out << "}\n";
-            out.close();
+           
+            createTemplate(path, className);
               
             // If no ScriptComponent exists, create it
             if (!comp)
@@ -340,12 +525,76 @@ namespace Fay
             }
 
             // Auto-inialize the new script
+			// Disabled for right now as it does not need to auto initialize on creation, only when the scene is running
+            /*
             auto& newScript = comp->scripts.back();
             if (!newScript.hasStarted)
             {
                 ScriptEngine::InvokeCoreStatic(newScript.className, "OnStart");
                 newScript.hasStarted = true;
             }
+            */
             FAY_LOG_INFO("Script " << className << " created and attatched to entity " << entity);
+        }
+        void ScriptEngine::createScriptTemplateNode(const std::string& path, uint32_t node)
+        {
+            auto* comp = ComponentManager<ScriptComponent>::Get().getNodeComponent(node);
+
+            std::string fileName = path.substr(path.find_last_of("/\\") + 1);
+            std::string className = fileName.substr(0, fileName.find_last_of('.'));
+
+            if (comp)
+            {
+                for (auto& s : comp->scripts)
+                {
+                    if (s.className == className)
+                    {
+                        FAY_LOG_WARN("Script " << className << " already attached to node " << node);
+                        return;// ignore
+                    }
+                }
+            }
+
+            std::ofstream out(path);
+            if (!out.is_open())
+            {
+                FAY_LOG_ERROR("Failed to create script at path" << path);
+                return;
+            }
+            // Write template
+            createTemplate(path, className);
+
+            // If no script component exists, create it
+            if (!comp)
+            {
+                ScriptComponent newComp(node);
+                newComp.scripts.emplace_back(className);
+                ComponentManager<ScriptComponent>::Get().addNodeComponent(node, newComp);
+                comp = ComponentManager<ScriptComponent>::Get().getNodeComponent(node);
+            }
+            else
+            {
+                // Otherwise, just add the new script to the existing component
+                comp->scripts.emplace_back(className);
+            }
+
+            FAY_LOG_INFO("Script " << className << " created and attached to node " << node);
+
+        }
+        void ScriptEngine::createTemplate(const std::string& path, const std::string& className)
+        {
+            std::ofstream out(path);
+
+            // Write template C# class
+            out << "using System;\nusing System.Collections.Generic;\nusing System.Linq;\nusing System.Text;\nusing System.Threading.Tasks;\nusing FayRuntime;\n";
+            out << "namespace FayCore\n{\n";
+            out << "    public class " << className << "\n";
+            out << "    {\n";
+            out << "        public static void OnStart() { } \n";
+            out << "        public static void OnUpdate() { } \n";
+            out << "    }\n";
+            out << "}\n";
+
+            out.close();
         }
 }

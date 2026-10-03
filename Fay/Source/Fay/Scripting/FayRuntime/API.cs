@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -13,8 +14,74 @@ namespace FayRuntime
         Scene2D = 1,
         Scene3D = 2
     }
-    public static class API
+    public class Scene
     {
+
+    }
+    public class API
+    {
+        public void OpenSceneFile(string scene)
+        {
+            var fs = new FileStream(scene, FileMode.Open);
+            var len = (int)fs.Length;
+            var bits = new byte[len];
+            fs.Read(bits, 0, len);
+            // Dump 16 bytes per line
+            for(int ix = 0; ix < len; ix += 16)
+            {
+                var cnt = Math.Min(16, len - ix);
+                var line = new byte[cnt];
+                Array.Copy(bits, ix, line, 0, cnt);
+
+                // Write address + hex + ascii
+                Console.Write("{0:X6}  ", ix);
+                Console.Write(BitConverter.ToString(line));
+                Console.Write("  ");
+                // Convert non-ascii chars to dots
+                for (int jx = 0; jx < cnt; ++jx)
+                    if (line[jx] < 0x20 || line[jx] > 0x7f) line[jx] = (byte)'.';
+                Console.WriteLine(Encoding.ASCII.GetString(line));
+            }
+        }
+
+        public int GetObjectCount(string sceneName)
+        {
+            return InternalCalls.InternalCalls_Scene_GetChildCount(sceneName);
+        }
+    }
+    public class Node
+    {
+       internal uint _nodeID;
+
+        public Node() { }
+        public Node(uint id)
+        {
+            _nodeID = id;
+        }
+        public int ChildCount
+        {
+            get
+            {
+                return InternalCalls.InternalCalls_Node_GetChildCount(this);
+            }
+        }
+
+        public Entity GetChild(uint index)
+        {
+            uint childId = InternalCalls.InternalCalls_Node_GetChild(this, index);
+            return new Entity(childId);
+        }
+
+        public Entity[] GetChildren()
+        {
+            Entity[] children = new Entity[ChildCount];
+
+            for(uint i = 0; i < ChildCount; i++)
+            {
+                children[i] = GetChild(i);
+            }
+            return children;
+        }
     }
     public class Entity
     {
@@ -55,6 +122,11 @@ namespace FayRuntime
         public bool HasComponent(Type componentType)
         {
             return InternalCalls.InternalCalls_Entity_HasComponent(this, componentType);
+        }
+        public bool HasTag(string tag)
+        {
+            // returns true if given tag is apart of the entities tag list returns false if not
+            return InternalCalls.InternalCalls_Entity_HasTag(this, tag);
         }
         public void Move(float speed, bool useZ)
         {

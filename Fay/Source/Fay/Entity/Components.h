@@ -2,9 +2,12 @@
 #include <Scripting/ScriptEngine.h>
 #include <Renderer/Sprite.h>
 #include <Renderer/Cube.h>
+#include <Renderer/MeshObject.h>
+#include <Renderer/ControlNode.h>
 #include <Entity/ComponentManager.h>
 #include <functional>
 #include <Core/Logger.h>
+#include <unordered_set>
 //#include <Math/Math.h>
 // declare all components here
 namespace Fay
@@ -49,9 +52,55 @@ namespace Fay
 	{
 		// Can take in CameraComponent, TransformComponent and ScriptComponent
 		Renderable* sprite = nullptr;
+		std::unordered_set<std::string> tags;
 
 		SpriteComponent() = default;
 		SpriteComponent(Renderable* s) : sprite(s) {}
+
+		void addTag(std::string& tag)
+		{
+			tags.insert(tag);
+		}
+
+		bool hasTag(const std::string& tag) const
+		{
+			return tags.contains(tag);
+		}
+	
+		std::string getAllTagsAsString() const
+		{
+			/* Prints out each and every single tag*/
+			std::string result;
+
+			for (const auto& tag : tags)
+			{
+				if (!result.empty())
+					result += ",";
+				result += tag;
+			}
+
+			return result;
+		}
+		const std::string* getTag(const std::string& tagName) const
+		{
+			auto it = tags.find(tagName);
+
+			if (it == tags.end())
+				return nullptr;
+
+			return &(*it);
+		}
+
+		bool removeTagBool(const std::string& tag)
+		{
+			return tags.erase(tag) > 0;
+		}
+
+		void removeTag(const std::string& tag)
+		{
+			tags.erase(tag);
+		}
+
 		void setCollision(bool cond)
 		{
 			//sprite->setColision(cond);
@@ -101,9 +150,52 @@ namespace Fay
 	struct CubeComponent
 	{
 		Renderable* cube = nullptr; 
+		std::unordered_set<std::string> tags;
+
 		//Mat4 modelMatrix;
 		CubeComponent() = default;
 		CubeComponent(Renderable* c) : cube(c) {}
+		void addTag(std::string& tag)
+		{
+			tags.insert(tag);
+		}
+
+		bool hasTag(const std::string& tag) const
+		{
+			return tags.contains(tag);
+		}
+		std::string getAllTagsAsString() const
+		{
+			/* Prints out each and every single tag*/
+			std::string result;
+
+			for (const auto& tag : tags)
+			{
+				if (!result.empty())
+					result += ",";
+				result += tag;
+			}
+
+			return result;
+		}
+		const std::string* getTag(const std::string& tagName) const
+		{
+			auto it = tags.find(tagName);
+
+			if (it == tags.end())
+				return nullptr;
+
+			return &(*it);
+		}
+		bool removeTagBool(const std::string& tag)
+		{
+			return tags.erase(tag) > 0;
+		}
+
+		void removeTag(const std::string& tag)
+		{
+			tags.erase(tag);
+		}
 		void setCollision(bool cond)
 		{
 			//sprite->setColision(cond);
@@ -151,12 +243,14 @@ namespace Fay
 	struct ScriptComponent
 	{
 		// New method
-		uint32_t entityId = 0;
+		uint32_t id = 0;
+
 		std::vector<ScriptInstance> scripts;
 		std::string tag;
 
 		ScriptComponent() = default;
-		ScriptComponent(uint32_t _entityId) : entityId(_entityId) {}
+		ScriptComponent(uint32_t _Id) : id(_Id) {}
+
 		void setTag(const std::string& _tag)
 		{
 			tag = _tag;
@@ -175,13 +269,64 @@ namespace Fay
 				scripts.erase(scripts.begin() + index);
 		}
 	};
+	struct ControllerComponent
+	{
+		ControlNode* node = nullptr;
+		ControllerComponent() = default;
+		ControllerComponent(ControlNode* n) : node(n) {}
+
+		std::vector<EntityID> entities;
+		uint32_t getNodeId() 
+		{
+			return node->getId();
+		}
+		size_t getNodeChildrenCount()
+		{
+			return entities.size();
+		}
+		const std::vector<EntityID>& getEntities() const
+		{
+			return entities;
+		}
+		bool hasEntity(EntityID id) const
+		{
+			return std::find(entities.begin(), entities.end(), id) != entities.end();
+		}
+		void addEntity(EntityID id)
+		{
+			if(!hasEntity(id))
+				entities.emplace_back(id);
+		}
+		void removeEntity(EntityID id)
+		{
+			auto it = std::find(entities.begin(), entities.end(), id);
+			if (it != entities.end())
+			{
+				entities.erase(it);
+			}
+		}
+	};
+	struct MeshComponent
+	{
+		MeshObject* mesh = nullptr;
+
+		MeshComponent() = default;
+
+		MeshComponent(MeshObject* object) : mesh(object) {}
+
+		MeshObject* getMesh() { return mesh; }
+		const MeshObject* getMesh() const { return mesh; }
+		
+	};
 	using AllComponents = ComponentGroup<
 		TransformComponent, 
 		CameraComponent, 
 		SpriteComponent, 
 		CubeComponent, 
 		ScriptComponent,
-		CollisionComponent
+		CollisionComponent,
+		ControllerComponent,
+		MeshComponent
 	>;
 
 }

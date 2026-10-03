@@ -43,7 +43,7 @@ namespace Fay
         // Collsion
         static void InternalCalls_Entity_SetCollision(int entity, bool condition);
         static bool InternalCalls_Entity_GetCollision(int entity);
-
+        static bool InternalCalls_Entity_HasTag(MonoObject* entity, MonoString* tag);
         // Input
         static bool InternalCalls_Window_KeyPressed(int keyCode);
         static bool InternalCalls_Window_KeyReleased(int keyCode);
@@ -61,8 +61,15 @@ namespace Fay
         static SceneType InternalCalls_Scene_GetActive();
         static void InternalCalls_Scene_SetActive(SceneType type);
         static void InternalCalls_Scene_CreateScene(MonoString* sceneName);
-        static bool InternalCalls_Scene_SaveScene(MonoString* sceneName);
+        //static void InternalCalls_Scene_CreateJson(MonoString* sceneName);
+        static bool InternalCalls_Scene_SaveScene();
+        static bool InternalCalls_Scene_SaveSceneAs(MonoString* sceneName);
         static bool InternalCalls_Scene_LoadScene(MonoString* sceneName);
+        //static bool InternalCalls_Scene_SaveJson(MonoString* sceneName);
+        static int InternalCalls_Scene_GetChildCount(MonoString* sceneName);
+        // Node
+        static uint32_t InternalCalls_Node_GetChild(MonoObject* node, uint32_t index);
+        static int InternalCalls_Node_GetChildCount(MonoObject* node);
 
 	};
 
@@ -88,7 +95,7 @@ namespace Fay
             FAY_LOG_ERROR("Could not get type name from MonoType!");
             return;
         }
-        FAY_LOG_INFO("Registered Component" << key);
+        FAY_LOG_INFO("Registered Component: " << key);
         s_EntityHasComponentFuncs[key] = [](Entity entity) -> bool {
             return entity.HasComponent<T>();
             };

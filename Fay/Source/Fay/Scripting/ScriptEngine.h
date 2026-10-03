@@ -12,7 +12,7 @@
 #include <Entity/ComponentManager.h>
 #include <Entity/Components.h>
 #include <filesystem>
-#define LOG_MONO_DLL_CLASSES 0
+#define LOG_MONO_DLL_CLASSES 1
 namespace Fay
 {
 	class ScriptEngine
@@ -26,9 +26,11 @@ namespace Fay
 		static void Shutdown();
 
 		static void LoadAssembly(const std::string& path, MonoDomain* domain);
+		static bool BuildAndLoadCoreAssembly();
+		static bool ScriptsNeedRebuild();
 		static void ReloadAssembly(const std::string& path);
 		static void UnloadScriptDomain();
-
+		static void DestroyScriptDomain();
 		static MonoDomain* CreateScriptDomain(const std::string& name);
 
 		// Static method call: FayRuntime.MyScript.OnStart()
@@ -49,6 +51,8 @@ namespace Fay
 		static MonoClass* GetMonoClass(const std::string& className);
 	public:
 		static void createScriptTemplate(const std::string& path, uint32_t entity);
+		static void createScriptTemplateNode(const std::string& path, uint32_t node);
+		static void createTemplate(const std::string& path, const std::string& className);
 	private:
 		static MonoDomain* s_rootDomain;
 		static MonoDomain* s_scriptDomain;

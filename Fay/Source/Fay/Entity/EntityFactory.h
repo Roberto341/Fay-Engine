@@ -14,6 +14,7 @@ namespace Fay
 
 		EntityID CreateSprite();
 		EntityID CreateCube();
+		NodeID CreateControllNode(const std::string& name);
 		EntityID CreateEntity(RenderMode mode);
 	private:
 		Scene* m_scene = nullptr;

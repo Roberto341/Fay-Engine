@@ -26,6 +26,7 @@ namespace Fay
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetCollision);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_CheckCollision);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_GetSpeed);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Entity_HasTag);
 
 		// Input handling
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Window_KeyPressed);
@@ -39,6 +40,12 @@ namespace Fay
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_CreateScene);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_SaveScene);
 		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_LoadScene);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_SaveSceneAs);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Scene_GetChildCount);
+		// Node handling
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Node_GetChild);
+		FAY_ADD_INTERNAL_CALL(InternalCalls_Node_GetChildCount);
+
 
 	}
 	bool ScriptGlue::InternalCalls_Entity_HasComponent(MonoObject* object, MonoReflectionType* componentType)
@@ -93,57 +100,59 @@ namespace Fay
 	}
 	bool ScriptGlue::InternalCalls_Entity_CheckCollision(MonoObject* object)
 	{
-		// Convert c# pointer -> EntityID
 		EntityID id = GetEntityIDFromMonoObject(object);
+
 		Renderable* a = nullptr;
+		Renderable* b = nullptr;
 
-		auto* spriteComp = ComponentManager<SpriteComponent>::Get().getComponent(id);
-		if (spriteComp && spriteComp->sprite)
-			a = spriteComp->sprite;
-		auto* cubeComp = ComponentManager<CubeComponent>::Get().getComponent(id);
-		if (!a && cubeComp && cubeComp->cube)
-			a = cubeComp->cube;
+		auto* entityCollisionComponent = ComponentManager<CollisionComponent>::Get().getComponent(id);
+		auto* entitySprite = ComponentManager<SpriteComponent>::Get().getComponent(id);
+		// Chcek to see if entityCollisionComponent and entitySprite are not null, and if entitySprite->sprite is not null, 
+		
+		// then set a to entitySprite->sprite
+		if (entityCollisionComponent && entitySprite && entitySprite->sprite)
+			a = entitySprite->sprite;
 
+		// if entitySprite is not available, check for CubeComponent and set a to entityCube->cube if available 
+		if (!a)
+		{
+			auto* entityCube = ComponentManager<CubeComponent>::Get().getComponent(id);
+			if (entityCollisionComponent && entityCube && entityCube->cube)
+				a = entityCube->cube;
+		}
+
+		// if it is still null, return false
 		if (!a) return false;
 
-		// Loop through every renderable in the scene
+		// Loop through every entity in the scene
 		for (Renderable* obj : EditorUtils::s_Scene->getObjects())
 		{
 			if (!obj)
 			{
-				FAY_LOG_THROW_ERROR("NULL renderable in scene list");
+				FAY_LOG_THROW_ERROR("[InternalCalls_Entity_CheckCollision]: NULL renderable in scene list");
 				continue;
 			}
 			if (obj->getId() == id) continue; // skip self
 
-			Renderable* b = nullptr;
+			auto* otherEntityCollisionComponent = ComponentManager<CollisionComponent>::Get().getComponent(obj->getId());
+			auto* otherEntitySprite = ComponentManager<SpriteComponent>::Get().getComponent(obj->getId());
 
 			// Try sprite first
-			if (auto* otherSpriteComp =
-				ComponentManager<SpriteComponent>::Get().getComponent(obj->getId()))
-			{
-				if (otherSpriteComp->sprite)
-				{
-					b = otherSpriteComp->sprite;
-				}
-			}
+			if (otherEntityCollisionComponent && otherEntitySprite && otherEntitySprite->sprite)
+				b = otherEntitySprite->sprite;
 
 			// Try cube second
 			if (!b)
 			{
-				if (auto* otherCubeComp =
-					ComponentManager<CubeComponent>::Get().getComponent(obj->getId()))
-				{
-					if (otherCubeComp->cube)
-						b = otherCubeComp->cube;
-				}
+				auto* otherEntityCube = ComponentManager<CubeComponent>::Get().getComponent(obj->getId());
+				if (otherEntityCollisionComponent && otherEntityCube && otherEntityCube->cube)
+					b = otherEntityCube->cube;
 			}
 
 			if (!b) continue;
-
+			
 			bool useZ = true;
 
-			// If both a and b are 2D (size.z == 0), ignore Z
 			if (a->getSize().z == 0 && b->getSize().z == 0)
 				useZ = false;
 
@@ -151,7 +160,6 @@ namespace Fay
 			if (a->checkCollision(b, useZ))
 				return true;
 		}
-		
 		return false;
 	}
 	void ScriptGlue::InternalCalls_Entity_SetPosition(MonoObject* object, float x, float y, float z)
@@ -208,6 +216,7 @@ namespace Fay
 	float ScriptGlue::InternalCalls_Entity_GetSpeed()
 	{
 		return EditorUtils::GetEntitySpeed();
+		//EditorUtils::GetCurrentSceneName();
 	}
 	bool ScriptGlue::InternalCalls_Entity_GetCollision(int entity)
 	{
@@ -224,17 +233,61 @@ namespace Fay
 		// add other collision types
 		return false;
 	}
+
+	bool ScriptGlue::InternalCalls_Entity_HasTag(MonoObject* entity, MonoString* tag)
+	{
+		EntityID id = GetEntityIDFromMonoObject(entity);
+
+		if (id == INVALID_ENTITY)
+		{
+			FAY_LOG_ERROR("[InternalCalls_Entity_HasTag] Error: Invalid Id or Null Id!");
+			return false;
+		}
+
+		char* tagChars = mono_string_to_utf8(tag);
+		std::string tagString(tagChars);
+
+		mono_free(tagChars);
+
+		auto* spriteEnt = ComponentManager<SpriteComponent>::Get().getComponent(id);
+
+		if(spriteEnt)
+			return spriteEnt->hasTag(tagString);
+
+		auto* cubeEnt = ComponentManager<CubeComponent>::Get().getComponent(id);
+
+		if (cubeEnt)
+			return cubeEnt->hasTag(tagString);
+
+		FAY_LOG_ERROR("[InternalCalls_Entity_HasTag] Error: Entity does not have SpriteComponent or CubeComponent!");
+		
+		return false;
+	}
 	
 	void ScriptGlue::InternalCalls_Entity_SetCollision(int entity, bool condition)
 	{
+
+		// Change this to check for CollisionComponent first, then check for SpriteComponent
+		// and CubeComponent, and set the collision accordingly.
 		EntityID id = static_cast<EntityID>(entity);
+		auto* collision = ComponentManager<CollisionComponent>::Get().getComponent(id);
+
+		if(!collision)
+		{
+			FAY_LOG_ERROR("[InternalCalls_Entity_SetCollision] Error: Entity does not have CollisionComponent!");
+			return;
+		}    
+
 		auto* sprite = ComponentManager<SpriteComponent>::Get().getComponent(id);
 		auto* cube = ComponentManager<CubeComponent>::Get().getComponent(id);
-		if (sprite)
+
+		if (sprite && collision)
 		{
 			sprite->setCollision(condition);
 		}
-		else if (cube)
+		// If sprite doesnt check for cube, if cube exists, set collision for cube
+
+		if (cube && collision)
 		{
 			cube->setCollision(condition);
 		}
@@ -303,17 +356,112 @@ namespace Fay
 			ScriptGlue::s_EditorUtils->CreateScene(fullPath);
 		mono_free(name);
 	}
-	bool ScriptGlue::InternalCalls_Scene_SaveScene(MonoString* sceneName)
+
+	bool ScriptGlue::InternalCalls_Scene_SaveScene()
 	{
-		/*char* name = mono_string_to_utf8(sceneName);
-		std::string filename = std::string(name) + ".fayScene";
-		std::string fullpath = "Res/Assets/Scenes/" + filename;
-		if (ScriptGlue::s_EditorUtils)
-			ScriptGlue::s_EditorUtils->SaveScene();*/
-		return false;
+		// Saves current scene
+
+		if (!ScriptGlue::s_EditorUtils)
+		{
+			FAY_LOG_ERROR("(InternalCalls_Scene_SaceScene) Failed to save scene: EditorUtils is null!");
+			return false;
+		}
+
+		ScriptGlue::s_EditorUtils->SaveScene();
+
+		return true;	
+	}
+	bool ScriptGlue::InternalCalls_Scene_SaveSceneAs(MonoString* sceneName)
+	{
+		char* name = mono_string_to_utf8(sceneName);
+		std::string filename = std::string(name);
+		std::string fillpath = "Res/Assets/Scenes/" + filename;
+
+		if (!ScriptGlue::s_EditorUtils)
+		{
+			FAY_LOG_ERROR("(InternalCalls_Scene_SaceSceneAs) Failed to save scene: EditorUtils is null!");
+			return false;
+		}
+
+		ScriptGlue::s_EditorUtils->SaveSceneAs(fillpath);
+		return true;
 	}
 	bool ScriptGlue::InternalCalls_Scene_LoadScene(MonoString* sceneName)
 	{
-		return false;
+		char* name = mono_string_to_utf8(sceneName);
+		std::string filename = std::string(name);
+		std::string fullpath = "Res/Assets/Scenes/" + filename;
+
+		FAY_LOG_DEBUG("Loading Scene: " << fullpath);
+		if (!ScriptGlue::s_EditorUtils)
+		{
+			FAY_LOG_ERROR("(InternalCalls_Scene_LoadScene Failed to load scene: EditorUtils is null!");
+			return false;
+		}
+		ScriptGlue::s_EditorUtils->LoadScene(fullpath);
+	}
+	int ScriptGlue::InternalCalls_Scene_GetChildCount(MonoString* sceneName)
+	{
+		char* name = mono_string_to_utf8(sceneName);
+		std::string filename = std::string(name);
+		std::string fullpath = "Res/Assets/Scenes/" + filename;
+
+		if (ScriptGlue::s_EditorUtils->GetCurrentSceneName() != ScriptGlue::s_EditorUtils->GetSceneNameFromPath(fullpath))
+		{
+			FAY_LOG_ERROR("InternalCalls_Scene_GetChildCount: Scene is not active! Current scene: " << ScriptGlue::s_EditorUtils->GetCurrentSceneName() << ", requested scene: " << fullpath);
+			return 0;
+		}
+
+		// Get the current scene and return the number of objects in it
+		return ScriptGlue::s_EditorUtils->GetScene()->getObjectCount();
+	}
+	uint32_t ScriptGlue::InternalCalls_Node_GetChild(MonoObject* node, uint32_t index)
+	{
+		NodeID nodeId = GetNodeIDFromMonoObject(node);
+
+		if (nodeId == INVALID_NODE)
+		{
+			FAY_LOG_ERROR("InternalCalls_Node_GetChild: Invalid node ID!");
+			return INVALID_NODE;
+		}
+
+		auto* controller = ComponentManager<ControllerComponent>::Get().getNodeComponent(nodeId);
+
+		if (!controller)
+		{
+			FAY_LOG_ERROR("InternalCalls_Node_GetChild: Node does not have a ControllerComponent!");
+			return INVALID_NODE;
+		}
+
+		const auto& entities = controller->getEntities();
+
+		if (index >= entities.size())
+		{
+			FAY_LOG_ERROR("InternalCalls_Node_GetChild: Index out of bounds! Node has " << entities.size() << " children, but index " << index << " was requested.");
+			return INVALID_NODE;
+		}
+
+		return entities[index];
+	}
+	int ScriptGlue::InternalCalls_Node_GetChildCount(MonoObject* node)
+	{
+		NodeID nodeId = GetNodeIDFromMonoObject(node);
+
+		if (nodeId == INVALID_NODE)
+		{
+			FAY_LOG_ERROR("InternalCalls_Node_GetChildCount: Invalid node ID!");
+			return 0;
+		}
+
+		auto* controller = ComponentManager<ControllerComponent>::Get().getNodeComponent(nodeId);
+
+		if (!controller)
+		{
+			FAY_LOG_ERROR("InternalCalls_Node_GetChildCount: Node does not have a ControllerComponent!");
+			return 0;
+		}
+
+		const auto& entities = controller->getEntities();
+		return entities.size();
 	}
 }

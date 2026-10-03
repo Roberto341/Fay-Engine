@@ -220,10 +220,9 @@ namespace Fay
 				((int)(color.z * 255.0f) << 16) |
 				((int)(color.y * 255.0f) << 8) |
 				((int)(color.x * 255.0f));
-
 			// Use a flaot quad in 3D space (z-facing)
-			Vec3 pos = position;
-			Vec3 s = size;
+			//Vec3 pos = position;
+			//Vec3 s = size;
 
 			Vec3 cubeVertices[6][4] = {
 				// Front face

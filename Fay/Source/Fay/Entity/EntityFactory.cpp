@@ -42,6 +42,21 @@ namespace Fay
 
 		return entity;
 	}
+	NodeID EntityFactory::CreateControllNode(const std::string& name)
+	{
+		NodeID nId = m_scene->getNextNodeId();
+
+		auto* node = new ControlNode(
+			nId, 
+			name
+		);
+
+		ComponentManager<ControllerComponent>::Get().addNodeComponent(nId, ControllerComponent());
+
+		m_scene->addNode(node);
+
+		return nId;
+	}
 	EntityID EntityFactory::CreateEntity(RenderMode mode)
 	{
 		if (mode == RenderMode::MODE_2D)

@@ -33,6 +33,8 @@ namespace FayRuntime
         internal static extern bool InternalCalls_Entity_CheckCollision(object entity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern float InternalCalls_Entity_GetSpeed();
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool InternalCalls_Entity_HasTag(object entity, string tag);
         // Input handling
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool InternalCalls_Window_KeyPressed(int keyCode);
@@ -50,8 +52,17 @@ namespace FayRuntime
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void InternalCalls_Scene_CreateScene(string sceneName);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool InternalCalls_Scene_SaveScene(string sceneName);
+        internal static extern bool InternalCalls_Scene_SaveScene();
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool InternalCalls_Scene_SaveSceneAs(string sceneName);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool InternalCalls_Scene_LoadScene(string sceneName);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern int InternalCalls_Scene_GetChildCount(string sceneName);
+        // Node
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern int InternalCalls_Node_GetChildCount(Node node);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern uint InternalCalls_Node_GetChild(Node node, uint index);
     }
 }
