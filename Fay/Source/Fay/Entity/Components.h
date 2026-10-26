@@ -18,6 +18,21 @@ namespace Fay
 		Scene2D,
 		Scene3D
 	};
+	// Animation system
+	struct AnimatorComponent
+	{
+		int currentFrame = 0;
+
+		int frameWidth = 32;
+		int frameHeight = 32;
+		int frameCount = 8;
+		float framesPerSecond = 8.0f;
+		
+		float elapsedTime = 0.0f;
+
+		bool isPlaying = true;
+		bool loop = true;
+	};
 	struct TransformComponent
 	{
 		Vec3 position = Vec3(0, 0, 0);
@@ -144,6 +159,12 @@ namespace Fay
 		}
 		uint32_t getId() const{
 			return sprite->getId();
+		}
+
+		void setSpriteFrame(int frame, int frameWidth, int frameHeight)
+		{
+			if (sprite)
+				sprite->setSpriteFrame(frame, frameWidth, frameHeight);
 		}
 	};
 

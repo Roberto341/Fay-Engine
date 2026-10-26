@@ -20,6 +20,7 @@
 #include <EngineEditor/EditorViewport.h>
 #include <EngineEditor/EditorUtils.h>
 #include <Entity/EntityFactory.h>
+#include <Utils/Timer.h>
 namespace Fay
 {
 	class EditorViewport;

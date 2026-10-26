@@ -35,5 +35,4 @@ namespace Fay
 		}
 		return nullptr;
 	}
-	
 }

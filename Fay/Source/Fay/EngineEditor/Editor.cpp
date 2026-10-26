@@ -15,6 +15,14 @@ namespace Fay
 		TextureManager::add(new Texture("Wav", "Res/Assets/Content-Browser/Icons/WAV_Icon.png"));
 		TextureManager::add(new Texture("Mp3", "Res/Assets/Content-Browser/Icons/MP3_Icon.png"));
 		TextureManager::add(new Texture("Scene", "Res/Assets/Content-Browser/Icons/Scene_Icon.png"));
+		TextureManager::add(new Texture("Dirt", "Res/Assets/Textures/Dirt.png"));
+		TextureManager::add(new Texture("Sand", "Res/Assets/Textures/Sand.png"));
+		TextureManager::add(new Texture("Dev1", "Res/Assets/Textures/b.png"));
+		TextureManager::add(new Texture("Dev2", "Res/Assets/Textures/tc.png"));
+		TextureManager::add(new Texture("Idle", "Res/Assets/Textures/player_idle.png"));
+		TextureManager::add(new Texture("Left", "Res/Assets/Textures/player_left.png"));
+		TextureManager::add(new Texture("House1", "Res/Assets/Textures/House_1.png"));
+
 
 	}
 
@@ -92,6 +100,8 @@ namespace Fay
 
 	void Editor::runEditor()
 	{
+		AnimatorComponent animator;
+		Timer m_timer;
 		while (!m_window->closed())
 		{
 			//m_window.clear();
@@ -112,6 +122,12 @@ namespace Fay
 			// new render mode
 			if (!m_utils->GetSkipNextFrame())
 			{
+				if (m_utils->GetIsPlaying())
+				{
+					float deltaTime = m_timer.elapsed();
+
+					m_utils->GetScene()->updateAnimations(deltaTime);
+				}
 				m_utils->GetScene()->render(m_utils->GetRenderLayer());
 			}
 			else
@@ -130,7 +146,6 @@ namespace Fay
 				m_core->handleScriptExecution();
 			}
 			m_ui->DrawFileMenu();
-
 			// Rendering ImGui
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

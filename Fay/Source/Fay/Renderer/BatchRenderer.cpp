@@ -106,6 +106,7 @@ namespace Fay
 
 	void BatchRenderer::begin()
 	{
+		m_textureSlots.clear();
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 		m_buffer = (TestVertexData*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	}

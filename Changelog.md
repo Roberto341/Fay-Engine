@@ -741,3 +741,56 @@ I've also begun working on the built-in code editor. It's still a work in progre
 * Refactored FayCore script loading
 * Added Play/Stop script lifecycle support
 * Added conditional script rebuilding
+
+# Update - October 26th, 2026
+
+## Updates
+
+After a week of working on some feature ideas, I decided to hop back on the train and get a few more parts put together. The first thing I did was bring back the ability to add a `texture` to a 2D sprite or entity, which was very much needed for the next task I had planned.
+
+This task is still in development and isn't 100% complete yet. There are still a few things left to change and modify, but I'll break those down as we go.
+
+So, let's get into this update! I've added the beginning stages of an animation system for 2D entities. This will allow you to add the new `AnimatorComponent` to the entity you wish to animate and then supply it with a sprite sheet containing the animations you want to use.
+
+As I mentioned earlier, this is still a work in progress. I still need to work with the textures a little more and set up a system to read sprite sheets and incorporate them into the animation system, rather than treating them as standalone textures.
+
+A few changes have been made, as you'll see further down. Some things have been modified, while others have been added. Additionally, I'd like to point out that if you're wondering how to add textures to the engine, it's pretty simple! Read below to learn how to do it yourself.
+
+If you're making your own textures and would like to add them to the engine, head over to the `Editor.cpp` file in `Fay/Source/Engine/EngineEditor`. After the other `TextureManager` entries, add another line using the following format:
+
+`TextureManager::add(new Texture("name", "file location"));`
+
+If you're adding your own textures, I recommend placing them in `Res/Assets/Textures`. This makes it easier to manage and add them to the engine. Eventually, this process will change, and textures will be added to the texture manager automatically. For now, however, we have to manually tell the engine where everything is located.
+
+This will most likely happen in the next update, which will also be the release of **A4.0**! I've taken care of most of the hiccups, and I just need to finish the animation system before rolling it out.
+
+Additionally, I'd like to let everyone know that the built-in code editor has been completed! There are still a few things being worked on, so it's technically still a work in progress, but the core logic is finished.
+
+### BatchRenderer
+
+* `Modified` — `BatchRenderer::begin()` now clears the texture slots, as they were causing issues when swapping textures on an entity.
+
+### Components
+
+* `Added` — `AnimatorComponent`
+
+### Scene
+
+* `Added` — `void updateAnimations(float deltaTime);`
+* `Added` — `void UpdateAnimator(AnimatorComponent& animator, float deltaTime);`
+
+### TextureManager
+
+* `Added` — `static const std::vector<Texture*>& getTextures() { return m_textures; }`
+
+### ViewportMode2D
+* `Modified` - `void Setup()` added texture samplers above the projection matrix
+
+### Basic.frag (Fragment Shader)
+
+* `Modified` — Updated the main execution logic to ignore an entity's color when it has a texture. If the entity doesn't have a texture, its color will be applied instead.
+
+### EditorUtils
+
+* `Added` — The ability to add or remove textures through the `drawEntityColorUI()` method.
+* `Added` — A popup that displays all currently loaded textures from the texture manager.

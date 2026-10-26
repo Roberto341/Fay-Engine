@@ -20,8 +20,13 @@ void main()
     if (fs_in.tid > 0.0)
     {
         int tid = int(fs_in.tid - 0.5);
-        vec4 sampled = texture(textures[tid], fs_in.uv);
-        texColor *= sampled;
+        //vec4 sampled = texture(textures[tid], fs_in.uv);
+        //texColor *= sampled;
+        texColor = texture(textures[tid], fs_in.uv);
+    }
+    else
+    {
+        texColor = fs_in.color;
     }
 
     texColor *= colour;

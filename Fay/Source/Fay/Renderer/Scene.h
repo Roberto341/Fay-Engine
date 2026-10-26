@@ -27,6 +27,9 @@ namespace Fay
 		void destroyEntity(EntityID id);
 		void clear();
 		void render(TileLayer* renderingLayer) const;
+		// Animator
+		void updateAnimations(float deltaTime);
+		void UpdateAnimator(AnimatorComponent& animator, float deltaTime);
 
 		const std::vector<Renderable*>& getObjects() const { return m_objects; }
 		const std::vector<ControlNode*>& getNodes() const { return m_nodes; }

@@ -61,7 +61,7 @@ namespace Fay
 		bool GetShowControlNameBox() { return m_showControlNameBox; }
 		bool GetShowTagNameBox() { return m_showTagNameBox; }
 		bool GetIsPlaying() { return m_isPlaying; }
-
+		const std::string& GetSelectedScript() const { return m_currentScript; }
 		bool classExists(const std::string& className) const
 		{
 			return ScriptEngine::GetMonoClass(className) != nullptr;
@@ -92,7 +92,7 @@ namespace Fay
 		void SetShowControlNameBox(bool yn) { m_showControlNameBox = yn; }
 		void SetShowTagNameBox(bool yn) { m_showTagNameBox = yn; }
 		void SetIsPlaying(bool yn) { m_isPlaying = yn; }
-
+		void SetSelectedScript(const std::string& scriptName) { m_currentScript = scriptName; }
 		void SetEntitySpeed(float speed) { s_entitySpeed = speed; }
 		
 		void SaveScene();
@@ -117,54 +117,132 @@ namespace Fay
 			sprintf(idBuf, "%d", entity);
 			ImGui::InputText("Entity ID", idBuf, IM_ARRAYSIZE(idBuf), ImGuiInputTextFlags_ReadOnly);
 
-			Vec4 col = object->getColor();
-			float color[4] = { col.x, col.y, col.z, col.w };
+			Texture* texture = object->getTexture();
 
-			// if entity has a texture ignore this
-			if (ImGui::ColorEdit4("Color", color))
+			if (texture)
 			{
-				object->setColor(Vec4(color[0], color[1], color[2], color[3]));
-				comp->setColor(object->getColor());
-			}
-			
-			ImGui::Separator();
-			//static int selectedIndex = -1;
-				if (ImGui::Button("Add Tag"))
-				{
-					SetShowTagNameBox(true);
-				}
+				ImGui::Text("Texture");
+
+				ImGui::ImageButton("##TexturePreview", (ImTextureID)(intptr_t)texture->getId(), ImVec2(80.0f, 80.0f), ImVec2(0, 1), ImVec2(1, 0));
+
 				ImGui::SameLine();
-				if (ImGui::Button("Remove Tag"))
+
+				ImGui::BeginGroup();
+				ImGui::TextWrapped("%s", texture->getName().c_str());
+
+				if (ImGui::Button("Remove Texture"))
 				{
-					if (comp->removeTagBool(m_selectedTag))
-					{
-						m_selectedTag.clear();
-					}
+					object->setTexture(nullptr);
+					FAY_LOG_DEBUG("Texture Removed" << texture->getName() << " | Texture ID: " << texture->getId());
+					texture = nullptr;
 				}
-				if (ImGui::BeginListBox("Tags", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+
+				ImGui::EndGroup();
+			}
+			else
+			{
+				ImGui::Text("Texture");
+				if (ImGui::Button("No Texture", ImVec2(100.0f, 80.0f)))
 				{
-					std::string tagsString = comp->getAllTagsAsString();
+					ImGui::OpenPopup("AddTexturePop");
+				}
 
-					std::stringstream ss(tagsString);
-					std::string tag;
+				if (ImGui::BeginPopup("AddTexturePop"))
+				{
+					ImGui::Text("Select a texture");
+					ImGui::Separator();
 
-					while (std::getline(ss, tag, ','))
+					// TODO: Display available textures here.
+					for (Texture* texture : TextureManager::getTextures())
 					{
-						if (tag.empty())
+						if (!texture)
 							continue;
 
-						bool selected = (m_selectedTag == tag);
+						ImGui::PushID(texture->getName().c_str());
 
-						if (ImGui::Selectable(tag.c_str(), selected))
-							SetSelectedTag(tag);
+						if (ImGui::ImageButton("##TextureButton", (ImTextureID)(intptr_t)texture->getId(), ImVec2(64.0f, 64.0f), ImVec2(0, 1), ImVec2(1, 0)))
+						{
+							object->setTexture(texture);
+							FAY_LOG_DEBUG(
+								"Entity: " << entity
+								<< " | Object: " << object
+								<< " | Texture: "
+								<< (object->getTexture()
+									? object->getTexture()->getName()
+									: "nullptr")
+								<< " | Texture ID: " << object->getTID()
+							);
+							ImGui::CloseCurrentPopup();
+						}
 
-						if (selected)
-							ImGui::SetItemDefaultFocus();
+						if (ImGui::IsItemHovered())
+						{
+							ImGui::SetTooltip("%s", texture->getName().c_str());
+						}
+						ImGui::PopID();
+
+						ImGui::SameLine();
 					}
-					ImGui::EndListBox();
-				}
 
-			// if entity has a texture, show here
+					ImGui::NewLine();
+					
+					if (ImGui::MenuItem("Cancel"))
+					{
+						ImGui::CloseCurrentPopup();
+					}
+
+					ImGui::EndPopup();
+				}
+			}
+
+			// Only edit the color when the object has no texture.
+			if (!texture)
+			{
+				Vec4 col = object->getColor();
+				float color[4] = { col.x, col.y, col.z, col.w };
+
+				if (ImGui::ColorEdit4("Color", color))
+				{
+					object->setColor(Vec4(color[0], color[1], color[2], color[3]));
+					comp->setColor(object->getColor());
+				}
+			}
+			ImGui::Separator();
+			//static int selectedIndex = -1;
+			if (ImGui::Button("Add Tag"))
+			{
+				SetShowTagNameBox(true);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Remove Tag"))
+			{
+				if (comp->removeTagBool(m_selectedTag))
+				{
+					m_selectedTag.clear();
+				}
+			}
+			if (ImGui::BeginListBox("Tags", ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing())))
+			{
+				std::string tagsString = comp->getAllTagsAsString();
+
+				std::stringstream ss(tagsString);
+				std::string tag;
+
+				while (std::getline(ss, tag, ','))
+				{
+					if (tag.empty())
+						continue;
+
+					bool selected = (m_selectedTag == tag);
+
+					if (ImGui::Selectable(tag.c_str(), selected))
+						SetSelectedTag(tag);
+
+					if (selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndListBox();
+			}
 		}
 		void drawNodeScriptList(NodeID node)
 		{
@@ -407,6 +485,7 @@ namespace Fay
 		// For scene name
 		std::string m_currentScene;
 		std::string m_sceneName;
+		std::string m_currentScript;
 		Scene* m_scene = nullptr;
 
 		Camera3D* m_camera3D = nullptr;

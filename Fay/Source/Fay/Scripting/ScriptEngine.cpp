@@ -53,7 +53,7 @@ namespace Fay
             fs::path dllPath = fayRoot / "Fay/Source/Fay/Scripting/FayRuntime/bin/Debug/net48/FayRuntime.dll"; // Change to release after completion
 
             if (!fs::exists(dllPath))
-                FAY_LOG_THROW_ERROR("FayRuntime.dll not found at" + dllPath.string());
+                FAY_LOG_ERROR("FayRuntime.dll not found at" << dllPath.string());
 
             return dllPath.string();
         }
@@ -73,7 +73,7 @@ namespace Fay
             fs::path dllPath = fayRoot / "Fay/Source/Fay/Scripting/FayCore/bin/Any CPU/Debug/net48/FayCore.dll"; // Change to release after completion
 
             if (!fs::exists(dllPath))
-                FAY_LOG_THROW_ERROR("FayCore.dll not found at" + dllPath.string());
+                FAY_LOG_ERROR("FayCore.dll not found at" << dllPath.string());
 
 
 
@@ -94,7 +94,7 @@ namespace Fay
             fs::path csPath = fayRoot / "Fay/Source/Fay/Scripting/FayCore/FayCore.csproj";
           
             if (!fs::exists(csPath))
-                FAY_LOG_THROW_ERROR("FayCore.csproj not found at" + csPath.string());
+                FAY_LOG_ERROR("FayCore.csproj not found at" << csPath.string());
 
 
             return csPath.string();
@@ -524,16 +524,6 @@ namespace Fay
                 comp->scripts.emplace_back(className);
             }
 
-            // Auto-inialize the new script
-			// Disabled for right now as it does not need to auto initialize on creation, only when the scene is running
-            /*
-            auto& newScript = comp->scripts.back();
-            if (!newScript.hasStarted)
-            {
-                ScriptEngine::InvokeCoreStatic(newScript.className, "OnStart");
-                newScript.hasStarted = true;
-            }
-            */
             FAY_LOG_INFO("Script " << className << " created and attatched to entity " << entity);
         }
         void ScriptEngine::createScriptTemplateNode(const std::string& path, uint32_t node)
@@ -564,7 +554,7 @@ namespace Fay
             // Write template
             createTemplate(path, className);
 
-            // If no script component exists, create it
+            // If no ScriptComponent exists, create it
             if (!comp)
             {
                 ScriptComponent newComp(node);

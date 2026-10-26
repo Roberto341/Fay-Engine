@@ -79,6 +79,55 @@ namespace Fay
 			renderingLayer->render();
 		}
 	}
+	void Scene::updateAnimations(float deltaTime)
+	{
+		for (auto* sp : getObjects())
+		{
+			if (!sp)
+				continue;
+
+			auto* spriteComp = ComponentManager<SpriteComponent>::Get().getComponent(sp->getId());
+
+			if (!spriteComp || !spriteComp->sprite)
+				continue;
+			auto* animator = ComponentManager<AnimatorComponent>::Get().getComponent(sp->getId());
+
+			if (!animator)
+				continue;
+
+			UpdateAnimator(*animator, deltaTime);
+
+			spriteComp->sprite->setSpriteFrame(animator->currentFrame, animator->frameWidth, animator->frameHeight);
+		}
+	}
+	void Scene::UpdateAnimator(AnimatorComponent& animator, float deltaTime)
+	{
+		if (!animator.isPlaying || animator.frameCount <= 1)
+			return;
+
+		animator.elapsedTime += deltaTime;
+
+		const float frameDuration = 1.0f / animator.framesPerSecond;
+
+		while (animator.elapsedTime >= frameDuration)
+		{
+			animator.elapsedTime -= frameDuration;
+			animator.currentFrame++;
+
+			if (animator.currentFrame >= animator.frameCount)
+			{
+				if (animator.loop)
+					animator.currentFrame = 0;
+				else
+				{
+					animator.currentFrame = animator.frameCount - 1;
+					animator.isPlaying = false;
+					break;
+
+				}
+			}
+		}
+	}
 	ControlNode* Scene::getNodeByIndex(NodeID index) const
 	{
 		if (index >= m_nodes.size())
@@ -246,6 +295,7 @@ namespace Fay
 			bool hasHitBox = ComponentManager<CollisionComponent>::Get().hasComponent(entity);
 			bool hasCube = ComponentManager<CubeComponent>::Get().hasComponent(entity);
 			bool hasScript = ComponentManager<ScriptComponent>::Get().hasComponent(entity);
+			bool hasAnimator = ComponentManager<AnimatorComponent>::Get().hasComponent(entity);
 
 			uint32_t componentCount = 0;
 
@@ -255,6 +305,8 @@ namespace Fay
 			if (hasHitBox) componentCount++;
 			if (hasCube && m_ActiveScene == SceneType::Scene3D) componentCount++;
 			if (hasScript) componentCount++;
+			if (hasAnimator) componentCount++;
+
 			// Write component count
 			out.write(reinterpret_cast<const char*>(&componentCount), sizeof(uint32_t));
 
@@ -330,6 +382,34 @@ namespace Fay
 					out.write(reinterpret_cast<const char*>(&scriptCount), sizeof(uint32_t));
 					for (auto& s : scriptComp->scripts)
 						writeString(out, s.className);
+				}
+			}
+			if (hasAnimator)
+			{
+				std::string compName = "AnimatorComponent";
+				uint32_t nameLen = static_cast<uint32_t>(compName.size());
+				out.write(reinterpret_cast<const char*>(&nameLen), sizeof(uint32_t));
+				out.write(compName.c_str(), nameLen);
+
+				const AnimatorComponent* animatorComp = ComponentManager<AnimatorComponent>::Get().getComponent(entity);
+
+				if (animatorComp)
+				{
+					int currentFrame = static_cast<int>(animatorComp->currentFrame);
+					int frameCount = static_cast<int>(animatorComp->frameCount);
+					int frameWidth = static_cast<int>(animatorComp->frameWidth);
+					int frameHeight = static_cast<int>(animatorComp->frameHeight);
+					float fps = static_cast<float>(animatorComp->framesPerSecond); 
+					float elapsedTime = static_cast<float>(animatorComp->elapsedTime);
+					bool loop = static_cast<bool>(animatorComp->loop);
+
+					out.write(reinterpret_cast<const char*>(&currentFrame), sizeof(int));
+					out.write(reinterpret_cast<const char*>(&frameCount), sizeof(int));
+					out.write(reinterpret_cast<const char*>(&frameWidth), sizeof(int));
+					out.write(reinterpret_cast<const char*>(&frameHeight), sizeof(int));
+					out.write(reinterpret_cast<const char*>(&fps), sizeof(float));
+					out.write(reinterpret_cast<const char*>(&elapsedTime), sizeof(float));
+					out.write(reinterpret_cast<const char*>(&loop), sizeof(bool));
 				}
 			}
 			if (hasCube && m_ActiveScene == SceneType::Scene3D)
@@ -553,6 +633,19 @@ namespace Fay
 						sc.scripts.emplace_back(className);
 					}
 					ComponentManager<ScriptComponent>::Get().addComponent(entity, sc);
+				}
+				else if (compName == "AnimatorComponent")
+				{
+					AnimatorComponent ac(entity);
+					in.read(reinterpret_cast<char*>(&ac.currentFrame), sizeof(int));
+					in.read(reinterpret_cast<char*>(&ac.frameCount), sizeof(int));
+					in.read(reinterpret_cast<char*>(&ac.frameWidth), sizeof(int));
+					in.read(reinterpret_cast<char*>(&ac.frameHeight), sizeof(int));
+					in.read(reinterpret_cast<char*>(&ac.framesPerSecond), sizeof(float));
+					in.read(reinterpret_cast<char*>(&ac.elapsedTime), sizeof(float));
+					in.read(reinterpret_cast<char*>(&ac.loop), sizeof(bool));
+						
+					ComponentManager<AnimatorComponent>::Get().addComponent(entity, ac);
 				}
 				else if (compName == "CubeComponent")
 				{

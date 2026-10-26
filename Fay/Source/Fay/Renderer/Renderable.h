@@ -90,6 +90,48 @@ namespace Fay
 			return collision;
 		}
 
+		// Animation stuff
+		void setUV(const std::vector<Vec2>& uv)
+		{
+			if (uv.size() != 4)
+				return;
+
+			m_uv = uv;
+		}
+
+		void setSpriteFrame(int frame, int frameWidth, int frameHeight)
+		{
+			if (frameWidth <= 0 || frameHeight <= 0)
+				return;
+
+			const int textureWidth = m_texture->getWidth();
+			const int textureHeight = m_texture->getHeight();
+
+			int cols = textureWidth / frameWidth;
+			int rows = textureHeight / frameHeight;
+
+			if (cols <= 0 || rows <= 0 || frame < 0 || frame >= cols * rows)
+				return;
+
+			int col = frame % cols;
+			int row = frame / cols;
+
+			float u0 = static_cast<float>(col * frameWidth) / textureWidth;
+			float u1 = static_cast<float>((col + 1) * frameWidth) / textureWidth;
+
+			// Image rows are normally counted from the top.
+			// OpenGL texture UVs usually have their origin at the bottom.
+			float v1 = 1.0f - static_cast<float>(row * frameHeight) / textureHeight;
+			float v0 = 1.0f - static_cast<float>((row + 1) * frameHeight) / textureHeight;
+
+			m_uv = {
+				Vec2(u0, v0),
+				Vec2(u0, v1),
+				Vec2(u1, v1),
+				Vec2(u1, v0)
+			};
+		}
+
 	private:
 		void setUVDefaults()
 		{

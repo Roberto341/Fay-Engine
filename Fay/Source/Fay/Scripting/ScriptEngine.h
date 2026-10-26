@@ -12,7 +12,7 @@
 #include <Entity/ComponentManager.h>
 #include <Entity/Components.h>
 #include <filesystem>
-#define LOG_MONO_DLL_CLASSES 1
+#define LOG_MONO_DLL_CLASSES 0
 namespace Fay
 {
 	class ScriptEngine

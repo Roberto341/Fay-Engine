@@ -426,6 +426,16 @@ namespace Fay
 						{
 							ComponentManager<ScriptComponent>::Get().addComponent(entity, ScriptComponent(entity));
 						}
+						// Animation
+						if (ComponentManager<AnimatorComponent>::Get().hasComponent(entity))
+						{
+							if (ImGui::Button("Remove Animator Component"))
+								ComponentManager<AnimatorComponent>::Get().removeComponent(entity);
+						}
+						else if (ImGui::Button("Add Animator Component"))
+						{
+							ComponentManager<AnimatorComponent>::Get().addComponent(entity, AnimatorComponent());
+						}
 					}
 				}
 			}
@@ -515,6 +525,10 @@ namespace Fay
 			{
 				// Load Scene
 				m_utils->LoadScene(path.string().c_str());
+			}
+			if (extension == ".cs")
+			{
+				m_utils->SetSelectedScript(path.string());
 			}
 
 			FAY_LOG_INFO("Opening File: " << path.string());
@@ -948,8 +962,63 @@ namespace Fay
 	{
 		ImGui::Begin("Code Editor");
 
-		static std::string my_code_buffer = "#include <iostream>\n\nint main() {\n    std::cout << \"Hello World!\";\n    return 0;\n}";
-		SetupCodeEditor("##my_editor", my_code_buffer);
+		static std::string my_code_buffer;
+		static std::string loadedScript;
+
+		const std::string& selectedScript = m_utils->GetSelectedScript();
+
+		if (!selectedScript.empty() && selectedScript != loadedScript)
+		{
+
+			std::ifstream file(selectedScript);
+
+			if (file.is_open())
+			{
+				my_code_buffer.assign(
+					std::istreambuf_iterator<char>(file), 
+					std::istreambuf_iterator<char>()
+				);
+
+				loadedScript = selectedScript;
+
+				FAY_LOG_INFO("Loaded script into Code Editor: " << selectedScript);
+			}
+			else
+			{
+				FAY_LOG_ERROR("Failed to open script: " << selectedScript);
+			}
+		}
+
+		if (!selectedScript.empty())
+		{
+
+			if (ImGui::Button("Save"))
+			{
+				std::ofstream file(selectedScript);
+
+				if (file.is_open())
+				{
+					file << my_code_buffer;
+					file.close();
+
+					FAY_LOG_INFO("Saved script: " << selectedScript);
+				}
+				else
+				{
+					FAY_LOG_ERROR("Failed to save script: " << selectedScript);
+				}
+			}
+
+			ImGui::SameLine();
+			ImGui::Text("%s", selectedScript.c_str());
+
+			SetupCodeEditor("##my_editor", my_code_buffer);
+		}
+		else
+		{
+			ImGui::TextDisabled("No script selected.");
+		}
+
 		ImGui::End();
 	}
 #pragma endregion 

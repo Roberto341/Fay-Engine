@@ -14,6 +14,14 @@ namespace Fay
 		ctx.view = Mat4::identity();
 
 		utils->GetShader()->enable();
+
+		// Map each sampler to its corresponding OpenGL texture unit.
+		int samplers[16];
+		for (int i = 0; i < 16; ++i)
+			samplers[i] = i;
+
+		utils->GetShader()->setUniform1iv("textures", samplers, 16);
+
 		utils->GetShader()->setUniformMat4("pr_matrix", ctx.proj);
 		utils->GetShader()->setUniformMat4("vw_matrix", ctx.view);
 	}

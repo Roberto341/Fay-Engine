@@ -37,7 +37,7 @@ namespace Fay
 
 		void rebuildRuntime() const;
 		void handleScriptExecution();
-
+		
 		void SetUtils(EditorUtils* utils) { m_utils = utils; }
 		void SetContext(EditorContext& context);
 		const EditorContext& getContext() const { return *m_context; }
